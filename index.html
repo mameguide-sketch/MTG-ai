@@ -6,8 +6,8 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.3.1</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
-<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.4.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
 <div class="card"><h2>デッキ入力</h2><div class="controls">
@@ -91,6 +91,35 @@ Sideboard
     </div>
   </div>
 </section>
+
+<section class="view" id="engine">
+  <div class="card">
+    <div class="dbHead">
+      <div>
+        <h2>Knowledge Engine α</h2>
+        <p class="notice">スタンダード全カードを自動分類し、知識タグの網羅率と未分類カードを確認します。外部デッキデータにはまだ接続していません。</p>
+      </div>
+      <div class="dbActions"><button class="btn secondary" id="engineRefreshBtn">集計を更新</button><button class="btn" id="engineExportBtn">知識データを書き出す</button></div>
+    </div>
+    <div class="status" id="engineStatus">このタブを開くとカード知識を集計します。</div>
+    <div class="engineMetrics section">
+      <div class="metric"><b id="engineTotal">0</b><span>対象カード</span></div>
+      <div class="metric"><b id="engineProfiled">0%</b><span>タグ付与率</span></div>
+      <div class="metric"><b id="engineTags">0</b><span>知識タグ数</span></div>
+      <div class="metric"><b id="engineAverage">0</b><span>平均タグ数</span></div>
+    </div>
+    <div class="engineGrid section">
+      <section class="mini"><h3>タグ分布</h3><div id="engineTagChart" class="tagChart"><div class="empty">未集計です。</div></div></section>
+      <section class="mini"><h3>解析品質</h3><div id="engineQuality" class="qualityList"><div class="empty">未集計です。</div></div></section>
+    </div>
+    <div class="section">
+      <div class="knowledgeHeader"><div><h3>カード知識一覧</h3><p class="notice">タグ名・カード名で絞り込み、解析結果を点検できます。</p></div><span class="knowledgeCount" id="engineCount">0件</span></div>
+      <div class="dbFilters engineFilters"><input id="engineQuery" placeholder="カード名・タグを検索"><select id="engineGroup"><option value="">全グループ</option><option>生成</option><option>利用</option><option>誘発</option><option>補助</option><option>妨害</option><option>戦略</option><option>勝ち筋</option><option value="未分類">未分類のみ</option></select><select id="engineSort"><option value="confidence">信頼度順</option><option value="tags">タグ数順</option><option value="name">名前順</option></select></div>
+      <div id="engineResults" class="engineResults"><div class="empty">カードデータ取得後に表示します。</div></div>
+    </div>
+  </div>
+</section>
+
 <section class="view" id="library"><div class="card"><h2>保存デッキ</h2><div class="saved" id="savedDecks"></div></div></section>
 <section class="view" id="about"><div class="card"><h2>分析方法</h2><p class="notice">カードを「生成」「消費」「誘発」「補助」の方向に分解します。たとえば、トークンを作るカードとトークンを生け贄にして利益を得るカード、墓地を肥やすカードと墓地枚数を参照するカードを別役割として認識し、相互補完を加点します。</p><table><tr><th>分析軸</th><th>内容</th></tr><tr><td>色適合</td><td>デッキの色アイデンティティ外を強く減点</td></tr><tr><td>方向性シナジー</td><td>生成側→利用側、誘発条件→誘発報酬を対応</td></tr><tr><td>不足補完</td><td>除去・ドロー・マナ加速・保護・勝ち手段の不足を補う候補を加点</td></tr><tr><td>マナカーブ</td><td>混雑帯を減点し、不足帯を加点</td></tr><tr><td>種族</td><td>共通クリーチャー・タイプと直接参照を加点</td></tr><tr><td>カード品質近似</td><td>柔軟性、即時性、カード差、除去耐性をテキストから推定</td></tr></table><p class="notice">この版は大会採用率や勝率を自動取得していません。その情報は大会データ提供元ごとに規約・形式が異なるためです。現在はカード本文から導く構造的相性に特化しています。</p></div></section>
 </main>

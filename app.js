@@ -407,3 +407,67 @@ function setupInspector(){
   bindActionContainer($('inspectorResult'));renderRecentInspector();
 }
 setupInspector();
+
+/* ===== Lunch Forge v0.4.0: Knowledge Engine α ===== */
+let engineProfiles=[];
+function profileConfidence(c,p){
+  let score=18;
+  score+=Math.min(48,p.tags.length*9);
+  if(p.grouped['生成']?.length&&p.grouped['利用']?.length)score+=10;
+  if(p.strengths.length)score+=8;
+  if(p.needs.length)score+=6;
+  if(displayOracle(c).trim().length<8)score=Math.min(score,35);
+  return Math.max(5,Math.min(100,Math.round(score)));
+}
+function buildEngineProfiles(){
+  engineProfiles=pool.map(card=>{const profile=knowledgeProfile(card);return{card,profile,confidence:profileConfidence(card,profile)}});
+  return engineProfiles;
+}
+function confidenceClass(n){return n>=70?'high':n>=40?'mid':'low'}
+function renderEngineSummary(){
+  if(!engineProfiles.length)buildEngineProfiles();
+  const tagged=engineProfiles.filter(x=>x.profile.tags.length);
+  const avg=engineProfiles.reduce((s,x)=>s+x.profile.tags.length,0)/Math.max(1,engineProfiles.length);
+  $('engineTotal').textContent=engineProfiles.length.toLocaleString();
+  $('engineProfiled').textContent=Math.round(tagged.length/Math.max(1,engineProfiles.length)*100)+'%';
+  $('engineTags').textContent=Object.keys(KNOWLEDGE_TAGS).length;
+  $('engineAverage').textContent=avg.toFixed(1);
+  const counts={};for(const x of engineProfiles)for(const t of x.profile.tags)counts[t]=(counts[t]||0)+1;
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,15),max=Math.max(1,...top.map(x=>x[1]));
+  $('engineTagChart').innerHTML=top.length?top.map(([t,n])=>`<div class="tagBarRow"><span>${esc(KNOWLEDGE_TAGS[t].label)}</span><div class="tagBarTrack"><div class="tagBarFill" style="width:${Math.round(n/max*100)}%"></div></div><b>${n}</b></div>`).join(''):'<div class="empty">タグを検出できませんでした。</div>';
+  const high=engineProfiles.filter(x=>x.confidence>=70).length,mid=engineProfiles.filter(x=>x.confidence>=40&&x.confidence<70).length,low=engineProfiles.filter(x=>x.confidence<40).length,none=engineProfiles.length-tagged.length;
+  $('engineQuality').innerHTML=`<div class="qualityItem"><span>高信頼度</span><b>${high.toLocaleString()}枚</b></div><div class="qualityItem"><span>中信頼度</span><b>${mid.toLocaleString()}枚</b></div><div class="qualityItem"><span>要確認</span><b>${low.toLocaleString()}枚</b></div><div class="qualityItem"><span>未分類</span><b>${none.toLocaleString()}枚</b></div>`;
+}
+function renderEngineResults(){
+  if(!engineProfiles.length)buildEngineProfiles();
+  const q=String($('engineQuery')?.value||'').trim().toLowerCase(),group=$('engineGroup')?.value||'',sort=$('engineSort')?.value||'confidence';
+  let arr=engineProfiles.filter(x=>{
+    const labels=x.profile.tags.map(t=>KNOWLEDGE_TAGS[t].label).join(' '),hay=(displayName(x.card)+' '+x.card.name+' '+labels).toLowerCase();
+    const groupOk=!group||(group==='未分類'?!x.profile.tags.length:!!x.profile.grouped[group]?.length);
+    return groupOk&&(!q||hay.includes(q));
+  });
+  if(sort==='tags')arr.sort((a,b)=>b.profile.tags.length-a.profile.tags.length||b.confidence-a.confidence);
+  else if(sort==='name')arr.sort((a,b)=>displayName(a.card).localeCompare(displayName(b.card),'ja'));
+  else arr.sort((a,b)=>a.confidence-b.confidence||a.profile.tags.length-b.profile.tags.length);
+  $('engineCount').textContent=`${arr.length.toLocaleString()}件`;
+  $('engineResults').innerHTML=arr.slice(0,120).map(x=>`<article class="engineRow"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img class="engineThumb" loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0}</div><div class="tags">${x.profile.tags.length?x.profile.tags.slice(0,10).map(t=>`<span class="tag">${esc(KNOWLEDGE_TAGS[t].label)}</span>`).join(''):'<span class="tag bad">未分類</span>'}</div></div><div class="confidence ${confidenceClass(x.confidence)}">${x.confidence}<small>解析信頼度</small></div></article>`).join('')||'<div class="empty">条件に合うカードがありません。</div>';
+}
+async function prepareEngine(force=false){
+  if(!pool.length){$('engineStatus').textContent='スタンダードカードを取得しています。';await fetchPool(force);if(!pool.length)return;}
+  $('engineStatus').textContent='知識プロフィールを集計しています…';
+  buildEngineProfiles();renderEngineSummary();renderEngineResults();
+  $('engineStatus').textContent=`${pool.length.toLocaleString()}種類のカードを、${Object.keys(KNOWLEDGE_TAGS).length}種類の知識タグで解析しました。`;
+}
+function exportKnowledgeData(){
+  if(!engineProfiles.length)buildEngineProfiles();
+  const data={version:'0.4.0',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.4.0.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
+}
+function setupEngine(){
+  if(!$('engineRefreshBtn'))return;
+  $('engineRefreshBtn').onclick=()=>prepareEngine(false);$('engineExportBtn').onclick=exportKnowledgeData;
+  ['engineQuery','engineGroup','engineSort'].forEach(id=>$(id).addEventListener('input',renderEngineResults));
+  bindActionContainer($('engineResults'));
+  const engineTab=document.querySelector('[data-view="engine"]');if(engineTab)engineTab.addEventListener('click',()=>setTimeout(()=>prepareEngine(false),0));
+}
+setupEngine();
