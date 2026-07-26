@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.1.3</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.1.4</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -35,9 +35,9 @@ Sideboard
   <div class="card">
     <div class="dbHead">
       <div><h2>Lunch Forge Database</h2><p class="notice">スタンダード全カードを、名前・カード本文・タイプ・役割・色・マナ総量から検索します。</p></div>
-      <button class="btn secondary" id="dbLoadBtn">カードデータを準備</button>
+      <button class="btn secondary" id="dbLoadBtn">カードデータを取得</button>
     </div>
-    <div class="status" id="dbStatus">カードデータを準備すると検索できます。</div>
+    <div class="status" id="dbStatus">カード検索タブを開くと、スタンダード全カードを自動取得します。</div>
     <div class="dbFilters section">
       <input id="dbQuery" placeholder="カード名・能力・タイプを検索（例：Treasure / destroy target / Dragon）" autocomplete="off"/>
       <select id="dbType"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Battle</option><option>Land</option></select>
@@ -47,7 +47,7 @@ Sideboard
       <select id="dbSort"><option value="name">名前順</option><option value="mv">マナ総量順</option><option value="new">新しい収録順</option></select>
     </div>
     <div class="dbSummary" id="dbSummary">0件</div>
-    <div class="cardGallery" id="dbResults"><div class="empty">検索条件を入力してください。</div></div>
+    <div class="cardGallery" id="dbResults"><div class="empty">カードデータの取得後、全カードが表示されます。名前や能力で絞り込めます。</div></div>
   </div>
 </section>
 <section class="view" id="single"><div class="grid"><div class="card"><h2>単体カード探索</h2><div class="controls"><input id="singleName" list="cardNames" placeholder="英語カード名（候補から選択できます）"/><datalist id="cardNames"></datalist><button class="btn" id="singleBtn">相性カードを探す</button><div class="status" id="singleStatus">操作できます。「デッキを分析」を押すとカードデータも自動取得します。</div></div></div><div class="card"><h2>相性ランキング</h2><div id="singleSeed"></div><div class="results section" id="singleResults"><div class="empty">カード名を入力してください。</div></div></div></div></section>

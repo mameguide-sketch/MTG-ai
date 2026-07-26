@@ -8,7 +8,7 @@ window.addEventListener('unhandledrejection', (event) => {
   if (el) el.textContent = '通信または処理エラー：' + (event.reason?.message || event.reason || '不明なエラー');
 });
 
-const API='https://api.scryfall.com';const $=x=>document.getElementById(x);let pool=[],deck=[],recs=[],singleRecs=[];const sleep=x=>new Promise(r=>setTimeout(r,x));
+const API='https://api.scryfall.com';const $=x=>document.getElementById(x);let pool=[],deck=[],recs=[],singleRecs=[],poolLoading=null;const sleep=x=>new Promise(r=>setTimeout(r,x));
 window.addEventListener('error',e=>{const el=document.getElementById('status');if(el)el.textContent='画面エラー：'+(e.message||'不明なエラー');});
 const JP={W:'白',U:'青',B:'黒',R:'赤',G:'緑'};function colors(a=[]){return a.length?a.map(x=>JP[x]).join(''):'無色'}function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function type(c){return [c.type_line,...(c.card_faces||[]).map(x=>x.type_line)].filter(Boolean).join(' // ')}function text(c){return [c.oracle_text,...(c.card_faces||[]).map(x=>x.oracle_text)].filter(Boolean).join('\n').toLowerCase()}function img(c){return c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||''}function unique(a){return [...new Set(a.filter(Boolean))]}
 function toast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2400)}
@@ -19,9 +19,45 @@ const labels={token_make:'トークン生成',token_payoff:'トークン利用',
 const pairs=[['token_make','token_payoff'],['token_make','sac_outlet'],['sac_outlet','death_payoff'],['grave_fill','grave_payoff'],['counter_make','counter_payoff'],['life_make','life_payoff'],['blink','death_payoff'],['ramp','finisher']];
 function features(c){let o=text(c),t=type(c).toLowerCase();let roles=Object.keys(RX).filter(k=>RX[k].test(o));let subs=(t.split('—')[1]||'').replace(/\/\//g,' ').split(/\s+/).map(x=>x.replace(/[^a-z]/g,'')).filter(x=>x.length>3);return{roles,subs:unique(subs),o,t,cmc:+c.cmc||0,colors:c.color_identity||[]}}
 function parseDeck(s){let side=false,out=[];for(let raw of s.split(/\r?\n/)){let line=raw.trim();if(!line||/^(deck|companion)$/i.test(line))continue;if(/^sideboard$/i.test(line)){side=true;continue}let m=line.match(/^(?:SB:\s*)?(\d+)x?\s+(.+?)(?:\s+\([A-Z0-9]+\)\s+\d+)?$/i);if(!m)m=[null,'1',line];out.push({qty:+m[1],name:m[2].trim(),side})}return out}
-function status(s,p){$('status').textContent=s;if(p!=null)$('bar').style.width=p+'%'}
-async function fetchPool(){let cached;try{cached=JSON.parse(localStorage.getItem('mtgStdPoolV3')||'null')}catch{}if(cached&&Date.now()-cached.time<1000*60*60*24*3&&cached.cards?.length){pool=cached.cards;finishPool('キャッシュから');return}pool=[];$('loadBtn').disabled=true;let url=API+'/cards/search?order=name&unique=cards&q='+encodeURIComponent('legal:standard game:paper');let n=0;try{while(url){n++;status(`スタンダード全カード取得中：${n}ページ`,Math.min(94,n*5));let r=await fetch(url);if(!r.ok)throw Error('API '+r.status);let j=await r.json();pool.push(...j.data.filter(c=>!c.digital));url=j.has_more?j.next_page:null;await sleep(120)}try{localStorage.setItem('mtgStdPoolV3',JSON.stringify({time:Date.now(),cards:pool}))}catch{}finishPool('オンラインから')}catch(e){status('取得失敗：'+e.message,0);$('loadBtn').disabled=false}}
-function finishPool(src){status(`${src}${pool.length.toLocaleString()}種類を読み込みました。`,100);$('loadBtn').disabled=false;$('analyzeBtn').disabled=false;$('singleBtn').disabled=false;$('singleStatus').textContent=`${pool.length.toLocaleString()}種類を使用可能`;populateCardNames();if($('dbStatus')){$('dbStatus').textContent=`${pool.length.toLocaleString()}種類を検索できます。`;renderDatabase();}}
+function status(s,p){const main=$('status');if(main)main.textContent=s;if(p!=null&&$('bar'))$('bar').style.width=p+'%'}
+function loadStatus(message,p){status(message,p);if($('dbStatus'))$('dbStatus').textContent=message;if($('singleStatus')&&!pool.length)$('singleStatus').textContent=message;}
+async function fetchJson(url,timeoutMs=30000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);try{const r=await fetch(url,{signal:controller.signal,headers:{'Accept':'application/json'}});if(!r.ok){let detail='';try{detail=(await r.json()).details||''}catch{}throw Error(`API ${r.status}${detail?'：'+detail:''}`)}return await r.json()}catch(e){if(e.name==='AbortError')throw Error('通信が30秒以内に完了しませんでした');throw e}finally{clearTimeout(timer)}}
+async function fetchPool(force=false){
+  if(poolLoading)return poolLoading;
+  poolLoading=(async()=>{
+    let cached;
+    try{cached=JSON.parse(localStorage.getItem('mtgStdPoolV4')||'null')}catch{}
+    if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*3&&cached.cards?.length){pool=cached.cards;finishPool('保存データから');return true}
+    pool=[];
+    ['loadBtn','dbLoadBtn'].forEach(id=>{if($(id))$(id).disabled=true});
+    if($('dbLoadBtn'))$('dbLoadBtn').textContent='取得中…';
+    let url=API+'/cards/search?order=name&unique=cards&q='+encodeURIComponent('f:standard game:paper');
+    let n=0;
+    try{
+      while(url){
+        n++;
+        loadStatus(`スタンダードカード取得中：${n}ページ目`,Math.min(94,n*5));
+        const j=await fetchJson(url);
+        pool.push(...j.data.filter(c=>!c.digital&&c.legalities?.standard==='legal'));
+        url=j.has_more?j.next_page:null;
+        await sleep(120);
+      }
+      pool=[...new Map(pool.map(c=>[c.oracle_id||c.id,c])).values()];
+      try{localStorage.setItem('mtgStdPoolV4',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
+      finishPool('オンラインから');
+      return true;
+    }catch(e){
+      loadStatus('カード取得に失敗しました：'+e.message,0);
+      if($('dbResults'))$('dbResults').innerHTML='<div class="empty">通信に失敗しました。「再取得」を押してください。広告ブロックや社内ネットワークで api.scryfall.com が遮断されている場合もあります。</div>';
+      return false;
+    }finally{
+      ['loadBtn','dbLoadBtn'].forEach(id=>{if($(id))$(id).disabled=false});
+      if($('dbLoadBtn'))$('dbLoadBtn').textContent=pool.length?'カードデータ再取得':'カードデータを取得';
+    }
+  })();
+  try{return await poolLoading}finally{poolLoading=null}
+}
+function finishPool(src){loadStatus(`${src} ${pool.length.toLocaleString()}種類を読み込みました。`,100);if($('loadBtn'))$('loadBtn').disabled=false;if($('analyzeBtn'))$('analyzeBtn').disabled=false;if($('singleBtn'))$('singleBtn').disabled=false;if($('singleStatus'))$('singleStatus').textContent=`${pool.length.toLocaleString()}種類を使用可能`;populateCardNames();if($('dbStatus')){$('dbStatus').textContent=`${pool.length.toLocaleString()}種類を検索できます。`;renderDatabase();}}
 async function named(name){let exact=pool.find(c=>c.name.toLowerCase()===name.toLowerCase());if(exact)return exact;let r=await fetch(API+'/cards/named?fuzzy='+encodeURIComponent(name));return r.ok?r.json():null}
 function deckStats(cards){let main=cards.filter(x=>!x.side&&x.card),total=main.reduce((s,x)=>s+x.qty,0),lands=main.filter(x=>type(x.card).includes('Land')).reduce((s,x)=>s+x.qty,0),non=main.filter(x=>!type(x.card).includes('Land')),avg=non.reduce((s,x)=>s+x.qty*(x.card.cmc||0),0)/Math.max(1,non.reduce((s,x)=>s+x.qty,0)),cols=unique(main.flatMap(x=>x.card.color_identity||[])),counts={};for(let x of non)for(let r of features(x.card).roles)counts[r]=(counts[r]||0)+x.qty;let curve=Array(8).fill(0);for(let x of non)curve[Math.min(7,Math.floor(x.card.cmc||0))]+=x.qty;return{main,total,lands,avg,cols,counts,curve}}
 function diagnosis(s){let a=[];if(s.total<60)a.push(['bad',`メインが${s.total}枚（60枚未満）`]);else if(s.total>60)a.push(['warn',`メインが${s.total}枚（60枚超）`]);else a.push(['good','メイン60枚']);if(s.lands<20)a.push(['bad',`土地${s.lands}枚：かなり少ない`]);else if(s.lands<23)a.push(['warn',`土地${s.lands}枚：軽量デッキ向け`]);else if(s.lands>28)a.push(['warn',`土地${s.lands}枚：多め`]);else a.push(['good',`土地${s.lands}枚`]);if((s.counts.removal||0)<4)a.push(['bad','除去／妨害が不足']);if((s.counts.draw||0)<3)a.push(['warn','継続的な手札補充が少ない']);if((s.counts.protection||0)<2)a.push(['warn','主力を守る手段が少ない']);if((s.counts.finisher||0)<3&&s.avg>2.5)a.push(['warn','明確な勝ち手段が少ない']);if(s.curve[2]+s.curve[3]<10)a.push(['warn','2～3マナ域が薄い']);return a}
@@ -42,10 +78,12 @@ function cardSearchText(c){return `${c.name} ${type(c)} ${text(c)} ${(c.keywords
 function renderDatabase(){
   if(!pool.length){$('dbResults').innerHTML='<div class="empty">「カードデータを準備」を押してください。</div>';$('dbSummary').textContent='0件';return;}
   const q=$('dbQuery').value.trim().toLowerCase();
+  const terms=(q.match(/"[^"]+"|\S+/g)||[]).map(x=>x.replace(/^"|"$/g,''));
   const tf=$('dbType').value,rf=$('dbRole').value,cf=$('dbColor').value,mv=$('dbMv').value,sort=$('dbSort').value;
   let arr=pool.filter(c=>{
     const f=features(c),cm=Math.floor(+c.cmc||0);
-    return (!q||cardSearchText(c).includes(q))&&(!tf||type(c).includes(tf))&&(!rf||f.roles.includes(rf))&&(!cf||(cf==='C'?!f.colors.length:f.colors.includes(cf)))&&(!mv||(mv==='7'?cm>=7:cm===+mv));
+    const hay=cardSearchText(c);
+    return (!terms.length||terms.every(term=>hay.includes(term)))&&(!tf||type(c).includes(tf))&&(!rf||f.roles.includes(rf))&&(!cf||(cf==='C'?!f.colors.length:f.colors.includes(cf)))&&(!mv||(mv==='7'?cm>=7:cm===+mv));
   });
   if(sort==='mv')arr.sort((a,b)=>(a.cmc||0)-(b.cmc||0)||a.name.localeCompare(b.name));
   else if(sort==='new')arr.sort((a,b)=>(b.released_at||'').localeCompare(a.released_at||'')||a.name.localeCompare(b.name));
@@ -57,8 +95,8 @@ function databaseCardHTML(c){
   const f=features(c),oracle=c.oracle_text||c.card_faces?.map(x=>x.oracle_text).filter(Boolean).join('\n')||'';
   return `<article class="galleryCard">${img(c)?`<img loading="lazy" src="${img(c)}" alt="${esc(c.name)}">`:''}<div class="galleryBody"><h3>${esc(c.name)}</h3><div class="meta">${esc(type(c))}<br>MV ${c.cmc||0} ・ ${colors(f.colors)}</div><div class="tags">${f.roles.slice(0,3).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="galleryText">${esc(oracle)}</div><div class="galleryActions"><button class="smallBtn primary" data-synergy="${esc(c.name)}">相性を見る</button><button class="smallBtn" data-deckadd="${esc(c.name)}">追加</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div></article>`;
 }
-function prepareDatabase(){
-  if(!pool.length)return fetchPool();
+async function prepareDatabase(force=false){
+  if(!pool.length||force){const ok=await fetchPool(force);if(!ok)return;}
   populateCardNames();renderDatabase();$('dbStatus').textContent=`${pool.length.toLocaleString()}種類を検索できます。`;
 }
 function addCardToDeck(name){
@@ -80,7 +118,7 @@ function bindActionContainer(root){root.addEventListener('click',e=>{const detai
 function saves(){try{return JSON.parse(localStorage.getItem('mtgSavedDecks')||'[]')}catch{return[]}}function renderSaves(){let a=saves();$('savedDecks').innerHTML=a.length?a.map((x,i)=>`<div class="savedItem"><div><b>${esc(x.name)}</b><div class="tiny">${new Date(x.time).toLocaleString('ja-JP')}</div></div><div><button class="btn ghost" onclick="loadSave(${i})">開く</button> <button class="btn ghost" onclick="delSave(${i})">削除</button></div></div>`).join(''):'<div class="empty">保存デッキはありません。</div>'}window.loadSave=i=>{let x=saves()[i];$('deckInput').value=x.text;document.querySelector('[data-view="analyzer"]').click()};window.delSave=i=>{let a=saves();a.splice(i,1);localStorage.setItem('mtgSavedDecks',JSON.stringify(a));renderSaves()};
 $('saveBtn').onclick=()=>{let text=$('deckInput').value.trim();if(!text)return;let name=prompt('保存名','マイデッキ');if(!name)return;let a=saves();a.unshift({name,text,time:Date.now()});localStorage.setItem('mtgSavedDecks',JSON.stringify(a.slice(0,30)));renderSaves()};
 $('sampleBtn').onclick=()=>{$('deckInput').value='Deck\n4 Llanowar Elves\n4 Mossborn Hydra\n4 Innkeeper\'s Talent\n4 Snakeskin Veil\n4 Bushwhack\n4 Pawpatch Formation\n4 Bristly Bill, Spine Sower\n4 Railway Brawler\n2 Archdruid\'s Charm\n2 Nissa, Ascended Animist\n24 Forest'};
-$('loadBtn').onclick=fetchPool;$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=prepareDatabase;['dbQuery','dbType','dbRole','dbColor','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves()});renderSaves();
+$('loadBtn').onclick=()=>fetchPool(true);$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=()=>prepareDatabase(true);['dbQuery','dbType','dbRole','dbColor','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves();if(b.dataset.view==='database'&&!pool.length)prepareDatabase(false)});renderSaves();
 
-try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV3')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類`;renderDatabase();}}catch{}
+try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV4')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類`;renderDatabase();}}catch{}
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
