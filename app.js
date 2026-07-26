@@ -122,3 +122,179 @@ $('loadBtn').onclick=()=>fetchPool(true);$('analyzeBtn').onclick=analyze;$('sing
 
 try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV4')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類`;renderDatabase();}}catch{}
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
+
+/* ===== Lunch Forge v0.2.0: Card Knowledge Base ===== */
+const KNOWLEDGE_TAGS = {
+  treasure_make:{label:'宝物生成',group:'生成',rx:/create[^.]{0,90}treasure token/i},
+  food_make:{label:'食物生成',group:'生成',rx:/create[^.]{0,90}food token/i},
+  clue_make:{label:'手掛かり生成',group:'生成',rx:/create[^.]{0,90}clue token|investigate/i},
+  creature_token_make:{label:'クリーチャー・トークン生成',group:'生成',rx:/create[^.]{0,100}(?:creature|soldier|goblin|spirit|zombie|human|beast|angel|dragon)[^.]{0,50}token/i},
+  token_double:{label:'トークン倍化',group:'利用',rx:/twice that many tokens|additional token|double the number of tokens/i},
+  token_buff:{label:'トークン強化',group:'利用',rx:/tokens? you control get|creature tokens? you control/i},
+  artifact_sac:{label:'アーティファクト生け贄',group:'利用',rx:/sacrifice (?:an?|another) artifact/i},
+  creature_sac:{label:'クリーチャー生け贄',group:'利用',rx:/sacrifice (?:an?|another) creature/i},
+  death_trigger:{label:'死亡誘発',group:'誘発',rx:/whenever (?:another )?[^.]{0,45} dies|creature died this turn/i},
+  counter_plus:{label:'+1/+1カウンター付与',group:'生成',rx:/put [^.]{0,45}\+1\/\+1 counters?/i},
+  counter_any:{label:'カウンター付与',group:'生成',rx:/put [^.]{0,55} counters? on|proliferate/i},
+  counter_use:{label:'カウンター利用',group:'利用',rx:/remove [^.]{0,50} counters?|for each [^.]{0,35} counter|modified creature/i},
+  mill:{label:'切削',group:'生成',rx:/mill \d+|mill that many|surveil/i},
+  discard:{label:'手札を捨てる',group:'生成',rx:/discard (?:a|one|two|three|x|that many) cards?/i},
+  grave_cast:{label:'墓地から唱える',group:'利用',rx:/cast [^.]{0,80} from your graveyard|play [^.]{0,80} from your graveyard/i},
+  reanimate:{label:'墓地から戦場へ戻す',group:'利用',rx:/return target [^.]{0,80} from your graveyard to the battlefield/i},
+  grave_value:{label:'墓地参照',group:'利用',rx:/cards? in your graveyard|from your graveyard|delirium|descend|collect evidence/i},
+  single_removal:{label:'単体除去',group:'妨害',rx:/destroy target|exile target|target creature gets -\d+\/-\d+|deals? \d+ damage to target/i},
+  board_wipe:{label:'全体除去',group:'妨害',rx:/destroy all|exile all|all creatures get -|deals? \d+ damage to each creature/i},
+  counterspell:{label:'打ち消し',group:'妨害',rx:/counter target spell/i},
+  bounce:{label:'バウンス',group:'妨害',rx:/return target [^.]{0,65} to its owner's hand/i},
+  draw_cards:{label:'カードを引く',group:'補助',rx:/draw (?:a|one|two|three|four|x|that many|\d+) cards?/i},
+  impulse:{label:'衝動的ドロー',group:'補助',rx:/exile the top [^.]{0,80}you may (?:play|cast)/i},
+  tutor:{label:'サーチ',group:'補助',rx:/search your library for/i},
+  mana_add:{label:'マナ加速',group:'補助',rx:/add \{|treasure token|search your library for (?:a|up to one) (?:basic )?land/i},
+  extra_land:{label:'追加の土地プレイ',group:'補助',rx:/play an additional land|additional land on each of your turns/i},
+  landfall:{label:'土地誘発',group:'誘発',rx:/landfall|whenever a land enters/i},
+  protection:{label:'保護',group:'補助',rx:/hexproof|indestructible|phasing|protection from|ward \{/i},
+  blink:{label:'明滅',group:'補助',rx:/exile [^.]{0,100} then return|return [^.]{0,100} to the battlefield under/i},
+  etb:{label:'戦場に出た時',group:'誘発',rx:/when(?:ever)? [^.]{0,55} enters/i},
+  attack:{label:'攻撃誘発',group:'誘発',rx:/whenever [^.]{0,60} attacks/i},
+  combat_damage:{label:'戦闘ダメージ誘発',group:'誘発',rx:/combat damage to (?:a player|an opponent)/i},
+  life_gain:{label:'ライフゲイン',group:'生成',rx:/you gain \d+ life|you gain that much life|lifelink/i},
+  life_payoff:{label:'ライフゲイン利用',group:'利用',rx:/whenever you gain life|if you gained life/i},
+  spell_payoff:{label:'呪文誘発',group:'誘発',rx:/whenever you cast [^.]{0,50}(?:spell|instant|sorcery)|prowess/i},
+  go_wide:{label:'横並べ',group:'戦略',rx:/creatures? you control get|for each creature you control|create [^.]{0,90} creature token/i},
+  go_tall:{label:'一点強化',group:'戦略',rx:/target creature gets \+|double target creature's power|put [^.]{0,45}\+1\/\+1 counter/i},
+  evasion:{label:'回避能力',group:'勝ち筋',rx:/flying|menace|can't be blocked|trample/i},
+  direct_damage:{label:'直接ダメージ',group:'勝ち筋',rx:/damage to each opponent|target opponent loses|each opponent loses/i},
+  alternate_win:{label:'特殊勝利',group:'勝ち筋',rx:/you win the game|opponent loses the game/i}
+};
+const INTENT_DICTIONARY = [
+  {name:'宝物を作る',terms:['宝物','treasure'],tags:['treasure_make']},
+  {name:'トークンを作る',terms:['トークン生成','トークンを作る','token'],tags:['creature_token_make','treasure_make','food_make','clue_make']},
+  {name:'トークンを強化',terms:['トークン強化','横並べ'],tags:['token_buff','token_double','go_wide']},
+  {name:'墓地を肥やす',terms:['墓地を肥やす','切削','mill','捨てる'],tags:['mill','discard']},
+  {name:'墓地を使う',terms:['墓地利用','墓地を使う','リアニメイト'],tags:['grave_cast','reanimate','grave_value']},
+  {name:'+1/+1カウンター',terms:['+1/+1','カウンター付与'],tags:['counter_plus','counter_any']},
+  {name:'カウンターを利用',terms:['カウンター利用','カウンターを使う'],tags:['counter_use']},
+  {name:'クリーチャー除去',terms:['除去','クリーチャー除去','破壊','追放'],tags:['single_removal']},
+  {name:'全体除去',terms:['全体除去','一掃','wipe'],tags:['board_wipe']},
+  {name:'カードを引く',terms:['ドロー','カードを引く','手札補充'],tags:['draw_cards','impulse']},
+  {name:'マナ加速',terms:['マナ加速','ランプ','土地を伸ばす'],tags:['mana_add','extra_land']},
+  {name:'クリーチャーを守る',terms:['守る','保護','除去耐性'],tags:['protection']},
+  {name:'土地デッキ',terms:['土地誘発','上陸','土地を置く'],tags:['landfall','extra_land','mana_add']},
+  {name:'ライフゲイン',terms:['ライフゲイン','回復'],tags:['life_gain','life_payoff']},
+  {name:'打ち消し',terms:['打ち消し','カウンター呪文'],tags:['counterspell']},
+  {name:'明滅',terms:['明滅','ブリンク'],tags:['blink','etb']}
+];
+const TAG_CONNECTIONS = [
+  ['treasure_make','artifact_sac',20,'宝物を生け贄コストとして利用'],
+  ['creature_token_make','token_buff',20,'生成したトークンを全体強化'],
+  ['creature_token_make','token_double',18,'トークン生成数を増加'],
+  ['creature_token_make','creature_sac',15,'生成物を生け贄資源に変換'],
+  ['creature_sac','death_trigger',20,'生け贄で死亡誘発を能動的に起動'],
+  ['mill','grave_cast',20,'墓地へ送ったカードを唱える'],
+  ['mill','reanimate',20,'墓地へ送ったクリーチャーを戻す'],
+  ['discard','grave_value',15,'捨てたカードを墓地資源として利用'],
+  ['counter_plus','counter_use',20,'付与したカウンターを能力へ変換'],
+  ['life_gain','life_payoff',20,'回復を誘発報酬へ変換'],
+  ['blink','etb',18,'戦場に出た時の能力を再利用'],
+  ['mana_add','alternate_win',8,'重い勝ち手段へ到達'],
+  ['mana_add','evasion',7,'大型の攻撃役へ早く到達'],
+  ['extra_land','landfall',20,'追加土地で土地誘発を増やす'],
+  ['draw_cards','spell_payoff',7,'呪文連鎖を維持']
+];
+function knowledgeProfile(c){
+  const raw=(oracle(c)+' '+type(c)).toLowerCase();
+  const tags=Object.entries(KNOWLEDGE_TAGS).filter(([,v])=>v.rx.test(raw)).map(([k])=>k);
+  const grouped={};
+  for(const tag of tags){const g=KNOWLEDGE_TAGS[tag].group;(grouped[g]??=[]).push(KNOWLEDGE_TAGS[tag].label)}
+  const cmc=+c.cmc||0;
+  const pace=cmc<=2?'序盤':cmc<=4?'中盤':'終盤';
+  const cardType=type(c).toLowerCase();
+  const strengths=[];
+  if(tags.includes('draw_cards')||tags.includes('tutor'))strengths.push('手札・選択肢を増やす');
+  if(tags.includes('single_removal')||tags.includes('board_wipe'))strengths.push('盤面へ干渉できる');
+  if(tags.includes('protection'))strengths.push('主力を守れる');
+  if(tags.includes('evasion')||tags.includes('direct_damage')||tags.includes('alternate_win'))strengths.push('勝ち筋になり得る');
+  if(tags.some(t=>KNOWLEDGE_TAGS[t].group==='生成'))strengths.push('後続カードの資源を作る');
+  const needs=[];
+  if(tags.some(t=>['treasure_make','creature_token_make','counter_plus','mill','life_gain'].includes(t)))needs.push('生成物を活用するカード');
+  if(tags.some(t=>['token_buff','counter_use','grave_cast','death_trigger','life_payoff'].includes(t)))needs.push('誘発条件や資源を安定して供給するカード');
+  if(cardType.includes('creature')&&!tags.includes('protection'))needs.push('除去から守る手段');
+  return {tags,grouped,pace,strengths:unique(strengths),needs:unique(needs)};
+}
+function matchIntent(query){
+  const q=String(query||'').trim().toLowerCase();
+  const matched=INTENT_DICTIONARY.filter(x=>x.terms.some(t=>q.includes(t.toLowerCase())||t.toLowerCase().includes(q)));
+  const tags=unique(matched.flatMap(x=>x.tags));
+  return {matched,tags};
+}
+function knowledgeScore(c,queryTags,query){
+  const p=knowledgeProfile(c);let score=0;const why=[];
+  for(const tag of queryTags){if(p.tags.includes(tag)){score+=24;why.push(KNOWLEDGE_TAGS[tag].label)}}
+  const words=String(query||'').toLowerCase().split(/\s+/).filter(Boolean);
+  const hay=cardSearchText(c);
+  if(words.length&&words.every(w=>hay.includes(w))){score+=18;why.push('カード本文・タイプが検索語に一致')}
+  score+=Math.min(8,p.tags.length);
+  if(c.legalities?.standard==='legal')score+=5;
+  return {card:c,score,why:unique(why),profile:p};
+}
+function compatibility(seed,c){
+  const a=knowledgeProfile(seed),b=knowledgeProfile(c);let raw=12;const why=[],cautions=[];
+  const seedColors=seed.color_identity||[],candColors=c.color_identity||[];
+  const outside=candColors.filter(x=>!seedColors.includes(x));
+  if(!outside.length){raw+=10;why.push('色アイデンティティが一致')}else{raw-=outside.length*12;cautions.push(`追加色が必要：${colors(outside)}`)}
+  for(const [from,to,pts,label] of TAG_CONNECTIONS){
+    if(a.tags.includes(from)&&b.tags.includes(to)){raw+=pts;why.push(`${KNOWLEDGE_TAGS[from].label} → ${KNOWLEDGE_TAGS[to].label}：${label}`)}
+    if(a.tags.includes(to)&&b.tags.includes(from)){raw+=Math.max(8,pts-3);why.push(`${KNOWLEDGE_TAGS[from].label}を供給して${KNOWLEDGE_TAGS[to].label}を支える`)}
+  }
+  const shared=a.tags.filter(t=>b.tags.includes(t));
+  if(shared.length){raw+=Math.min(16,shared.length*4);why.push(`共通テーマ：${shared.slice(0,3).map(t=>KNOWLEDGE_TAGS[t].label).join('・')}`)}
+  const af=features(seed),bf=features(c);const subtype=bf.subs.find(x=>af.subs.includes(x));
+  if(subtype){raw+=12;why.push(`${subtype}タイプ連携`)}
+  if(Math.abs((+seed.cmc||0)-(+c.cmc||0))<=1){raw+=4;why.push('近いマナ域で展開しやすい')}
+  if(!why.length)cautions.push('明確な方向性シナジーを検出できませんでした');
+  return {card:c,score:Math.max(0,Math.min(100,Math.round(raw))),why:unique(why).slice(0,6),cautions:unique(cautions),profile:b,f:features(c)};
+}
+function profileBoxes(p){
+  const groups=['生成','利用','誘発','補助','妨害','戦略','勝ち筋'];
+  return groups.filter(g=>p.grouped[g]?.length).map(g=>`<div class="profileBox"><h4>${g}</h4><div class="tags">${p.grouped[g].map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div></div>`).join('');
+}
+function knowledgeCardHTML(x){
+  const c=x.card,p=x.profile;
+  return `<article class="knowledgeCard"><button class="imageButton" data-detail="${esc(c.name)}">${img(c)?`<img loading="lazy" src="${img(c)}" alt="${esc(c.name)}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(c.name)}">${esc(c.name)}</button></h3><div class="meta">${esc(type(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])} ・ ${p.pace}</div><div class="knowledgeSections">${profileBoxes(p)}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="smallBtn" data-synergy="${esc(c.name)}">相性を見る</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div><div class="knowledgeScore"><strong>${x.score}</strong><span class="tiny">知識一致点</span></div></article>`;
+}
+async function renderKnowledge(){
+  if(!pool.length){$('knowledgeStatus').textContent='スタンダードカードを取得しています。';await fetchPool();if(!pool.length)return;}
+  const q=$('knowledgeQuery').value.trim();if(!q){$('knowledgeResults').innerHTML='<div class="empty">目的を入力してください。</div>';$('knowledgeCount').textContent='0件';return;}
+  const intent=matchIntent(q);
+  let arr=pool.map(c=>knowledgeScore(c,intent.tags,q)).filter(x=>x.score>12).sort((a,b)=>b.score-a.score||a.card.name.localeCompare(b.card.name)).slice(0,60);
+  $('knowledgeCount').textContent=`${arr.length}件`;
+  $('knowledgeStatus').textContent=intent.matched.length?`「${intent.matched.map(x=>x.name).join('・')}」として解析しました。`:'カード本文との一致を中心に検索しました。';
+  $('knowledgeResults').innerHTML=arr.length?arr.map(knowledgeCardHTML).join(''):'<div class="empty">該当するカードがありません。別の表現も試してください。</div>';
+}
+function setupKnowledge(){
+  if(!$('knowledgeSearchBtn'))return;
+  const chips=['宝物を作る','トークンを強化','墓地を肥やす','墓地を使う','+1/+1カウンター','クリーチャー除去','全体除去','カードを引く','マナ加速','クリーチャーを守る','土地デッキ','ライフゲイン'];
+  $('quickIntents').innerHTML=chips.map(x=>`<button class="intentChip" data-intent="${esc(x)}">${esc(x)}</button>`).join('');
+  $('knowledgeSearchBtn').onclick=renderKnowledge;
+  $('knowledgeClearBtn').onclick=()=>{$('knowledgeQuery').value='';$('knowledgeResults').innerHTML='<div class="empty">左で目的を入力してください。</div>';$('knowledgeCount').textContent='0件';$('knowledgeStatus').textContent='検索条件をクリアしました。'};
+  $('knowledgeQuery').addEventListener('keydown',e=>{if(e.key==='Enter')renderKnowledge()});
+  $('quickIntents').addEventListener('click',e=>{const b=e.target.closest('[data-intent]');if(!b)return;$('knowledgeQuery').value=b.dataset.intent;renderKnowledge()});
+  bindActionContainer($('knowledgeResults'));
+}
+function showCardDetail(name){
+  const c=findPoolCard(name);if(!c)return;
+  const f=features(c),p=knowledgeProfile(c),legal=c.legalities?.standard==='legal';
+  $('dialogContent').innerHTML=`<div class="dialogGrid"><div>${img(c)?`<img class="dialogImage" src="${img(c)}" alt="${esc(c.name)}">`:''}</div><div><div class="dialogEyebrow">${legal?'スタンダード使用可':'スタンダード対象外'}</div><h2>${esc(c.name)}</h2><div class="manaCost">${esc(manaCost(c))}</div><div class="meta">${esc(type(c))} ・ MV ${c.cmc||0} ・ ${colors(f.colors)} ・ 主な使用帯：${p.pace}</div><div class="tags dialogTags">${f.roles.length?f.roles.map(r=>`<span class="tag">${labels[r]||r}</span>`).join(''):'<span class="tag">従来役割未分類</span>'}</div><div class="dialogOracle">${esc(oracle(c))}</div>${c.power!=null?`<div class="statLine">P/T：${esc(c.power)} / ${esc(c.toughness)}</div>`:''}<h3 class="section">Lunch Forge 知識プロフィール</h3><div class="profileGrid">${profileBoxes(p)||'<div class="profileBox"><h4>分類</h4><span class="notice">知識タグを検出できませんでした。</span></div>'}</div>${p.strengths.length?`<div class="profileBox"><h4>このカードが得意なこと</h4><ul class="explainList">${p.strengths.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${p.needs.length?`<div class="profileBox section"><h4>組み合わせたい支援</h4><ul class="explainList">${p.needs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}<div class="dialogActions"><button class="btn" data-deckadd="${esc(c.name)}">1枚デッキへ追加</button><button class="btn secondary" data-synergy="${esc(c.name)}">このカードの相性を見る</button></div><div class="tiny">収録：${esc(c.set_name||'—')} ${c.released_at?`・ ${esc(c.released_at)}`:''}</div></div></div>`;
+  $('cardDialog').showModal();
+}
+async function singleAnalyze(){
+  if(!pool.length){$('singleStatus').textContent='先にカードデータを取得します。';await fetchPool();if(!pool.length)return;}
+  const name=$('singleName').value.trim();if(!name)return;
+  const c=await named(name);if(!c){$('singleStatus').textContent='カードを特定できませんでした。';return}
+  const p=knowledgeProfile(c);
+  singleRecs=pool.filter(x=>x.name!==c.name).map(x=>compatibility(c,x)).filter(x=>x.score>=18).sort((a,b)=>b.score-a.score).slice(0,40);
+  $('singleSeed').innerHTML=`<div class="mini"><h3>${esc(c.name)}</h3><div class="meta">${esc(type(c))} ・ MV ${c.cmc||0}</div><div class="profileGrid">${profileBoxes(p)}</div>${p.needs.length?`<div class="notice">相性探索の重点：${p.needs.map(esc).join('／')}</div>`:''}</div>`;
+  $('singleResults').innerHTML=singleRecs.length?singleRecs.map(x=>`<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${img(x.card)?`<img loading="lazy" src="${img(x.card)}" alt="${esc(x.card.name)}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(x.card.name)}</button></h3><div class="meta">${esc(type(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">相性点</div></div></article>`).join(''):'<div class="empty">明確な相性候補を検出できませんでした。</div>';
+  $('singleStatus').textContent=`${pool.length.toLocaleString()}種類から方向性シナジーを採点しました。`;
+}
+setupKnowledge();

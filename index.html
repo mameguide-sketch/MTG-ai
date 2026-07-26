@@ -6,8 +6,8 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.1.4</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
-<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.2.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
 <div class="card"><h2>デッキ入力</h2><div class="controls">
@@ -51,6 +51,28 @@ Sideboard
   </div>
 </section>
 <section class="view" id="single"><div class="grid"><div class="card"><h2>単体カード探索</h2><div class="controls"><input id="singleName" list="cardNames" placeholder="英語カード名（候補から選択できます）"/><datalist id="cardNames"></datalist><button class="btn" id="singleBtn">相性カードを探す</button><div class="status" id="singleStatus">操作できます。「デッキを分析」を押すとカードデータも自動取得します。</div></div></div><div class="card"><h2>相性ランキング</h2><div id="singleSeed"></div><div class="results section" id="singleResults"><div class="empty">カード名を入力してください。</div></div></div></div></section>
+
+<section class="view" id="knowledge">
+  <div class="knowledgeGrid">
+    <div class="card">
+      <h2>Card Knowledge Base</h2>
+      <p class="notice">カード名だけでなく、「宝物を作りたい」「墓地を使う」「全体除去」のような目的から候補を探します。</p>
+      <div class="controls">
+        <input id="knowledgeQuery" list="knowledgeHints" placeholder="例：宝物を作る / 墓地利用 / クリーチャーを守る" autocomplete="off"/>
+        <datalist id="knowledgeHints">
+          <option value="宝物を作る"></option><option value="トークンを強化"></option><option value="墓地を肥やす"></option><option value="墓地から戻す"></option><option value="+1/+1カウンター"></option><option value="クリーチャー除去"></option><option value="全体除去"></option><option value="カードを引く"></option><option value="マナ加速"></option><option value="クリーチャーを守る"></option><option value="土地を追加で置く"></option><option value="ライフゲイン"></option>
+        </datalist>
+        <div class="row"><button class="btn" id="knowledgeSearchBtn">目的から探す</button><button class="btn secondary" id="knowledgeClearBtn">クリア</button></div>
+        <div class="status" id="knowledgeStatus">カードデータ取得後、日本語の目的からカードを検索できます。</div>
+      </div>
+      <div class="section"><h3>よく使う目的</h3><div class="quickIntents" id="quickIntents"></div></div>
+    </div>
+    <div class="card">
+      <div class="knowledgeHeader"><div><h2>知識プロフィール</h2><p class="notice">生成・利用・誘発・補助・勝ち筋を分けて表示します。</p></div><span class="knowledgeCount" id="knowledgeCount">0件</span></div>
+      <div class="knowledgeResults" id="knowledgeResults"><div class="empty">左で目的を入力してください。</div></div>
+    </div>
+  </div>
+</section>
 <section class="view" id="library"><div class="card"><h2>保存デッキ</h2><div class="saved" id="savedDecks"></div></div></section>
 <section class="view" id="about"><div class="card"><h2>分析方法</h2><p class="notice">カードを「生成」「消費」「誘発」「補助」の方向に分解します。たとえば、トークンを作るカードとトークンを生け贄にして利益を得るカード、墓地を肥やすカードと墓地枚数を参照するカードを別役割として認識し、相互補完を加点します。</p><table><tr><th>分析軸</th><th>内容</th></tr><tr><td>色適合</td><td>デッキの色アイデンティティ外を強く減点</td></tr><tr><td>方向性シナジー</td><td>生成側→利用側、誘発条件→誘発報酬を対応</td></tr><tr><td>不足補完</td><td>除去・ドロー・マナ加速・保護・勝ち手段の不足を補う候補を加点</td></tr><tr><td>マナカーブ</td><td>混雑帯を減点し、不足帯を加点</td></tr><tr><td>種族</td><td>共通クリーチャー・タイプと直接参照を加点</td></tr><tr><td>カード品質近似</td><td>柔軟性、即時性、カード差、除去耐性をテキストから推定</td></tr></table><p class="notice">この版は大会採用率や勝率を自動取得していません。その情報は大会データ提供元ごとに規約・形式が異なるためです。現在はカード本文から導く構造的相性に特化しています。</p></div></section>
 </main>
