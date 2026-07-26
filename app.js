@@ -158,7 +158,7 @@ function bindActionContainer(root){root.addEventListener('click',e=>{const detai
 function saves(){try{return JSON.parse(localStorage.getItem('mtgSavedDecks')||'[]')}catch{return[]}}function renderSaves(){let a=saves();$('savedDecks').innerHTML=a.length?a.map((x,i)=>`<div class="savedItem"><div><b>${esc(x.name)}</b><div class="tiny">${new Date(x.time).toLocaleString('ja-JP')}</div></div><div><button class="btn ghost" onclick="loadSave(${i})">開く</button> <button class="btn ghost" onclick="delSave(${i})">削除</button></div></div>`).join(''):'<div class="empty">保存デッキはありません。</div>'}window.loadSave=i=>{let x=saves()[i];$('deckInput').value=x.text;document.querySelector('[data-view="analyzer"]').click()};window.delSave=i=>{let a=saves();a.splice(i,1);localStorage.setItem('mtgSavedDecks',JSON.stringify(a));renderSaves()};
 $('saveBtn').onclick=()=>{let text=$('deckInput').value.trim();if(!text)return;let name=prompt('保存名','マイデッキ');if(!name)return;let a=saves();a.unshift({name,text,time:Date.now()});localStorage.setItem('mtgSavedDecks',JSON.stringify(a.slice(0,30)));renderSaves()};
 $('sampleBtn').onclick=()=>{$('deckInput').value='Deck\n4 Llanowar Elves\n4 Mossborn Hydra\n4 Innkeeper\'s Talent\n4 Snakeskin Veil\n4 Bushwhack\n4 Pawpatch Formation\n4 Bristly Bill, Spine Sower\n4 Railway Brawler\n2 Archdruid\'s Charm\n2 Nissa, Ascended Animist\n24 Forest'};
-$('loadBtn').onclick=()=>fetchPool(true);if($('jpLoadBtn'))$('jpLoadBtn').onclick=()=>fetchJapanese(true);if($('languageSelect')){$('languageSelect').value=displayLang;$('languageSelect').onchange=e=>{displayLang=e.target.value;localStorage.setItem('lunchForgeLang',displayLang);populateCardNames();renderDatabase();if(recs.length)renderResults();toast(displayLang==='ja'?'日本語優先表示に変更しました':'英語表示に変更しました')}};$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=()=>prepareDatabase(true);['dbQuery','dbType','dbRole','dbColor','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves();if(b.dataset.view==='database'&&!pool.length)prepareDatabase(false)});renderSaves();
+$('loadBtn').onclick=()=>fetchPool(true);if($('jpLoadBtn'))$('jpLoadBtn').onclick=()=>fetchJapanese(true);if($('languageSelect')){$('languageSelect').value=displayLang;$('languageSelect').onchange=e=>{displayLang=e.target.value;localStorage.setItem('lunchForgeLang',displayLang);populateCardNames();renderDatabase();if(recs.length)renderResults();toast(displayLang==='ja'?'日本語優先表示に変更しました':'英語表示に変更しました')}};$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=()=>prepareDatabase(true);['dbQuery','dbType','dbRole','dbColor','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves();if(b.dataset.view==='database'&&!pool.length)prepareDatabase(false);if(b.dataset.view==='inspector'){if(!pool.length)prepareDatabase(false);populateCardNames();renderRecentInspector();}});renderSaves();
 
 try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）`;renderDatabase();if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),80);}}catch{}
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
@@ -366,22 +366,44 @@ function renderRecentInspector(){
   el.innerHTML=a.length?a.map(name=>{const c=findPoolCard(name);return c?`<button class="recentCardBtn" data-inspect="${esc(c.name)}">${esc(displayName(c))}</button>`:''}).join(''):'<span class="tiny">まだありません。</span>';
 }
 async function renderInspector(name){
-  if(!pool.length){$('inspectorStatus').textContent='カードデータを取得しています。';await fetchPool();if(!pool.length)return;}
-  const c=await named(String(name||$('inspectorName').value).trim());
-  if(!c){$('inspectorStatus').textContent='カードを特定できませんでした。候補から選択してください。';return;}
+  const statusEl=$('inspectorStatus');
+  try{
+    if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。カード検索タブの「再取得」をお試しください。';return;}}
+    const raw=String(name||$('inspectorName').value||'').trim();
+    if(!raw){statusEl.textContent='カード名を入力するか、入力候補から選択してください。';return;}
+    statusEl.textContent=`「${raw}」を検索しています…`;
+    let c=findPoolCard(raw);
+    if(!c){
+      const key=raw.toLowerCase();
+      const candidates=pool.filter(x=>x.name.toLowerCase().includes(key)||String(x.jp?.printed_name||x.printed_name||'').toLowerCase().includes(key));
+      if(candidates.length===1)c=candidates[0];
+      else if(candidates.length>1){
+        $('inspectorResult').innerHTML=`<div class="profileBox"><h3>候補を選択してください</h3><div class="candidateList">${candidates.slice(0,20).map(x=>`<button class="recentCardBtn" data-inspect="${esc(x.name)}">${esc(displayName(x))}${x.name!==displayName(x)?`<small>${esc(x.name)}</small>`:''}</button>`).join('')}</div></div>`;
+        statusEl.textContent=`${candidates.length}件の候補が見つかりました。カードを選択してください。`;
+        return;
+      }
+    }
+    if(!c)c=await named(raw);
+    if(!c){statusEl.textContent='カードを特定できませんでした。正式な日本語名または英語名を入力してください。';return;}
   $('inspectorName').value=displayName(c);saveRecentInspector(c.name);
   const p=knowledgeProfile(c),weak=cardWeaknesses(c,p),related=inspectorCompatibility(c,8),f=features(c);
   const roleCount=p.tags.length;
   $('inspectorResult').innerHTML=`<div class="inspectorHero"><div>${displayImg(c)?`<img class="inspectorImage" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</div><div><div class="dialogEyebrow">Lunch Forge Card Profile</div><h2>${esc(displayName(c))}${hasJapanese(c)&&displayLang==='ja'?'<span class="langBadge">日本語</span>':''}</h2>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])} ・ ${p.pace}</div><div class="inspectorMetrics"><div><strong>${roleCount}</strong><span>知識タグ</span></div><div><strong>${related.length}</strong><span>強い相性候補</span></div><div><strong>${c.legalities?.standard==='legal'?'使用可':'対象外'}</strong><span>スタンダード</span></div></div><div class="dialogOracle">${esc(displayOracle(c))}</div><div class="dialogActions"><button class="btn" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="btn secondary" data-synergy="${esc(c.name)}">ランキング表示</button></div></div></div>
   <div class="inspectorColumns section"><section><h3>知識プロフィール</h3><div class="profileGrid">${profileBoxes(p)||'<div class="profileBox"><h4>分類</h4><span class="notice">タグを検出できませんでした。</span></div>'}</div></section><section><h3>使い方の要点</h3>${p.strengths.length?`<div class="profileBox"><h4>得意なこと</h4><ul class="explainList">${p.strengths.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${p.needs.length?`<div class="profileBox"><h4>組み合わせたい支援</h4><ul class="explainList">${p.needs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${weak.length?`<div class="profileBox warningBox"><h4>注意点</h4><ul class="explainList">${weak.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}</section></div>
   <section class="section"><div class="knowledgeHeader"><div><h3>相性の良いカード</h3><p class="notice">カードの生成・利用・誘発方向を照合した候補です。</p></div><span class="knowledgeCount">上位${related.length}件</span></div><div class="inspectorRelatedGrid">${related.length?related.map(inspectorMiniCard).join(''):'<div class="empty">明確な候補を検出できませんでした。</div>'}</div></section>`;
-  $('inspectorStatus').textContent=`${pool.length.toLocaleString()}種類から「${displayName(c)}」を解析しました。`;
+  statusEl.textContent=`${pool.length.toLocaleString()}種類から「${displayName(c)}」を解析しました。`;
+  }catch(error){
+    console.error(error);
+    statusEl.textContent='カード解析中にエラーが発生しました：'+(error?.message||error);
+  }
 }
 function setupInspector(){
   if(!$('inspectorBtn'))return;
+  $('inspectorBtn').disabled=false;
   $('inspectorBtn').onclick=()=>renderInspector();
-  $('inspectorName').addEventListener('keydown',e=>{if(e.key==='Enter')renderInspector()});
+  $('inspectorName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();renderInspector();}});
   $('recentInspector').addEventListener('click',e=>{const b=e.target.closest('[data-inspect]');if(b)renderInspector(b.dataset.inspect)});
+  $('inspectorResult').addEventListener('click',e=>{const b=e.target.closest('[data-inspect]');if(b){e.preventDefault();renderInspector(b.dataset.inspect);}});
   bindActionContainer($('inspectorResult'));renderRecentInspector();
 }
 setupInspector();
