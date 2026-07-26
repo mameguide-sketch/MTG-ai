@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.2.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.2.1</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -24,7 +24,7 @@ Sideboard
 <div class="row"><button class="btn secondary" id="loadBtn">スタンダード全カード取得</button><button class="btn" id="analyzeBtn">デッキを分析</button></div>
 <div class="row"><button class="btn ghost" id="sampleBtn">サンプル入力</button><button class="btn ghost" id="saveBtn">現在のデッキを保存</button></div><div class="row"><button class="btn ghost" id="copyDeckBtn">デッキをコピー</button><button class="btn ghost" id="clearDeckBtn">入力を消去</button></div>
 <div class="status" id="status">カード名を入力して押してください。必要なカードデータは自動取得します。</div><div class="progress"><div class="bar" id="bar"></div></div>
-<div class="notice">カード名は英語推奨です。初回はScryfallから取得し、ブラウザ内へキャッシュします。次回以降は再取得を減らせます。</div></div></div>
+<div class="notice">カード名は日本語・英語の両方に対応します。日本語版が存在しないカードは英語表示へ自動的に戻します。</div></div></div>
 <div><div class="card"><div class="metrics">
 <div class="metric"><b id="mCards">0</b><span>メイン枚数</span></div><div class="metric"><b id="mLands">0</b><span>土地</span></div><div class="metric"><b id="mColors">—</b><span>色</span></div><div class="metric"><b id="mAvg">—</b><span>平均MV</span></div><div class="metric"><b id="mResolved">0%</b><span>特定率</span></div><div class="metric"><b id="mScore">—</b><span>構成スコア</span></div></div>
 <div class="panelgrid"><div class="mini"><h3>診断</h3><div class="tags" id="diagnostics"><span class="tag">未分析</span></div></div><div class="mini"><h3>マナカーブ</h3><div class="mana" id="curve"></div></div></div>
@@ -35,11 +35,11 @@ Sideboard
   <div class="card">
     <div class="dbHead">
       <div><h2>Lunch Forge Database</h2><p class="notice">スタンダード全カードを、名前・カード本文・タイプ・役割・色・マナ総量から検索します。</p></div>
-      <button class="btn secondary" id="dbLoadBtn">カードデータを取得</button>
+      <div class="dbActions"><select id="languageSelect" aria-label="表示言語"><option value="ja" selected>日本語優先</option><option value="en">英語</option></select><button class="btn secondary" id="jpLoadBtn">日本語データを取得</button><button class="btn secondary" id="dbLoadBtn">カードデータを取得</button></div>
     </div>
     <div class="status" id="dbStatus">カード検索タブを開くと、スタンダード全カードを自動取得します。</div>
     <div class="dbFilters section">
-      <input id="dbQuery" placeholder="カード名・能力・タイプを検索（例：Treasure / destroy target / Dragon）" autocomplete="off"/>
+      <input id="dbQuery" placeholder="カード名・能力・タイプを検索（例：宝物 / 墓地 / ドラゴン / Treasure）" autocomplete="off"/>
       <select id="dbType"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Battle</option><option>Land</option></select>
       <select id="dbRole"><option value="">全役割</option><option value="removal">除去／妨害</option><option value="draw">ドロー</option><option value="ramp">マナ加速</option><option value="protection">保護</option><option value="finisher">勝ち手段</option><option value="token_make">トークン生成</option><option value="token_payoff">トークン利用</option><option value="counter_make">カウンター付与</option><option value="counter_payoff">カウンター利用</option><option value="grave_fill">墓地を肥やす</option><option value="grave_payoff">墓地利用</option></select>
       <select id="dbColor"><option value="">全色</option><option value="W">白</option><option value="U">青</option><option value="B">黒</option><option value="R">赤</option><option value="G">緑</option><option value="C">無色</option></select>
@@ -50,13 +50,13 @@ Sideboard
     <div class="cardGallery" id="dbResults"><div class="empty">カードデータの取得後、全カードが表示されます。名前や能力で絞り込めます。</div></div>
   </div>
 </section>
-<section class="view" id="single"><div class="grid"><div class="card"><h2>単体カード探索</h2><div class="controls"><input id="singleName" list="cardNames" placeholder="英語カード名（候補から選択できます）"/><datalist id="cardNames"></datalist><button class="btn" id="singleBtn">相性カードを探す</button><div class="status" id="singleStatus">操作できます。「デッキを分析」を押すとカードデータも自動取得します。</div></div></div><div class="card"><h2>相性ランキング</h2><div id="singleSeed"></div><div class="results section" id="singleResults"><div class="empty">カード名を入力してください。</div></div></div></div></section>
+<section class="view" id="single"><div class="grid"><div class="card"><h2>単体カード探索</h2><div class="controls"><input id="singleName" list="cardNames" placeholder="日本語・英語カード名（候補から選択できます）"/><datalist id="cardNames"></datalist><button class="btn" id="singleBtn">相性カードを探す</button><div class="status" id="singleStatus">操作できます。「デッキを分析」を押すとカードデータも自動取得します。</div></div></div><div class="card"><h2>相性ランキング</h2><div id="singleSeed"></div><div class="results section" id="singleResults"><div class="empty">カード名を入力してください。</div></div></div></div></section>
 
 <section class="view" id="knowledge">
   <div class="knowledgeGrid">
     <div class="card">
       <h2>Card Knowledge Base</h2>
-      <p class="notice">カード名だけでなく、「宝物を作りたい」「墓地を使う」「全体除去」のような目的から候補を探します。</p>
+      <p class="notice">日本語の正式カード名・ルール文章に加え、「宝物を作りたい」「墓地を使う」「全体除去」のような目的から候補を探します。</p>
       <div class="controls">
         <input id="knowledgeQuery" list="knowledgeHints" placeholder="例：宝物を作る / 墓地利用 / クリーチャーを守る" autocomplete="off"/>
         <datalist id="knowledgeHints">
