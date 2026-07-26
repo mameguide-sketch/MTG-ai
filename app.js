@@ -115,16 +115,20 @@ function renderDatabase(){
   if(!pool.length){$('dbResults').innerHTML='<div class="empty">「カードデータを準備」を押してください。</div>';$('dbSummary').textContent='0件';return;}
   const q=$('dbQuery').value.trim().toLowerCase();
   const terms=(q.match(/"[^"]+"|\S+/g)||[]).map(x=>x.replace(/^"|"$/g,''));
+  const semantic=typeof matchIntent==='function'?matchIntent(q):{tags:[],matched:[]};
   const tf=$('dbType').value,rf=$('dbRole').value,cf=$('dbColor').value,mv=$('dbMv').value,sort=$('dbSort').value;
   let arr=pool.filter(c=>{
     const f=features(c),cm=Math.floor(+c.cmc||0);
     const hay=cardSearchText(c);
-    return (!terms.length||terms.every(term=>hay.includes(term)))&&(!tf||type(c).includes(tf))&&(!rf||f.roles.includes(rf))&&(!cf||(cf==='C'?!f.colors.length:f.colors.includes(cf)))&&(!mv||(mv==='7'?cm>=7:cm===+mv));
+    const p=typeof knowledgeProfile==='function'?knowledgeProfile(c):{tags:[]};
+    const textMatch=!terms.length||terms.every(term=>hay.includes(term));
+    const semanticMatch=semantic.tags.length&&semantic.tags.some(tag=>p.tags.includes(tag));
+    return ((!terms.length&&!semantic.tags.length)||textMatch||semanticMatch)&&(!tf||type(c).includes(tf))&&(!rf||f.roles.includes(rf))&&(!cf||(cf==='C'?!f.colors.length:f.colors.includes(cf)))&&(!mv||(mv==='7'?cm>=7:cm===+mv));
   });
   if(sort==='mv')arr.sort((a,b)=>(a.cmc||0)-(b.cmc||0)||displayName(a).localeCompare(displayName(b),'ja'));
   else if(sort==='new')arr.sort((a,b)=>(b.released_at||'').localeCompare(a.released_at||'')||displayName(a).localeCompare(displayName(b),'ja'));
   else arr.sort((a,b)=>displayName(a).localeCompare(displayName(b),'ja'));
-  $('dbSummary').textContent=`${arr.length.toLocaleString()}件中、先頭${Math.min(80,arr.length)}件を表示`;
+  $('dbSummary').textContent=`${arr.length.toLocaleString()}件中、先頭${Math.min(80,arr.length)}件を表示${semantic.matched.length?' ・ 意味解析：'+semantic.matched.map(x=>x.name).join('／'):''}`;
   $('dbResults').innerHTML=arr.length?arr.slice(0,80).map(databaseCardHTML).join(''):'<div class="empty">条件に合うカードがありません。</div>';
 }
 function databaseCardHTML(c){
@@ -159,7 +163,7 @@ $('loadBtn').onclick=()=>fetchPool(true);if($('jpLoadBtn'))$('jpLoadBtn').onclic
 try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）`;renderDatabase();if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),80);}}catch{}
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
 
-/* ===== Lunch Forge v0.2.1: Card Knowledge Base ===== */
+/* ===== Lunch Forge v0.3.0: Card Knowledge Base / Inspector ===== */
 const KNOWLEDGE_TAGS = {
   treasure_make:{label:'宝物生成',group:'生成',rx:/create[^.]{0,90}treasure token/i},
   food_make:{label:'食物生成',group:'生成',rx:/create[^.]{0,90}food token/i},
@@ -334,3 +338,50 @@ async function singleAnalyze(){
   $('singleStatus').textContent=`${pool.length.toLocaleString()}種類から方向性シナジーを採点しました。`;
 }
 setupKnowledge();
+
+
+/* ===== Card Inspector v0.3.0 ===== */
+function cardWeaknesses(c,p){
+  const t=type(c).toLowerCase(), weaknesses=[];
+  if(t.includes('creature')&&!p.tags.includes('protection'))weaknesses.push('単体除去を受けやすいため、保護呪文や再利用手段が有効');
+  if((+c.cmc||0)>=5)weaknesses.push('高マナ域のため、マナ加速や序盤の防御が必要');
+  if(p.tags.some(x=>['token_buff','counter_use','grave_cast','life_payoff','death_trigger'].includes(x)))weaknesses.push('単体では機能しにくく、条件を供給するカードが必要');
+  if((c.color_identity||[]).length>=3)weaknesses.push('多色カードのため、土地配分と色事故に注意');
+  if(!p.tags.some(x=>['single_removal','board_wipe','draw_cards','protection','evasion','direct_damage','alternate_win'].includes(x)))weaknesses.push('即座に盤面や手札へ影響しない可能性がある');
+  return unique(weaknesses).slice(0,4);
+}
+function inspectorCompatibility(seed,limit=8){
+  return pool.filter(c=>c.name!==seed.name).map(c=>compatibility(seed,c)).filter(x=>x.score>=24).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja')).slice(0,limit);
+}
+function inspectorMiniCard(x){
+  const c=x.card;
+  return `<article class="inspectorRelated"><button class="imageButton" data-detail="${esc(c.name)}">${displayImg(c)?`<img loading="lazy" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</button><div><b>${esc(displayName(c))}</b>${englishSubName(c)}<div class="scoreLine"><span>${x.score}点</span><small>${esc(x.why[0]||'共通テーマ')}</small></div><div class="inlineActions"><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button><button class="smallBtn primary" data-deckadd="${esc(c.name)}">追加</button></div></div></article>`;
+}
+function saveRecentInspector(name){
+  let a=[];try{a=JSON.parse(localStorage.getItem('lunchForgeRecentInspector')||'[]')}catch{}
+  a=[name,...a.filter(x=>x!==name)].slice(0,8);localStorage.setItem('lunchForgeRecentInspector',JSON.stringify(a));renderRecentInspector();
+}
+function renderRecentInspector(){
+  const el=$('recentInspector');if(!el)return;let a=[];try{a=JSON.parse(localStorage.getItem('lunchForgeRecentInspector')||'[]')}catch{}
+  el.innerHTML=a.length?a.map(name=>{const c=findPoolCard(name);return c?`<button class="recentCardBtn" data-inspect="${esc(c.name)}">${esc(displayName(c))}</button>`:''}).join(''):'<span class="tiny">まだありません。</span>';
+}
+async function renderInspector(name){
+  if(!pool.length){$('inspectorStatus').textContent='カードデータを取得しています。';await fetchPool();if(!pool.length)return;}
+  const c=await named(String(name||$('inspectorName').value).trim());
+  if(!c){$('inspectorStatus').textContent='カードを特定できませんでした。候補から選択してください。';return;}
+  $('inspectorName').value=displayName(c);saveRecentInspector(c.name);
+  const p=knowledgeProfile(c),weak=cardWeaknesses(c,p),related=inspectorCompatibility(c,8),f=features(c);
+  const roleCount=p.tags.length;
+  $('inspectorResult').innerHTML=`<div class="inspectorHero"><div>${displayImg(c)?`<img class="inspectorImage" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</div><div><div class="dialogEyebrow">Lunch Forge Card Profile</div><h2>${esc(displayName(c))}${hasJapanese(c)&&displayLang==='ja'?'<span class="langBadge">日本語</span>':''}</h2>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])} ・ ${p.pace}</div><div class="inspectorMetrics"><div><strong>${roleCount}</strong><span>知識タグ</span></div><div><strong>${related.length}</strong><span>強い相性候補</span></div><div><strong>${c.legalities?.standard==='legal'?'使用可':'対象外'}</strong><span>スタンダード</span></div></div><div class="dialogOracle">${esc(displayOracle(c))}</div><div class="dialogActions"><button class="btn" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="btn secondary" data-synergy="${esc(c.name)}">ランキング表示</button></div></div></div>
+  <div class="inspectorColumns section"><section><h3>知識プロフィール</h3><div class="profileGrid">${profileBoxes(p)||'<div class="profileBox"><h4>分類</h4><span class="notice">タグを検出できませんでした。</span></div>'}</div></section><section><h3>使い方の要点</h3>${p.strengths.length?`<div class="profileBox"><h4>得意なこと</h4><ul class="explainList">${p.strengths.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${p.needs.length?`<div class="profileBox"><h4>組み合わせたい支援</h4><ul class="explainList">${p.needs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${weak.length?`<div class="profileBox warningBox"><h4>注意点</h4><ul class="explainList">${weak.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}</section></div>
+  <section class="section"><div class="knowledgeHeader"><div><h3>相性の良いカード</h3><p class="notice">カードの生成・利用・誘発方向を照合した候補です。</p></div><span class="knowledgeCount">上位${related.length}件</span></div><div class="inspectorRelatedGrid">${related.length?related.map(inspectorMiniCard).join(''):'<div class="empty">明確な候補を検出できませんでした。</div>'}</div></section>`;
+  $('inspectorStatus').textContent=`${pool.length.toLocaleString()}種類から「${displayName(c)}」を解析しました。`;
+}
+function setupInspector(){
+  if(!$('inspectorBtn'))return;
+  $('inspectorBtn').onclick=()=>renderInspector();
+  $('inspectorName').addEventListener('keydown',e=>{if(e.key==='Enter')renderInspector()});
+  $('recentInspector').addEventListener('click',e=>{const b=e.target.closest('[data-inspect]');if(b)renderInspector(b.dataset.inspect)});
+  bindActionContainer($('inspectorResult'));renderRecentInspector();
+}
+setupInspector();
