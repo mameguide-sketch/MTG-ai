@@ -6,8 +6,8 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.4.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
-<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
 <div class="card"><h2>デッキ入力</h2><div class="controls">
@@ -43,7 +43,7 @@ Sideboard
       <select id="dbType"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Battle</option><option>Land</option></select>
       <select id="dbRole"><option value="">全役割</option><option value="removal">除去／妨害</option><option value="draw">ドロー</option><option value="ramp">マナ加速</option><option value="protection">保護</option><option value="finisher">勝ち手段</option><option value="token_make">トークン生成</option><option value="token_payoff">トークン利用</option><option value="counter_make">カウンター付与</option><option value="counter_payoff">カウンター利用</option><option value="grave_fill">墓地を肥やす</option><option value="grave_payoff">墓地利用</option></select>
       <select id="dbColor"><option value="">全色</option><option value="W">白</option><option value="U">青</option><option value="B">黒</option><option value="R">赤</option><option value="G">緑</option><option value="C">無色</option></select>
-      <select id="dbMv"><option value="">全マナ総量</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7以上</option></select>
+      <select id="dbSet"><option value="">全セット</option></select><select id="dbMv"><option value="">全マナ総量</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7以上</option></select>
       <select id="dbSort"><option value="name">名前順</option><option value="mv">マナ総量順</option><option value="new">新しい収録順</option></select>
     </div>
     <div class="dbSummary" id="dbSummary">0件</div>
@@ -89,6 +89,25 @@ Sideboard
     <div class="card inspectorMainCard">
       <div id="inspectorResult"><div class="empty">左でカードを選択すると、解析結果を表示します。</div></div>
     </div>
+  </div>
+</section>
+
+
+<section class="view" id="advisor">
+  <div class="advisorLayout">
+    <aside class="card advisorSearchCard">
+      <div class="dialogEyebrow">Card Synergy Advisor α</div>
+      <h2>カードから構築方針を相談</h2>
+      <p class="notice">1枚を選ぶと、役割・得意な動き・必要な支援と、理由付きの相性候補を整理します。</p>
+      <div class="controls">
+        <input id="advisorName" list="cardNames" placeholder="日本語・英語のカード名" autocomplete="off">
+        <select id="advisorMode"><option value="balanced">総合的に探す</option><option value="engine">シナジーを伸ばす</option><option value="support">弱点を補う</option><option value="curve">マナ域を整える</option></select>
+        <button class="btn" id="advisorBtn">相談結果を見る</button>
+        <div class="status" id="advisorStatus">カード名を入力してください。</div>
+      </div>
+      <div class="section"><h3>見方</h3><div class="advisorLegend"><span>★★★★★ 強く推奨</span><span>★★★★☆ 有力候補</span><span>★★★☆☆ 条件付き候補</span></div></div>
+    </aside>
+    <div class="card"><div id="advisorResult"><div class="empty">左でカードを選択すると、構築方針と相性候補を表示します。</div></div></div>
   </div>
 </section>
 
