@@ -24,7 +24,7 @@ function englishSubName(c){return displayLang==='ja'&&displayName(c)!==c.name?`<
 function mergeJapaneseCards(cards){
   const map=new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c]));
   let count=0;
-  pool=pool.map(c=>{const j=map.get(c.oracle_id);if(!j)return c;count++;return {...c,jp:{printed_name:j.printed_name||j.name,printed_type_line:j.printed_type_line||j.type_line,printed_text:j.printed_text||j.oracle_text||'',image_uris:j.image_uris||null,card_faces:j.card_faces||null,set_name:j.set_name||'',released_at:j.released_at||'',collector_number:j.collector_number||''}}});
+  pool=pool.map(c=>{const j=map.get(c.oracle_id);if(!j)return c;count++;const faceNames=j.card_faces?.map(f=>f.printed_name).filter(Boolean).join(' // '),faceTypes=j.card_faces?.map(f=>f.printed_type_line).filter(Boolean).join(' // '),faceTexts=j.card_faces?.map(f=>f.printed_text).filter(Boolean).join('\n\n');return {...c,jp:{printed_name:j.printed_name||faceNames||j.name,printed_type_line:j.printed_type_line||faceTypes||j.type_line,printed_text:j.printed_text||faceTexts||j.oracle_text||'',image_uris:j.image_uris||null,card_faces:j.card_faces||null,set_name:j.set_name||'',released_at:j.released_at||'',collector_number:j.collector_number||''}}});
   return count;
 }
 async function fetchJapanese(force=false){
@@ -461,8 +461,8 @@ async function prepareEngine(force=false){
 }
 function exportKnowledgeData(){
   if(!engineProfiles.length)buildEngineProfiles();
-  const data={version:'0.5.0',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.0.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
+  const data={version:'0.5.1',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
 }
 function setupEngine(){
   if(!$('engineRefreshBtn'))return;
@@ -532,3 +532,120 @@ function setupAdvisor(){
   bindActionContainer($('advisorResult'));
 }
 setupAdvisor();
+
+/* ===== Lunch Forge v0.5.1: Double-faced card display ===== */
+const DOUBLE_FACE_LAYOUTS=new Set(['transform','modal_dfc','reversible_card','double_faced_token']);
+function cardFaces(c){return Array.isArray(c?.card_faces)&&c.card_faces.length?c.card_faces:[c]}
+function localizedFace(c,index){if(Array.isArray(c?.jp?.card_faces))return c.jp.card_faces[index]||null;return index===0?(c?.jp||null):null}
+function isDoubleFaced(c){
+  const faces=cardFaces(c);
+  if(faces.length<2)return false;
+  return DOUBLE_FACE_LAYOUTS.has(c?.layout)||faces.filter(f=>f?.image_uris?.normal).length>=2||((c?.jp?.card_faces||[]).filter(f=>f?.image_uris?.normal).length>=2);
+}
+function faceDisplayData(c,index=0){
+  const faces=cardFaces(c),face=faces[index]||faces[0]||c,jface=localizedFace(c,index),ja=displayLang==='ja';
+  const englishName=face?.name||c?.name||'—';
+  const name=ja?(jface?.printed_name||jface?.name||face?.printed_name||englishName):englishName;
+  const typeLine=ja?(jface?.printed_type_line||jface?.type_line||face?.printed_type_line||face?.type_line||c?.type_line||'—'):(face?.type_line||c?.type_line||'—');
+  const oracleText=ja?(jface?.printed_text||jface?.oracle_text||face?.printed_text||face?.oracle_text||''):(face?.oracle_text||'');
+  const image=(ja?(jface?.image_uris?.normal||null):null)||face?.image_uris?.normal||(index===0?((ja?c?.jp?.image_uris?.normal:null)||c?.image_uris?.normal):null)||'';
+  return {
+    index,name,englishName,typeLine,oracleText,image,
+    manaCost:face?.mana_cost||'—',
+    power:face?.power??null,toughness:face?.toughness??null,
+    loyalty:face?.loyalty??null,defense:face?.defense??null,
+    colors:face?.colors||c?.colors||[]
+  };
+}
+function displayName(c){
+  if(displayLang!=='ja')return c?.name||'—';
+  const j=localizedCard(c);
+  if(Array.isArray(j?.card_faces)&&j.card_faces.length){
+    const names=j.card_faces.map((f,i)=>f?.printed_name||f?.name||c?.card_faces?.[i]?.name).filter(Boolean);
+    const localized=j.card_faces.some((f,i)=>f?.printed_name&&f.printed_name!==c?.card_faces?.[i]?.name);
+    if(names.length&&localized)return names.join(' // ');
+  }
+  if(j?.printed_name)return j.printed_name;
+  if(c?.printed_name)return c.printed_name;
+  return c?.name||'—';
+}
+function displayType(c){
+  if(displayLang!=='ja')return type(c);
+  const j=localizedCard(c);
+  if(j?.printed_type_line)return j.printed_type_line;
+  if(c?.printed_type_line)return c.printed_type_line;
+  if(Array.isArray(j?.card_faces)&&j.card_faces.length){
+    const values=j.card_faces.map((f,i)=>f?.printed_type_line||f?.type_line||c?.card_faces?.[i]?.type_line).filter(Boolean);
+    if(values.length)return values.join(' // ');
+  }
+  return type(c);
+}
+function displayOracle(c){
+  if(displayLang!=='ja')return oracle(c);
+  const j=localizedCard(c);
+  if(j?.printed_text)return j.printed_text;
+  if(c?.printed_text)return c.printed_text;
+  if(Array.isArray(c?.card_faces)&&c.card_faces.length){
+    return c.card_faces.map((f,i)=>localizedFace(c,i)?.printed_text||localizedFace(c,i)?.oracle_text||f?.printed_text||f?.oracle_text).filter(Boolean).join('\n\n');
+  }
+  return oracle(c);
+}
+function displayImg(c,faceIndex=0){return faceDisplayData(c,faceIndex).image||img(c)}
+function hasJapanese(c){return !!(c?.jp?.printed_name||c?.printed_name||c?.jp?.card_faces?.some(f=>f?.printed_name||f?.printed_text||f?.image_uris?.normal))}
+function englishSubName(c){return displayLang==='ja'&&displayName(c)!==c.name?`<div class="englishName">${esc(c.name)}</div>`:''}
+function faceEnglishSubName(face){return displayLang==='ja'&&face.name!==face.englishName?`<div class="englishName">${esc(face.englishName)}</div>`:''}
+function faceStatsHTML(face){
+  const stats=[];
+  if(face.power!=null||face.toughness!=null)stats.push(`P/T：${esc(face.power??'—')} / ${esc(face.toughness??'—')}`);
+  if(face.loyalty!=null)stats.push(`忠誠度：${esc(face.loyalty)}`);
+  if(face.defense!=null)stats.push(`守備値：${esc(face.defense)}`);
+  return stats.length?`<div class="statLine">${stats.join(' ・ ')}</div>`:'';
+}
+function faceImageHTML(face,label){
+  return face.image?`<figure class="dialogFaceFigure"><img class="dialogImage" src="${face.image}" alt="${esc(face.name)}"><figcaption>${esc(label)}：${esc(face.name)}</figcaption></figure>`:`<div class="dialogImageMissing">${esc(label)}の画像はありません</div>`;
+}
+function faceToolbarHTML(c,mode,index){
+  if(!isDoubleFaced(c))return '';
+  const faces=cardFaces(c);
+  const faceButtons=faces.map((_,i)=>{
+    const face=faceDisplayData(c,i),label=i===0?'表面':i===1?'裏面':`面${i+1}`;
+    return `<button type="button" class="faceSwitchBtn ${mode==='single'&&index===i?'on':''}" data-face-index="${i}" title="${esc(face.name)}">${label}</button>`;
+  }).join('');
+  return `<div class="faceToolbar" role="group" aria-label="カード面の表示切り替え"><span class="faceToolbarLabel">カード面</span>${faceButtons}<button type="button" class="faceSwitchBtn ${mode==='both'?'on':''}" data-face-mode="both">両面を並べる</button></div>`;
+}
+function cardProfileHTML(c){
+  const f=features(c),p=knowledgeProfile(c),legal=c.legalities?.standard==='legal';
+  return `<div class="dialogCardProfile"><div class="dialogEyebrow">${legal?'スタンダード使用可':'スタンダード対象外'}</div><h3 class="section">Lunch Forge 知識プロフィール</h3><div class="tags dialogTags">${f.roles.length?f.roles.map(r=>`<span class="tag">${labels[r]||r}</span>`).join(''):'<span class="tag">従来役割未分類</span>'}</div><div class="profileGrid">${profileBoxes(p)||'<div class="profileBox"><h4>分類</h4><span class="notice">知識タグを検出できませんでした。</span></div>'}</div>${p.strengths.length?`<div class="profileBox"><h4>このカードが得意なこと</h4><ul class="explainList">${p.strengths.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}${p.needs.length?`<div class="profileBox section"><h4>組み合わせたい支援</h4><ul class="explainList">${p.needs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}<div class="dialogActions"><button class="btn" data-deckadd="${esc(c.name)}">1枚デッキへ追加</button><button class="btn secondary" data-synergy="${esc(c.name)}">このカードの相性を見る</button></div><div class="tiny">収録：${esc(c.set_name||'—')} ${c.released_at?`・ ${esc(c.released_at)}`:''}</div></div>`;
+}
+function singleFaceDetailHTML(c,index){
+  const face=faceDisplayData(c,index),label=isDoubleFaced(c)?(index===0?'表面':index===1?'裏面':`面${index+1}`):'カード';
+  return `<div class="dialogGrid"><div>${faceImageHTML(face,label)}</div><div><div class="dialogEyebrow">${isDoubleFaced(c)?label:'カード詳細'}</div><h2>${esc(face.name)}${hasJapanese(c)&&displayLang==='ja'?'<span class="langBadge">日本語</span>':''}</h2>${faceEnglishSubName(face)}<div class="manaCost">${esc(face.manaCost)}</div><div class="meta">${esc(face.typeLine)} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])}</div><div class="dialogOracle">${esc(face.oracleText||'ルール文章はありません。')}</div>${faceStatsHTML(face)}${cardProfileHTML(c)}</div></div>`;
+}
+function bothFacesDetailHTML(c){
+  const faces=cardFaces(c).map((_,i)=>faceDisplayData(c,i));
+  const cards=faces.map((face,i)=>{
+    const label=i===0?'表面':i===1?'裏面':`面${i+1}`;
+    return `<article class="dialogFaceCard">${faceImageHTML(face,label)}<div class="dialogFaceBody"><div class="dialogEyebrow">${label}</div><h2>${esc(face.name)}</h2>${faceEnglishSubName(face)}<div class="manaCost">${esc(face.manaCost)}</div><div class="meta">${esc(face.typeLine)}</div><div class="dialogOracle">${esc(face.oracleText||'ルール文章はありません。')}</div>${faceStatsHTML(face)}</div></article>`;
+  }).join('');
+  return `<div class="dialogBothFaces">${cards}</div>${cardProfileHTML(c)}`;
+}
+function renderCardDetailFaces(c,mode='single',index=0){
+  const dialog=$('cardDialog'),content=$('dialogContent');if(!dialog||!content)return;
+  const faces=cardFaces(c),safeIndex=Math.max(0,Math.min(index,faces.length-1));
+  dialog.dataset.cardName=c.name;dialog.dataset.faceMode=mode;dialog.dataset.faceIndex=String(safeIndex);
+  content.innerHTML=`${faceToolbarHTML(c,mode,safeIndex)}${mode==='both'&&isDoubleFaced(c)?bothFacesDetailHTML(c):singleFaceDetailHTML(c,safeIndex)}`;
+}
+function showCardDetail(name){
+  const c=findPoolCard(name);if(!c)return;
+  renderCardDetailFaces(c,'single',0);
+  if(!$('cardDialog').open)$('cardDialog').showModal();
+}
+if($('dialogContent'))$('dialogContent').addEventListener('click',e=>{
+  const button=e.target.closest('.faceSwitchBtn');if(!button)return;
+  const dialog=$('cardDialog'),c=findPoolCard(dialog?.dataset.cardName||'');if(!c)return;
+  if(button.dataset.faceMode==='both')renderCardDetailFaces(c,'both',Number(dialog.dataset.faceIndex)||0);
+  else if(button.dataset.faceIndex!=null)renderCardDetailFaces(c,'single',Number(button.dataset.faceIndex)||0);
+});
+
+const databaseTabV051=document.querySelector('[data-view="database"]');
+if(databaseTabV051)databaseTabV051.addEventListener('click',()=>{if(pool.length){populateCardNames();renderDatabase();}});

@@ -1,30 +1,30 @@
-# Lunch Forge v0.5.0
+# Lunch Forge v0.5.1
 
 日本語優先のMTGスタンダード向けカード・デッキ構築支援ツールです。
 
-## v0.5.0の追加
+## v0.5.1の追加
 
-- Card Synergy Advisor α
-- 主な役割・強み・必要な支援・注意点の表示
-- 相性候補を理由と5段階推奨度で表示
-- カード検索のセット絞り込み
-- 開発ロードマップとテスト資料
+- 両面カードの表面／裏面切り替え
+- 両面を並べて確認できる表示
+- 面ごとのカード名、マナ・コスト、タイプ、ルール文章、P/T等の表示
+- 各面で日本語カード画像を優先し、存在しない場合は英語画像へフォールバック
+- 通常カードの表示と既存機能を維持
 
 ## GitHub Pagesへの更新
 
-このフォルダ内の全ファイルをリポジトリへ上書きしてください。特に次のファイルが更新・追加されています。
+次の6ファイルだけを、リポジトリの最上位へ上書きしてください。
 
-- index.html
-- styles.css
-- app.js
-- README.md
-- ROADMAP.md
-- REQUIREMENTS.md
-- CHECKLIST.md
-- CHANGELOG.md
+- `index.html`
+- `styles.css`
+- `app.js`
+- `README.md`
+- `CHANGELOG.md`
+- `CHECKLIST.md`
 
-推奨コミットメッセージ:
+`docs`、`data`、`tests`フォルダーは削除・上書きしません。
+
+推奨コミットメッセージ：
 
 ```text
-Add Card Synergy Advisor v0.5.0
+feat: add double-faced card display v0.5.1
 ```
