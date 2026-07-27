@@ -789,7 +789,7 @@ function scoreCard(c,stats,strategy,seedCards){
   return {card:c,score:Math.round(score*10)/10,why:unique(why).slice(0,6),relations:[...relations],f};
 }
 function cardHTML(x){
-  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">効果適合点</div></div></article>`;
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}${x.cautions?.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">効果適合点</div></div></article>`;
 }
 function candidateResultHTMLV053(x){
   return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div><div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">効果接続点</div></div></article>`;
@@ -844,3 +844,140 @@ function ensureCardNamesV053(){if(pool.length&&!cardNamesReadyV053)populateCardN
 document.querySelectorAll('input[list="cardNames"]').forEach(input=>input.addEventListener('focus',ensureCardNamesV053,{once:true}));
 const databaseTabV053=document.querySelector('[data-view="database"]');if(databaseTabV053)databaseTabV053.addEventListener('click',()=>{ensureCardNamesV053();if(pool.length)renderDatabase();});
 setTimeout(()=>loadVerifiedSynergiesV053(false),500);
+
+
+/* ===== Lunch Forge v0.5.4: Deck Intelligence ===== */
+let currentDeckKnowledgeV054=null;
+
+function clampV054(n,min=0,max=100){return Math.max(min,Math.min(max,n))}
+function deckKnowledgeProfileV054(entries){
+  const main=entries.filter(x=>!x.side&&x.card),tagCounts={},tagCards={},groupCounts={};
+  for(const entry of main){
+    const p=knowledgeProfile(entry.card),qty=Math.max(1,+entry.qty||1);
+    for(const tag of p.tags){
+      tagCounts[tag]=(tagCounts[tag]||0)+qty;
+      (tagCards[tag]??=[]).push({name:displayName(entry.card),englishName:entry.card.name,qty});
+      const group=KNOWLEDGE_TAGS[tag]?.group||'未分類';groupCounts[group]=(groupCounts[group]||0)+qty;
+    }
+  }
+  const connections=TAG_CONNECTIONS.map(([from,to,points,label])=>{
+    const fromCount=tagCounts[from]||0,toCount=tagCounts[to]||0;
+    return {from,to,points,label,fromCount,toCount,strength:Math.min(fromCount,toCount)};
+  }).filter(x=>x.fromCount&&x.toCount).sort((a,b)=>(b.points+b.strength)-(a.points+a.strength));
+  const producers=new Set(TAG_CONNECTIONS.map(x=>x[0])),consumers=new Set(TAG_CONNECTIONS.map(x=>x[1]));
+  const supplies=Object.entries(tagCounts).filter(([tag])=>KNOWLEDGE_TAGS[tag]?.group==='生成'||producers.has(tag)).sort((a,b)=>b[1]-a[1]);
+  const uses=Object.entries(tagCounts).filter(([tag])=>['利用','誘発','勝ち筋'].includes(KNOWLEDGE_TAGS[tag]?.group)||consumers.has(tag)).sort((a,b)=>b[1]-a[1]);
+  const gaps=[];
+  for(const [tag,count] of supplies){
+    const routes=TAG_CONNECTIONS.filter(x=>x[0]===tag);
+    if(count>=2&&routes.length&&!routes.some(x=>(tagCounts[x[1]]||0)>0))gaps.push({kind:'consumer',tag,count,label:`${KNOWLEDGE_TAGS[tag].label}を活用する受け口が少ない`});
+  }
+  for(const [tag,count] of uses){
+    const routes=TAG_CONNECTIONS.filter(x=>x[1]===tag);
+    if(count>=2&&routes.length&&!routes.some(x=>(tagCounts[x[0]]||0)>0))gaps.push({kind:'supplier',tag,count,label:`${KNOWLEDGE_TAGS[tag].label}を安定して成立させる供給源が少ない`});
+  }
+  const utilityDefs=[
+    {code:'interaction',label:'相手の脅威へ触る手段',tags:['single_removal','board_wipe','counterspell','bounce'],target:4},
+    {code:'cards',label:'手札・選択肢を増やす手段',tags:['draw_cards','impulse','tutor'],target:4},
+    {code:'protection',label:'主力を守る手段',tags:['protection'],target:2},
+    {code:'mana',label:'展開を支えるマナ加速',tags:['mana_add','extra_land','treasure_make'],target:3},
+    {code:'win',label:'明確な勝ち筋',tags:['evasion','direct_damage','alternate_win','go_wide','go_tall'],target:3}
+  ];
+  const utility=utilityDefs.map(def=>({...def,count:def.tags.reduce((sum,t)=>sum+(tagCounts[t]||0),0)}));
+  for(const item of utility)if(item.count<item.target)gaps.push({kind:'coverage',code:item.code,count:item.count,target:item.target,tags:item.tags,label:`${item.label}が少ない（目安 ${item.target}枚）`});
+  const topConnection=connections[0];
+  const topStrategy=Object.entries(groupCounts).sort((a,b)=>b[1]-a[1])[0];
+  const plan=topConnection?`${KNOWLEDGE_TAGS[topConnection.from].label} → ${KNOWLEDGE_TAGS[topConnection.to].label}`:topStrategy?`${topStrategy[0]}を中心とした構成`:'効果接続を追加確認';
+  const supportRate=utility.reduce((sum,x)=>sum+Math.min(1,x.count/Math.max(1,x.target)),0)/utility.length;
+  const connectionValue=Math.min(55,connections.reduce((sum,x)=>sum+Math.min(13,7+x.strength),0));
+  const engineScore=clampV054(Math.round(20+connectionValue+supportRate*25-Math.min(28,gaps.length*4)));
+  return {main,tagCounts,tagCards,groupCounts,connections,supplies,uses,gaps,utility,plan,engineScore};
+}
+function examplesForTagV054(profile,tag){
+  const cards=profile.tagCards[tag]||[],seen=new Set(),out=[];
+  for(const x of cards){if(seen.has(x.englishName))continue;seen.add(x.englishName);out.push(`${x.name}×${x.qty}`);if(out.length>=2)break;}
+  return out.join('、');
+}
+function deckTagRowsHTMLV054(profile,items,emptyText){
+  return items.length?items.slice(0,8).map(([tag,count])=>`<div class="deckIntelRow"><div><b>${esc(KNOWLEDGE_TAGS[tag]?.label||tag)}</b><small>${esc(examplesForTagV054(profile,tag))}</small></div><span>${count}枚</span></div>`).join(''):`<div class="deckIntelEmpty">${esc(emptyText)}</div>`;
+}
+function completeVerifiedCasesV054(profile){
+  return verifiedSynergyCasesV053.filter(testCase=>(testCase.cards||[]).every(card=>profile.main.some(entry=>{
+    const variants=cardNameVariantsV053(entry.card);return [card.nameJa,card.nameEn].map(normalizeCardNameV053).some(name=>variants.includes(name));
+  })));
+}
+function renderDeckIntelligenceV054(profile){
+  const el=$('deckIntelligence');if(!el)return;
+  const verified=completeVerifiedCasesV054(profile);
+  const connectionHTML=profile.connections.length?profile.connections.slice(0,7).map(x=>`<div class="deckConnection"><div class="deckConnectionArrow"><span>${esc(KNOWLEDGE_TAGS[x.from].label)}</span><b>→</b><span>${esc(KNOWLEDGE_TAGS[x.to].label)}</span></div><small>${esc(x.label)}・供給${x.fromCount}枚／利用${x.toCount}枚</small></div>`).join(''):'<div class="deckIntelEmpty">明確な供給→利用の接続をまだ検出できません。</div>';
+  const gapHTML=profile.gaps.length?profile.gaps.slice(0,8).map(x=>`<div class="deckGap"><span>!</span><div>${esc(x.label)}</div></div>`).join(''):'<div class="deckIntelGood">✓ 主要な不足・孤立は検出されませんでした。</div>';
+  const verifiedHTML=verified.length?`<section class="deckVerified section"><div class="knowledgeHeader"><div><h3>デッキ内で成立する検証済み事例</h3><p class="notice">必要カードがすべてメインデッキに含まれています。</p></div><span class="knowledgeCount">${verified.length}件</span></div>${verified.map(verifiedCaseHTMLV053).join('')}</section>`:'';
+  el.innerHTML=`<div class="deckIntelHead"><div><div class="dialogEyebrow">Deck Intelligence v0.5.4</div><h2>デッキの効果構造</h2><p class="notice">カードを「何を供給するか」「何に利用するか」「何が不足しているか」で集計します。</p></div><div class="deckIntelScore"><strong>${profile.engineScore}</strong><span>効果構造点</span></div></div><div class="deckPlan"><span>推定ゲームプラン</span><b>${esc(profile.plan)}</b></div><div class="deckIntelGrid"><section><h3>供給しているもの</h3>${deckTagRowsHTMLV054(profile,profile.supplies,'明確な生成・供給タグがありません。')}</section><section><h3>利用・誘発・勝ち筋</h3>${deckTagRowsHTMLV054(profile,profile.uses,'明確な利用先・誘発条件がありません。')}</section><section><h3>成立している接続</h3>${connectionHTML}</section><section><h3>不足・孤立</h3>${gapHTML}</section></div>${verifiedHTML}`;
+}
+function gapCoverageForCandidateV054(profile,candidateProfile){
+  const why=[],relations=[];
+  for(const gap of profile.gaps){
+    if(gap.kind==='consumer'){
+      for(const [from,to] of TAG_CONNECTIONS)if(from===gap.tag&&candidateProfile.tags.includes(to)){why.push(`${KNOWLEDGE_TAGS[gap.tag].label}の活用先として${KNOWLEDGE_TAGS[to].label}を追加`);relations.push('COVERAGE','SYNERGY');}
+    }else if(gap.kind==='supplier'){
+      for(const [from,to] of TAG_CONNECTIONS)if(to===gap.tag&&candidateProfile.tags.includes(from)){why.push(`${KNOWLEDGE_TAGS[gap.tag].label}に必要な${KNOWLEDGE_TAGS[from].label}を供給`);relations.push('COVERAGE','ENABLE');}
+    }else if(gap.kind==='coverage'&&gap.tags.some(t=>candidateProfile.tags.includes(t))){why.push(`不足している${gap.label.replace(/が少ない.*$/,'')}を補完`);relations.push('COVERAGE','SUPPORT');}
+  }
+  return {why:unique(why),relations:unique(relations)};
+}
+function scoreCard(c,stats,strategy,seedCards){
+  const f=features(c),p=knowledgeProfile(c),profile=currentDeckKnowledgeV054||deckKnowledgeProfileV054(seedCards),relations=new Set();let score=0;const why=[],cautions=[];
+  const outside=f.colors.filter(x=>!stats.cols.includes(x));if(outside.length){score-=35*outside.length;cautions.push(`採用には追加色が必要：${colors(outside)}`);}
+  for(const [from,to,points,label] of TAG_CONNECTIONS){
+    const fromCount=profile.tagCounts[from]||0,toCount=profile.tagCounts[to]||0;
+    if(fromCount&&p.tags.includes(to)){score+=points+Math.min(8,Math.floor(fromCount/2));relations.add('SYNERGY');why.push(`デッキの${KNOWLEDGE_TAGS[from].label}（${fromCount}枚）を${KNOWLEDGE_TAGS[to].label}で活用：${label}`);}
+    if(toCount&&p.tags.includes(from)){score+=Math.max(10,points-2)+Math.min(8,Math.floor(toCount/2));relations.add('ENABLE');why.push(`デッキの${KNOWLEDGE_TAGS[to].label}（${toCount}枚）に${KNOWLEDGE_TAGS[from].label}を供給`);}
+  }
+  const coverage=gapCoverageForCandidateV054(profile,p);coverage.relations.forEach(x=>relations.add(x));why.push(...coverage.why);score+=coverage.why.length*14;
+  if(coverage.why.length&&relations.has('SYNERGY')&&relations.has('ENABLE'))relations.add('ENGINE');
+  const band=Math.min(7,Math.floor(+c.cmc||0));
+  if(stats.curve[band]<4){score+=4;relations.add('SUPPORT');why.push(`${band===7?'7+':band}マナ域の薄さを補う`)}else if(stats.curve[band]>10)score-=4;
+  const deckSubs=seedCards.flatMap(x=>features(x.card).subs),shared=f.subs.filter(x=>deckSubs.includes(x));
+  if(shared.length){score+=strategy==='tribal'?16:6;relations.add('SYNERGY');why.push(`${shared[0]}タイプをデッキと共有`)}
+  if(strategy==='engine'&&(relations.has('SYNERGY')||relations.has('ENABLE')||relations.has('ENGINE')))score+=9;
+  if(strategy==='support'&&(relations.has('SUPPORT')||relations.has('COVERAGE')))score+=8;
+  if(strategy==='curve'&&stats.curve[band]<4)score+=7;
+  if(type(c).includes('Land')&&stats.lands>=25)score-=8;
+  if(!why.length)score-=10;
+  return {card:c,score:Math.round(score*10)/10,why:unique(why).slice(0,7),cautions:unique(cautions),relations:[...relations],profile:p,f};
+}
+async function analyze(){
+  if(!pool.length){status('先にカードデータを取得します。',3);await fetchPool();if(!pool.length)return;}
+  const parsed=parseDeck($('deckInput').value);if(!parsed.length){status('デッキを入力してください。');return;}
+  $('analyzeBtn').disabled=true;deck=[];
+  try{
+    for(let i=0;i<parsed.length;i++){
+      status(`カード特定中 ${i+1}/${parsed.length}`,10+52*i/parsed.length);
+      const c=findPoolCard(parsed[i].name)||await named(parsed[i].name);
+      deck.push({...parsed[i],card:c||null});await sleep(60);
+    }
+    const resolved=deck.filter(x=>x.card),mainResolved=resolved.filter(x=>!x.side),stats=deckStats(deck);
+    currentDeckKnowledgeV054=deckKnowledgeProfileV054(mainResolved);await loadVerifiedSynergiesV053(false);
+    renderStats(stats,parsed.length,resolved.length,currentDeckKnowledgeV054);
+    const present=new Set(resolved.map(x=>x.card.name));
+    recs=pool.filter(c=>!present.has(c.name)).map(c=>scoreCard(c,stats,$('strategy').value,mainResolved)).filter(x=>x.score>=12&&x.why.length).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja'));
+    status(`${resolved.length}/${parsed.length}種類を特定。効果接続${currentDeckKnowledgeV054.connections.length}件、不足・孤立${currentDeckKnowledgeV054.gaps.length}件、推薦${recs.length.toLocaleString()}件。`,100);
+    renderResults();
+  }catch(error){console.error(error);status('デッキ分析中にエラーが発生しました：'+(error?.message||error),0);}
+  finally{$('analyzeBtn').disabled=false;}
+}
+function renderStats(s,all,res,profile=currentDeckKnowledgeV054){
+  $('mCards').textContent=s.total;$('mLands').textContent=s.lands;$('mColors').textContent=colors(s.cols);$('mAvg').textContent=s.avg.toFixed(2);$('mResolved').textContent=Math.round(res/Math.max(1,all)*100)+'%';
+  const ds=diagnosis(s),structure=clampV054(100-ds.filter(x=>x[0]==='bad').length*18-ds.filter(x=>x[0]==='warn').length*7),effect=profile?.engineScore??50,combined=Math.round(structure*.58+effect*.42);
+  $('mScore').textContent=combined;if($('mConnections'))$('mConnections').textContent=profile?.connections.length||0;if($('mGaps'))$('mGaps').textContent=profile?.gaps.length||0;
+  const gapWarnings=(profile?.gaps||[]).slice(0,3).map(x=>['warn',x.label]);$('diagnostics').innerHTML=[...ds,...gapWarnings].map(x=>`<span class="tag ${x[0]}">${esc(x[1])}</span>`).join('');
+  const max=Math.max(1,...s.curve);$('curve').innerHTML=s.curve.map((v,i)=>`<div class="manaCol"><div class="manaBar" style="height:${Math.max(2,95*v/max)}px"></div><small>${i===7?'7+':i}<br>${v}</small></div>`).join('');
+  const roles=profile?Object.entries(profile.tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,12):Object.entries(s.counts).sort((a,b)=>b[1]-a[1]);
+  $('roles').innerHTML=roles.length?roles.map(([r,n])=>`<div class="deckcard"><span class="qty">${n}</span><span>${esc(KNOWLEDGE_TAGS[r]?.label||labels[r]||r)}</span><span class="tiny">枚</span></div>`).join(''):'<span class="notice">役割を検出できませんでした。</span>';
+  $('resolvedDeck').innerHTML=deck.map(x=>`<div>${x.qty} ${esc(x.card?displayName(x.card):x.name)} ${x.card?'':'<span class="tag bad">未特定</span>'}</div>`).join('');
+  if(profile)renderDeckIntelligenceV054(profile);
+}
+function cardHTML(x){
+  const primary=(x.relations||[]).includes('COVERAGE')?'不足補完':(x.relations||[]).includes('ENGINE')?'エンジン形成':(x.relations||[]).includes('ENABLE')?'成立支援':(x.relations||[]).includes('SYNERGY')?'効果接続':'安定化';
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><div class="candidatePurpose">${esc(primary)}</div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}${x.cautions?.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">デッキ接続点</div></div></article>`;
+}

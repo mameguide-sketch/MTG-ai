@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.3</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.4</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -26,9 +26,10 @@ Sideboard
 <div class="status" id="status">カード名を入力して押してください。必要なカードデータは自動取得します。</div><div class="progress"><div class="bar" id="bar"></div></div>
 <div class="notice">カード名は日本語・英語の両方に対応します。日本語版が存在しないカードは英語表示へ自動的に戻します。</div></div></div>
 <div><div class="card"><div class="metrics">
-<div class="metric"><b id="mCards">0</b><span>メイン枚数</span></div><div class="metric"><b id="mLands">0</b><span>土地</span></div><div class="metric"><b id="mColors">—</b><span>色</span></div><div class="metric"><b id="mAvg">—</b><span>平均MV</span></div><div class="metric"><b id="mResolved">0%</b><span>特定率</span></div><div class="metric"><b id="mScore">—</b><span>構成スコア</span></div></div>
+<div class="metric"><b id="mCards">0</b><span>メイン枚数</span></div><div class="metric"><b id="mLands">0</b><span>土地</span></div><div class="metric"><b id="mColors">—</b><span>色</span></div><div class="metric"><b id="mAvg">—</b><span>平均MV</span></div><div class="metric"><b id="mResolved">0%</b><span>特定率</span></div><div class="metric"><b id="mScore">—</b><span>総合スコア</span></div><div class="metric"><b id="mConnections">0</b><span>効果接続</span></div><div class="metric"><b id="mGaps">0</b><span>不足・孤立</span></div></div>
 <div class="panelgrid"><div class="mini"><h3>診断</h3><div class="tags" id="diagnostics"><span class="tag">未分析</span></div></div><div class="mini"><h3>マナカーブ</h3><div class="mana" id="curve"></div></div></div>
 <div class="panelgrid section"><div class="mini"><h3>役割構成</h3><div id="roles"></div></div><div class="mini"><h3>解析済みデッキ</h3><div class="notice" id="resolvedDeck">—</div></div></div></div>
+<div class="card section deckIntelligenceCard"><div id="deckIntelligence"><div class="empty">デッキ分析後、供給・利用・成立接続・不足を表示します。</div></div></div>
 <div class="card section"><h2>おすすめ追加／入れ替え候補</h2><div class="filters"><input id="search" placeholder="候補内検索"/><select id="typeFilter"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Land</option></select><select id="roleFilter"><option value="">全役割</option><option value="removal">除去</option><option value="draw">ドロー</option><option value="ramp">マナ加速</option><option value="protection">保護</option><option value="finisher">フィニッシャー</option><option value="grave_payoff">墓地利用</option><option value="token_payoff">トークン利用</option></select><select id="colorFilter"><option value="">全色</option><option value="W">白</option><option value="U">青</option><option value="B">黒</option><option value="R">赤</option><option value="G">緑</option><option value="C">無色</option></select></div><div class="results" id="results"><div class="empty">左でカードデータを取得し、デッキを分析してください。</div></div></div></div></div></section>
 
 <section class="view" id="database">
