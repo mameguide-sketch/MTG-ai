@@ -187,7 +187,7 @@ $('saveBtn').onclick=()=>{let text=$('deckInput').value.trim();if(!text)return;l
 $('sampleBtn').onclick=()=>{$('deckInput').value='Deck\n4 Llanowar Elves\n4 Mossborn Hydra\n4 Innkeeper\'s Talent\n4 Snakeskin Veil\n4 Bushwhack\n4 Pawpatch Formation\n4 Bristly Bill, Spine Sower\n4 Railway Brawler\n2 Archdruid\'s Charm\n2 Nissa, Ascended Animist\n24 Forest'};
 $('loadBtn').onclick=()=>fetchPool(true);if($('jpLoadBtn'))$('jpLoadBtn').onclick=()=>fetchJapanese(true);if($('languageSelect')){$('languageSelect').value=displayLang;$('languageSelect').onchange=e=>{displayLang=e.target.value;localStorage.setItem('lunchForgeLang',displayLang);populateCardNames();renderDatabase();if(recs.length)renderResults();toast(displayLang==='ja'?'日本語優先表示に変更しました':'英語表示に変更しました')}};$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=()=>prepareDatabase(true);['dbQuery','dbType','dbRole','dbColor','dbSet','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves();if(b.dataset.view==='database'&&!pool.length)prepareDatabase(false);if(b.dataset.view==='inspector'){if(!pool.length)prepareDatabase(false);populateCardNames();renderRecentInspector();}});renderSaves();
 
-try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null');if(cached?.cards?.length){pool=cached.cards;populateCardNames();$('dbStatus').textContent=`キャッシュ済み ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）`;renderDatabase();if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),80);}}catch{}
+try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null');if(cached?.cards?.length){pool=cached.cards;$('dbStatus').textContent=`保存データ ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）を読み込みました。カード検索を開くと一覧を準備します。`;if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),300);}}catch{}
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
 
 /* ===== Lunch Forge v0.3.0: Card Knowledge Base / Inspector ===== */
@@ -675,3 +675,172 @@ if($('dialogContent'))$('dialogContent').addEventListener('click',e=>{
 
 const databaseTabV051=document.querySelector('[data-view="database"]');
 if(databaseTabV051)databaseTabV051.addEventListener('click',()=>{if(pool.length){populateCardNames();renderDatabase();}});
+
+
+/* ===== Lunch Forge v0.5.3: Relationship scoring & verified synergy cases ===== */
+const RELATION_DEFS_V053={
+  SYNERGY:{label:'Synergy',ja:'相乗効果',className:'synergy'},
+  ENABLE:{label:'Enable',ja:'成立支援',className:'enable'},
+  ENGINE:{label:'Engine',ja:'循環エンジン',className:'engine'},
+  SUPPORT:{label:'Support',ja:'安定化支援',className:'support'},
+  COVERAGE:{label:'Coverage',ja:'弱点補完',className:'coverage'}
+};
+let verifiedSynergyCasesV053=[];
+let verifiedSynergyPromiseV053=null;
+let cardNamesReadyV053=false;
+
+function normalizeCardNameV053(value){return String(value||'').normalize('NFKC').toLowerCase().replace(/[\s,，・'’"“”/\\:\-—_]/g,'')}
+function cardNameVariantsV053(c){
+  return unique([
+    c?.name,c?.printed_name,c?.jp?.printed_name,
+    ...(c?.card_faces||[]).map(f=>f?.name),
+    ...(c?.jp?.card_faces||[]).flatMap(f=>[f?.name,f?.printed_name])
+  ]).map(normalizeCardNameV053);
+}
+function caseContainsCardV053(testCase,c){
+  const names=(testCase?.cards||[]).flatMap(x=>[x?.nameJa,x?.nameEn]).map(normalizeCardNameV053);
+  return cardNameVariantsV053(c).some(v=>names.includes(v));
+}
+async function loadVerifiedSynergiesV053(force=false){
+  if(verifiedSynergyCasesV053.length&&!force)return verifiedSynergyCasesV053;
+  if(verifiedSynergyPromiseV053&&!force)return verifiedSynergyPromiseV053;
+  verifiedSynergyPromiseV053=(async()=>{
+    try{
+      const indexUrl=new URL('data/verified-synergies.json',document.baseURI);
+      const index=await fetchJson(indexUrl.href,12000,1);
+      const loaded=[];
+      for(const entry of index.cases||[]){
+        try{const caseUrl=new URL(entry.file,indexUrl);loaded.push(await fetchJson(caseUrl.href,12000,1));}catch(error){console.warn('Verified synergy case load failed',entry,error)}
+      }
+      verifiedSynergyCasesV053=loaded;
+      return loaded;
+    }catch(error){console.warn('Verified synergy index load failed',error);return []}
+    finally{verifiedSynergyPromiseV053=null}
+  })();
+  return verifiedSynergyPromiseV053;
+}
+function verifiedCasesForCardV053(c){return verifiedSynergyCasesV053.filter(testCase=>caseContainsCardV053(testCase,c))}
+function relationBadgesHTMLV053(relations=[]){
+  return unique(relations).map(key=>{const def=RELATION_DEFS_V053[key];return def?`<span class="relationBadge ${def.className}" title="${esc(def.label)}">${esc(def.label)}：${esc(def.ja)}</span>`:''}).join('');
+}
+function verifiedCaseHTMLV053(testCase){
+  const title=testCase.titleJa||(testCase.cards||[]).map(x=>x.nameJa||x.nameEn).join('＋');
+  const steps=testCase.explainStepsJa||[];
+  const risks=testCase.risksJa||[];
+  return `<article class="verifiedCase"><div class="verifiedCaseHead"><div><div class="verifiedLabel">✓ 公式カード文章確認済み</div><h3>${esc(title)}</h3></div><div class="relationRow">${relationBadgesHTMLV053(testCase.relations||[])}</div></div><p class="verifiedSummary">${esc(testCase.summaryJa||'検証済みのカード相互作用です。')}</p>${steps.length?`<ol class="synergyFlow">${steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>`:''}${risks.length?`<details class="verifiedRisks"><summary>成立条件と妨害される箇所</summary><ul class="explainList">${risks.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}</article>`;
+}
+function verifiedSectionHTMLV053(c){
+  const cases=verifiedCasesForCardV053(c);if(!cases.length)return '';
+  return `<section class="verifiedSection"><div class="knowledgeHeader"><div><h2>検証済みシナジー</h2><p class="notice">手動でカード文章と状態遷移を確認した事例です。自動推薦より優先して表示します。</p></div><span class="knowledgeCount">${cases.length}件</span></div>${cases.map(verifiedCaseHTMLV053).join('')}</section>`;
+}
+function candidateCoverageV053(seedProfile,candidateProfile,candidateCard){
+  const relations=[],why=[];
+  const has=t=>candidateProfile.tags.includes(t),seedHas=t=>seedProfile.tags.includes(t);
+  if(!seedHas('protection')&&has('protection')){relations.push('COVERAGE','SUPPORT');why.push('主力を除去から守る手段を補う')}
+  if(!seedHas('draw_cards')&&!seedHas('impulse')&&(has('draw_cards')||has('impulse')||has('tutor'))){relations.push('COVERAGE','SUPPORT');why.push('不足しやすい手札・選択肢を補う')}
+  if(!seedHas('single_removal')&&!seedHas('board_wipe')&&!seedHas('counterspell')&&(has('single_removal')||has('board_wipe')||has('counterspell'))){relations.push('COVERAGE','SUPPORT');why.push('相手の脅威へ触る手段を補う')}
+  if((+candidateCard.cmc||0)<=3&&(has('mana_add')||has('extra_land'))){relations.push('SUPPORT');why.push('展開を安定させるマナ支援')}
+  return {relations:unique(relations),why:unique(why)};
+}
+function compatibility(seed,c){
+  const a=knowledgeProfile(seed),b=knowledgeProfile(c),relations=new Set();let raw=4;const why=[],cautions=[];
+  const seedColors=seed.color_identity||[],candColors=c.color_identity||[];
+  const outside=candColors.filter(x=>!seedColors.includes(x));
+  if(outside.length){raw-=outside.length*18;cautions.push(`採用には追加色が必要：${colors(outside)}`)}
+  for(const [from,to,pts,label] of TAG_CONNECTIONS){
+    if(a.tags.includes(from)&&b.tags.includes(to)){
+      raw+=pts;relations.add('SYNERGY');why.push(`${KNOWLEDGE_TAGS[from].label} → ${KNOWLEDGE_TAGS[to].label}：${label}`);
+      if(['reanimate','grave_cast','death_trigger','landfall','life_payoff','counter_use','token_double'].includes(to))relations.add('ENGINE');
+    }
+    if(b.tags.includes(from)&&a.tags.includes(to)){
+      raw+=Math.max(10,pts-2);relations.add('ENABLE');why.push(`${displayName(c)}の${KNOWLEDGE_TAGS[from].label}が、${displayName(seed)}の${KNOWLEDGE_TAGS[to].label}を成立させる`);
+      if(['reanimate','grave_cast','death_trigger','landfall','life_payoff','counter_use','token_double'].includes(to))relations.add('ENGINE');
+    }
+  }
+  const coverage=candidateCoverageV053(a,b,c);coverage.relations.forEach(x=>relations.add(x));why.push(...coverage.why);raw+=coverage.why.length*9;
+  const shared=a.tags.filter(t=>b.tags.includes(t));
+  if(shared.length){raw+=Math.min(6,shared.length*2);why.push(`補助的な共通テーマ：${shared.slice(0,3).map(t=>KNOWLEDGE_TAGS[t].label).join('・')}`)}
+  const af=features(seed),bf=features(c),subtype=bf.subs.find(x=>af.subs.includes(x));
+  if(subtype){raw+=8;relations.add('SYNERGY');why.push(`${subtype}タイプを直接共有`)}
+  if(Math.abs((+seed.cmc||0)-(+c.cmc||0))<=1)raw+=1;
+  if(!why.length)cautions.push('明確な効果接続を検出できませんでした');
+  return {card:c,score:Math.max(0,Math.min(100,Math.round(raw))),why:unique(why).slice(0,6),cautions:unique(cautions),relations:[...relations],profile:b,f:features(c)};
+}
+function scoreCard(c,stats,strategy,seedCards){
+  const f=features(c),relations=new Set();let score=0,why=[];
+  const outside=f.colors.filter(x=>!stats.cols.includes(x));
+  if(outside.length)score-=35*outside.length;
+  const deckRoles=stats.counts;
+  for(const [maker,payoff] of pairs){
+    if((deckRoles[maker]||0)>0&&f.roles.includes(payoff)){score+=14;relations.add('SYNERGY');why.push(`${labels[maker]}を${labels[payoff]}で活用`)}
+    if((deckRoles[payoff]||0)>0&&f.roles.includes(maker)){score+=12;relations.add('ENABLE');why.push(`${labels[payoff]}を支える${labels[maker]}`)}
+  }
+  const needs={removal:4,draw:4,ramp:3,protection:2,finisher:3};
+  for(const [r,n] of Object.entries(needs))if((deckRoles[r]||0)<n&&f.roles.includes(r)){score+=13;relations.add('COVERAGE');relations.add('SUPPORT');why.push(`不足している${labels[r]}を補完`)}
+  const avg=stats.avg||3,d=Math.abs(f.cmc-avg);score+=Math.max(0,5-d*1.5);
+  const band=Math.min(7,Math.floor(f.cmc));
+  if(stats.curve[band]<4){score+=5;relations.add('SUPPORT');why.push(`${band===7?'7+':band}マナ域を補完`)}else if(stats.curve[band]>10)score-=4;
+  const deckSubs=seedCards.flatMap(x=>features(x.card).subs),shared=f.subs.filter(x=>deckSubs.includes(x));
+  if(shared.length){score+=strategy==='tribal'?18:8;relations.add('SYNERGY');why.push(`${shared[0]}タイプ連携`)}
+  if(strategy==='engine'&&relations.has('SYNERGY'))score+=8;
+  if(strategy==='support'&&(relations.has('SUPPORT')||relations.has('COVERAGE')))score+=6;
+  if(strategy==='curve'&&stats.curve[band]<4)score+=7;
+  if(type(c).includes('Land')&&stats.lands>=25)score-=8;
+  return {card:c,score:Math.round(score*10)/10,why:unique(why).slice(0,6),relations:[...relations],f};
+}
+function cardHTML(x){
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">効果適合点</div></div></article>`;
+}
+function candidateResultHTMLV053(x){
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div><div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">効果接続点</div></div></article>`;
+}
+async function singleAnalyze(){
+  if(!pool.length){$('singleStatus').textContent='先にカードデータを取得します。';await fetchPool();if(!pool.length)return;}
+  const name=$('singleName').value.trim();if(!name)return;
+  const c=findPoolCard(name)||await named(name);if(!c){$('singleStatus').textContent='カードを特定できませんでした。';return;}
+  $('singleName').value=displayName(c);await loadVerifiedSynergiesV053(false);
+  const p=knowledgeProfile(c),verified=verifiedCasesForCardV053(c);
+  singleRecs=pool.filter(x=>x.name!==c.name).map(x=>compatibility(c,x)).filter(x=>x.score>=18&&x.why.length).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja')).slice(0,40);
+  $('singleSeed').innerHTML=`<div class="mini"><h3>${esc(displayName(c))}</h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0}</div><div class="profileGrid">${profileBoxes(p)}</div>${p.needs.length?`<div class="notice">相性探索の重点：${p.needs.map(esc).join('／')}</div>`:''}</div>`;
+  const auto=`<section class="automaticSection"><div class="knowledgeHeader"><div><h2>自動探索候補</h2><p class="notice">色一致では加点せず、効果の供給・利用・条件成立・弱点補完で採点します。</p></div><span class="knowledgeCount">${singleRecs.length}件</span></div>${singleRecs.length?singleRecs.map(candidateResultHTMLV053).join(''):'<div class="empty">明確な効果接続を検出できませんでした。</div>'}</section>`;
+  $('singleResults').innerHTML=verifiedSectionHTMLV053(c)+auto;
+  $('singleStatus').textContent=`${pool.length.toLocaleString()}種類から効果接続を採点しました。検証済み事例：${verified.length}件。`;
+}
+function advisorCategory(seedProfile,candidate){
+  const r=candidate.relations||[];
+  if(r.includes('COVERAGE'))return 'Coverage：弱点補完';
+  if(r.includes('ENGINE'))return 'Engine：循環エンジン';
+  if(r.includes('ENABLE'))return 'Enable：成立支援';
+  if(r.includes('SYNERGY'))return 'Synergy：相乗効果';
+  if(r.includes('SUPPORT'))return 'Support：安定化支援';
+  return '効果接続を追加確認';
+}
+function advisorCandidateHTML(x){
+  const c=x.card,cat=advisorCategory(null,x),reason=x.why.slice(0,4);
+  return `<article class="advisorCandidate"><button class="imageButton" data-detail="${esc(c.name)}">${displayImg(c)?`<img loading="lazy" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</button><div><div class="advisorCategory">${esc(cat)}</div><h3><button class="textButton" data-detail="${esc(c.name)}">${esc(displayName(c))}</button></h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div><div class="advisorStars" aria-label="推奨度">${advisorStars(x.score)}</div><ul class="explainList">${reason.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">条件：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="smallBtn" data-inspect="${esc(c.name)}">このカードも解析</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div></article>`;
+}
+async function renderAdvisor(name){
+  const statusEl=$('advisorStatus');
+  try{
+    if(!pool.length){statusEl.textContent='カードデータを取得しています。';await fetchPool(false);if(!pool.length)return;}
+    const raw=String(name||$('advisorName').value||'').trim();if(!raw){statusEl.textContent='カード名を入力してください。';return;}
+    const c=findPoolCard(raw)||await named(raw);if(!c){statusEl.textContent='カードを特定できませんでした。';return;}
+    $('advisorName').value=displayName(c);await loadVerifiedSynergiesV053(false);
+    const p=knowledgeProfile(c),mode=$('advisorMode').value;
+    let related=pool.filter(x=>x.name!==c.name).map(x=>compatibility(c,x));
+    related.forEach(x=>{if(mode==='support'&&(x.relations.includes('SUPPORT')||x.relations.includes('COVERAGE')))x.score+=10;if(mode==='engine'&&(x.relations.includes('SYNERGY')||x.relations.includes('ENABLE')||x.relations.includes('ENGINE')))x.score+=10;if(mode==='curve'&&Math.abs((+c.cmc||0)-(+x.card.cmc||0))<=1)x.score+=7;});
+    related=related.filter(x=>x.score>=25&&x.why.length).sort((a,b)=>b.score-a.score).slice(0,12);
+    const roles=advisorRoleSummary(c,p),needs=advisorNeeds(c,p),weak=cardWeaknesses(c,p),verified=verifiedCasesForCardV053(c);
+    $('advisorResult').innerHTML=`<div class="advisorHero"><div>${displayImg(c)?`<img class="advisorSeedImage" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</div><div><div class="dialogEyebrow">構築の中心カード</div><h2>${esc(displayName(c))}</h2>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])} ・ ${p.pace}</div><div class="advisorSummaryGrid"><section><h3>主な役割</h3>${roles.map(x=>`<div class="advisorPoint goodPoint">✓ ${esc(x)}</div>`).join('')}</section><section><h3>得意なこと</h3>${(p.strengths.length?p.strengths:['カード本文から明確な強みを追加解析中']).map(x=>`<div class="advisorPoint">${esc(x)}</div>`).join('')}</section><section><h3>必要な支援</h3>${needs.map(x=>`<div class="advisorPoint needPoint">□ ${esc(x)}</div>`).join('')}</section></div>${weak.length?`<div class="advisorWarning"><b>構築時の注意</b><ul class="explainList">${weak.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}</div></div>${verifiedSectionHTMLV053(c)}<section class="section"><div class="knowledgeHeader"><div><h2>理由付きおすすめカード</h2><p class="notice">色一致では加点せず、Synergy・Enable・Engine・Support・Coverageに分けて表示します。</p></div><span class="knowledgeCount">${related.length}候補</span></div><div class="advisorCandidates">${related.length?related.map(advisorCandidateHTML).join(''):'<div class="empty">明確な効果接続を検出できませんでした。</div>'}</div></section>`;
+    statusEl.textContent=`${pool.length.toLocaleString()}種類から「${displayName(c)}」を解析しました。検証済み事例：${verified.length}件。`;
+  }catch(error){console.error(error);statusEl.textContent='相談結果の作成中にエラーが発生しました：'+(error?.message||error);}
+}
+function populateCardNames(){
+  const dl=$('cardNames');if(!dl||cardNamesReadyV053)return;
+  dl.innerHTML=pool.slice().sort((a,b)=>displayName(a).localeCompare(displayName(b),'ja')).map(c=>`<option value="${esc(displayName(c))}" label="${esc(c.name)}"></option>`).join('');
+  cardNamesReadyV053=true;
+}
+function ensureCardNamesV053(){if(pool.length&&!cardNamesReadyV053)populateCardNames()}
+document.querySelectorAll('input[list="cardNames"]').forEach(input=>input.addEventListener('focus',ensureCardNamesV053,{once:true}));
+const databaseTabV053=document.querySelector('[data-view="database"]');if(databaseTabV053)databaseTabV053.addEventListener('click',()=>{ensureCardNamesV053();if(pool.length)renderDatabase();});
+setTimeout(()=>loadVerifiedSynergiesV053(false),500);
