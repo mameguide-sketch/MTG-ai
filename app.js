@@ -31,17 +31,18 @@ async function fetchJapanese(force=false){
   if(jpLoading)return jpLoading;
   jpLoading=(async()=>{
     let cached=null;
-    try{cached=JSON.parse(localStorage.getItem('mtgStdJaV1')||'null')}catch{}
+    try{cached=JSON.parse(localStorage.getItem('mtgStdJaV2')||'null')}catch{}
     if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*14&&cached.cards?.length){
       const n=mergeJapaneseCards(cached.cards);finishJapanese(`${n.toLocaleString()}種類の日本語データを保存データから結合`);return true;
     }
     if(!pool.length){const ok=await fetchPool(false);if(!ok)return false}
     const btn=$('jpLoadBtn');if(btn){btn.disabled=true;btn.textContent='日本語取得中…'}
-    let cards=[];let url=API+'/cards/search?order=released&dir=desc&unique=prints&include_multilingual=true&q='+encodeURIComponent('f:standard game:paper lang:ja');let page=0;
+    let cards=[];let url=API+'/cards/search?order=name&unique=cards&include_multilingual=true&q='+encodeURIComponent('f:standard game:paper lang:ja');let page=0;
     try{
-      while(url){page++;loadStatus(`日本語カード取得中：${page}ページ目`,Math.min(95,page*3));const j=await fetchJson(url);cards.push(...j.data.filter(c=>!c.digital&&c.lang==='ja'&&c.legalities?.standard==='legal'));url=j.has_more?j.next_page:null;await sleep(140)}
+      while(url){page++;loadStatus(`日本語カード取得中：${page}ページ目`,Math.min(95,page*8));const j=await fetchJson(url,45000,4);cards.push(...j.data.filter(c=>!c.digital&&c.lang==='ja'&&c.legalities?.standard==='legal'));url=j.has_more?j.next_page:null;if(url)await sleep(300)}
+      if(!cards.length)throw Error('日本語版カードが見つかりませんでした')
       cards=[...new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c])).values()];
-      try{localStorage.setItem('mtgStdJaV1',JSON.stringify({time:Date.now(),cards}))}catch{}
+      try{localStorage.setItem('mtgStdJaV2',JSON.stringify({time:Date.now(),cards}))}catch{}
       const n=mergeJapaneseCards(cards);try{localStorage.setItem('mtgStdPoolV5',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
       finishJapanese(`${n.toLocaleString()}種類の日本語データを結合`);return true;
     }catch(e){loadStatus('日本語データ取得に失敗しました：'+e.message,0);if($('dbStatus'))$('dbStatus').textContent='英語カードは利用できます。日本語データ取得に失敗：'+e.message;return false}
@@ -58,7 +59,32 @@ function features(c){let o=text(c),t=type(c).toLowerCase();let roles=Object.keys
 function parseDeck(s){let side=false,out=[];for(let raw of s.split(/\r?\n/)){let line=raw.trim();if(!line||/^(deck|companion)$/i.test(line))continue;if(/^sideboard$/i.test(line)){side=true;continue}let m=line.match(/^(?:SB:\s*)?(\d+)x?\s+(.+?)(?:\s+\([A-Z0-9]+\)\s+\d+)?$/i);if(!m)m=[null,'1',line];out.push({qty:+m[1],name:m[2].trim(),side})}return out}
 function status(s,p){const main=$('status');if(main)main.textContent=s;if(p!=null&&$('bar'))$('bar').style.width=p+'%'}
 function loadStatus(message,p){status(message,p);if($('dbStatus'))$('dbStatus').textContent=message;if($('singleStatus')&&!pool.length)$('singleStatus').textContent=message;}
-async function fetchJson(url,timeoutMs=30000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);try{const r=await fetch(url,{signal:controller.signal,headers:{'Accept':'application/json'}});if(!r.ok){let detail='';try{detail=(await r.json()).details||''}catch{}throw Error(`API ${r.status}${detail?'：'+detail:''}`)}return await r.json()}catch(e){if(e.name==='AbortError')throw Error('通信が30秒以内に完了しませんでした');throw e}finally{clearTimeout(timer)}}
+async function fetchJson(url,timeoutMs=30000,maxRetries=3){
+  let lastError=null;
+  for(let attempt=0;attempt<=maxRetries;attempt++){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      const r=await fetch(url,{signal:controller.signal,headers:{'Accept':'application/json;q=0.9,*/*;q=0.8'}});
+      if(r.ok)return await r.json();
+      let detail='';try{detail=(await r.json()).details||''}catch{}
+      const err=Error(`API ${r.status}${detail?'：'+detail:''}`);err.status=r.status;
+      if((r.status===429||r.status>=500)&&attempt<maxRetries){
+        const retryAfter=Number(r.headers.get('Retry-After'))||0;
+        await sleep(Math.max(retryAfter*1000,1000*(2**attempt)));
+        lastError=err;continue;
+      }
+      throw err;
+    }catch(e){
+      const err=e.name==='AbortError'?Error(`通信が${Math.round(timeoutMs/1000)}秒以内に完了しませんでした`):e;
+      lastError=err;
+      const retryable=e.name==='AbortError'||e instanceof TypeError;
+      if(retryable&&attempt<maxRetries){await sleep(1000*(2**attempt));continue}
+      throw err;
+    }finally{clearTimeout(timer)}
+  }
+  throw lastError||Error('通信に失敗しました');
+}
 async function fetchPool(force=false){
   if(poolLoading)return poolLoading;
   poolLoading=(async()=>{

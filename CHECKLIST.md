@@ -24,3 +24,11 @@
 - [ ] Knowledge Engineが動く
 - [ ] Card Synergy Advisorが動く
 - [ ] 保存デッキが動く
+
+## v0.5.2 日本語データ取得
+
+- [x] 日本語検索が `unique=cards` である
+- [x] 429・5xxで再試行する
+- [x] タイムアウト時に再試行する
+- [x] JavaScript構文確認
+- [ ] GitHub Pages上で日本語データ取得を確認
