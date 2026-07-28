@@ -1,8 +1,8 @@
-# Lunch Forge v0.5.4a
+# Lunch Forge v0.5.4b
 
 日本語優先のMTGスタンダード向けカード・デッキ構築支援ツールです。
 
-## v0.5.4a 日本語データ補完基盤
+## v0.5.4b 日本語データ補完基盤
 
 カード検索画面に「日本語データ監査」を追加しました。
 
@@ -56,7 +56,7 @@
 推奨コミットメッセージ：
 
 ```text
-feat: add Japanese data audit and overrides v0.5.4a
+feat: add Japanese data audit and overrides v0.5.4b
 ```
 
 ## 継続している機能
@@ -67,3 +67,8 @@ feat: add Japanese data audit and overrides v0.5.4a
 - Synergy / Enable / Engine / Support / Coverage分類
 - 検証済みシナジー事例
 - カード検索、カード辞書、Card Inspector、Knowledge Engine、Card Synergy Advisor
+
+
+## v0.5.4b hotfix
+
+日本語データ取得処理を安定版の経路へ戻し、日本語補完・監査処理を取得完了後に独立実行する構成へ変更しました。補完JSONの読み込み失敗がScryfall日本語データ取得を妨げないよう分離しています。

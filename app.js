@@ -31,22 +31,44 @@ async function fetchJapanese(force=false){
   if(jpLoading)return jpLoading;
   jpLoading=(async()=>{
     let cached=null;
-    try{cached=JSON.parse(localStorage.getItem('mtgStdJaV2')||'null')}catch{}
-    if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*14&&cached.cards?.length){
-      const n=mergeJapaneseCards(cached.cards);finishJapanese(`${n.toLocaleString()}種類の日本語データを保存データから結合`);return true;
-    }
+    try{cached=JSON.parse(localStorage.getItem('mtgStdJaV2')||'null')}catch{localStorage.removeItem('mtgStdJaV2')}
     if(!pool.length){const ok=await fetchPool(false);if(!ok)return false}
+    if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*14&&cached.cards?.length){
+      try{
+        const n=mergeJapaneseCards(cached.cards);
+        if(n>0){finishJapanese(`${n.toLocaleString()}種類の日本語データを保存データから結合`);return true}
+        localStorage.removeItem('mtgStdJaV2');
+      }catch(error){console.warn('Japanese cache was ignored',error);localStorage.removeItem('mtgStdJaV2')}
+    }
     const btn=$('jpLoadBtn');if(btn){btn.disabled=true;btn.textContent='日本語取得中…'}
-    let cards=[];let url=API+'/cards/search?order=name&unique=cards&include_multilingual=true&q='+encodeURIComponent('f:standard game:paper lang:ja');let page=0;
+    let cards=[];let page=0;
+    const collect=async query=>{
+      let url=API+'/cards/search?order=name&unique=cards&include_multilingual=true&q='+encodeURIComponent(query);
+      while(url){
+        page++;loadStatus(`日本語カード取得中：${page}ページ目`,Math.min(95,page*8));
+        const j=await fetchJson(url,45000,4);
+        cards.push(...j.data.filter(c=>!c.digital&&c.lang==='ja'&&c.legalities?.standard==='legal'));
+        url=j.has_more?j.next_page:null;if(url)await sleep(350);
+      }
+    };
     try{
-      while(url){page++;loadStatus(`日本語カード取得中：${page}ページ目`,Math.min(95,page*8));const j=await fetchJson(url,45000,4);cards.push(...j.data.filter(c=>!c.digital&&c.lang==='ja'&&c.legalities?.standard==='legal'));url=j.has_more?j.next_page:null;if(url)await sleep(300)}
+      await collect('f:standard game:paper lang:ja');
+      if(!cards.length){page=0;await collect('legal:standard game:paper lang:ja')}
       if(!cards.length)throw Error('日本語版カードが見つかりませんでした')
       cards=[...new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c])).values()];
+      const n=mergeJapaneseCards(cards);
+      if(!n)throw Error('英語カードと日本語カードを照合できませんでした。英語データを再取得してからお試しください')
       try{localStorage.setItem('mtgStdJaV2',JSON.stringify({time:Date.now(),cards}))}catch{}
-      const n=mergeJapaneseCards(cards);try{localStorage.setItem('mtgStdPoolV5',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
+      try{localStorage.setItem('mtgStdPoolV5',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
       finishJapanese(`${n.toLocaleString()}種類の日本語データを結合`);return true;
-    }catch(e){loadStatus('日本語データ取得に失敗しました：'+e.message,0);if($('dbStatus'))$('dbStatus').textContent='英語カードは利用できます。日本語データ取得に失敗：'+e.message;return false}
-    finally{if(btn){btn.disabled=false;btn.textContent='日本語データ再取得'}}
+    }catch(e){
+      if(cached?.cards?.length){
+        try{const n=mergeJapaneseCards(cached.cards);if(n>0){finishJapanese(`${n.toLocaleString()}種類の保存済み日本語データを使用（オンライン取得失敗：${e.message}）`);return true}}catch{}
+      }
+      loadStatus('日本語データ取得に失敗しました：'+e.message,0);
+      if($('dbStatus'))$('dbStatus').textContent='英語カードは利用できます。日本語データ取得に失敗：'+e.message;
+      return false;
+    }finally{if(btn){btn.disabled=false;btn.textContent='日本語データ再取得'}}
   })();
   try{return await jpLoading}finally{jpLoading=null}
 }
@@ -487,8 +509,8 @@ async function prepareEngine(force=false){
 }
 function exportKnowledgeData(){
   if(!engineProfiles.length)buildEngineProfiles();
-  const data={version:'0.5.4a',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.4a.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
+  const data={version:'0.5.4b',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.4b.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
 }
 function setupEngine(){
   if(!$('engineRefreshBtn'))return;
@@ -983,11 +1005,11 @@ function cardHTML(x){
 }
 
 
-/* ===== Lunch Forge v0.5.4a: Japanese Data Completion Foundation ===== */
+/* ===== Lunch Forge v0.5.4b: Japanese Data Completion Hotfix ===== */
 let japaneseOverridesV054a=[];
 let japaneseOverridesLoadedV054a=false;
 let japaneseAuditV054a=null;
-const JAPANESE_COMPLETION_VERSION_V054A='0.5.4a';
+const JAPANESE_COMPLETION_VERSION_V054A='0.5.4b';
 
 function normalizedCardKeyV054a(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,' ')}
 function hasOwnV054a(obj,key){return Object.prototype.hasOwnProperty.call(obj||{},key)}
@@ -1030,7 +1052,7 @@ function sanitizeJapaneseFaceV054a(face){
     image_uris:face.image_uris||null
   };
 }
-function mergeJapaneseCards(cards){
+function mergeJapaneseCardsWithAvailabilityV054a(cards){
   const map=new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c]));
   let count=0;
   pool=pool.map(c=>{
@@ -1167,13 +1189,13 @@ function renderJapaneseAuditV054a(){
   const ids={jpAuditComplete:s.complete,jpAuditMissingName:s.missing_name,jpAuditMissingText:s.missing_text,jpAuditMissingImage:s.missing_image,jpAuditPartialFaces:s.partial_double_faced,jpOverrideCount:s.overrides_applied};
   Object.entries(ids).forEach(([id,value])=>{if($(id))$(id).textContent=Number(value||0).toLocaleString()});
   const cards=filteredJapaneseAuditCardsV054a(),el=$('jpAuditResults');if(!el)return;
+  if($('jpAuditStatus'))$('jpAuditStatus').textContent=`${japaneseAuditV054a.pool_size.toLocaleString()}種類を監査。不足あり ${japaneseAuditV054a.summary.missing_any.toLocaleString()}種類、現在の表示 ${cards.length.toLocaleString()}種類。`;
   if(!japaneseAuditV054a.cards.length){el.innerHTML='<div class="jpAuditOk">✓ 日本語名・ルール文章・画像の不足は検出されませんでした。</div>';return}
   if(!cards.length){el.innerHTML='<div class="empty">現在の絞り込み条件に一致する不足カードはありません。</div>';return}
   el.innerHTML=cards.slice(0,120).map(x=>{
     const faceTags=x.missing_faces.length>1||x.is_double_faced?x.missing_faces.map(face=>`<span class="jpAuditTag face">${esc(face.label)}：${face.missing.map(auditLabelV054a).join('・')}</span>`).join(''):'';
     return `<article class="jpAuditRow"><div><h4>${esc(x.current_name_ja||x.name_en)}</h4>${x.current_name_ja?`<div class="jpAuditEnglish">${esc(x.name_en)}</div>`:''}<div class="jpAuditMissing">${x.missing.map(f=>`<span class="jpAuditTag">${esc(auditLabelV054a(f))}不足</span>`).join('')}${faceTags}</div>${x.override_applied?'<div class="jpAuditNote">手動補完を適用済みですが、まだ不足項目があります。</div>':''}</div><div class="jpAuditMeta"><b>${esc(String(x.set||'').toUpperCase())} #${esc(x.collector_number||'—')}</b>${x.is_double_faced?'両面カード':'通常カード'}</div></article>`;
   }).join('')+(cards.length>120?`<div class="notice">先頭120件を表示しています。監査JSONには全${cards.length.toLocaleString()}件を収録します。</div>`:'');
-  if($('jpAuditStatus'))$('jpAuditStatus').textContent=`${japaneseAuditV054a.pool_size.toLocaleString()}種類を監査。不足あり ${japaneseAuditV054a.summary.missing_any.toLocaleString()}種類、現在の表示 ${cards.length.toLocaleString()}種類。`;
 }
 async function runJapaneseAuditV054a(){
   if(!pool.length){if($('jpAuditStatus'))$('jpAuditStatus').textContent='カードデータを取得しています…';const ok=await fetchPool(false);if(!ok)return null}
@@ -1197,19 +1219,22 @@ async function initializeJapaneseCompletionV054a(force=false){
   populateCardNames();renderDatabase();if(recs.length)renderResults();
 }
 
-const fetchPoolBaseV054a=fetchPool;
-fetchPool=async function(force=false){
-  restoreJapaneseOverrideBaseV054a();
-  const ok=await fetchPoolBaseV054a(force);
-  if(ok)await initializeJapaneseCompletionV054a(false);
-  return ok;
+const finishPoolBaseV054b=finishPool;
+finishPool=function(src){
+  finishPoolBaseV054b(src);
+  setTimeout(()=>initializeJapaneseCompletionV054a(false).catch(error=>{
+    console.error('Japanese completion initialization failed',error);
+    if($('jpAuditStatus'))$('jpAuditStatus').textContent='日本語補完の初期化に失敗しました：'+(error?.message||error);
+  }),0);
 };
-const fetchJapaneseBaseV054a=fetchJapanese;
-fetchJapanese=async function(force=false){
-  restoreJapaneseOverrideBaseV054a();
-  const ok=await fetchJapaneseBaseV054a(force);
-  if(ok){await initializeJapaneseCompletionV054a(force);localStorage.setItem('lfJaCompletionVersion',JAPANESE_COMPLETION_VERSION_V054A)}
-  return ok;
+const finishJapaneseBaseV054b=finishJapanese;
+finishJapanese=function(message){
+  finishJapaneseBaseV054b(message);
+  localStorage.setItem('lfJaCompletionVersion',JAPANESE_COMPLETION_VERSION_V054A);
+  setTimeout(()=>initializeJapaneseCompletionV054a(false).catch(error=>{
+    console.error('Japanese completion initialization failed',error);
+    if($('jpAuditStatus'))$('jpAuditStatus').textContent='日本語補完の初期化に失敗しました：'+(error?.message||error);
+  }),0);
 };
 
 function setupJapaneseCompletionV054a(){
