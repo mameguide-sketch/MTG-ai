@@ -1,0 +1,6 @@
+{
+  "version": "1.0",
+  "updated_at": "",
+  "description": "Lunch Forge 日本語補完データ。cards配列へ不足カードだけを追加します。oracle_idを優先し、未指定時はname_enで照合します。",
+  "cards": []
+}

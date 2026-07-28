@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "app_version": "0.5.4a",
+  "generated_at": null,
+  "pool_size": 0,
+  "summary": {
+    "complete": 0,
+    "missing_any": 0,
+    "missing_name": 0,
+    "missing_text": 0,
+    "missing_image": 0,
+    "partial_double_faced": 0,
+    "overrides_applied": 0
+  },
+  "cards": [],
+  "note": "カード検索画面の『不足を確認』→『監査JSONを保存』で、現在のカードプールから生成した内容に置き換えられます。"
+}
