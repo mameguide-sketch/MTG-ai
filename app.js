@@ -487,8 +487,8 @@ async function prepareEngine(force=false){
 }
 function exportKnowledgeData(){
   if(!engineProfiles.length)buildEngineProfiles();
-  const data={version:'0.5.1',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.1.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
+  const data={version:'0.5.4a',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.4a.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
 }
 function setupEngine(){
   if(!$('engineRefreshBtn'))return;
@@ -981,3 +981,248 @@ function cardHTML(x){
   const primary=(x.relations||[]).includes('COVERAGE')?'不足補完':(x.relations||[]).includes('ENGINE')?'エンジン形成':(x.relations||[]).includes('ENABLE')?'成立支援':(x.relations||[]).includes('SYNERGY')?'効果接続':'安定化';
   return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><div class="candidatePurpose">${esc(primary)}</div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}${x.cautions?.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">デッキ接続点</div></div></article>`;
 }
+
+
+/* ===== Lunch Forge v0.5.4a: Japanese Data Completion Foundation ===== */
+let japaneseOverridesV054a=[];
+let japaneseOverridesLoadedV054a=false;
+let japaneseAuditV054a=null;
+const JAPANESE_COMPLETION_VERSION_V054A='0.5.4a';
+
+function normalizedCardKeyV054a(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,' ')}
+function hasOwnV054a(obj,key){return Object.prototype.hasOwnProperty.call(obj||{},key)}
+function nonEmptyV054a(value){return value!==undefined&&value!==null&&String(value).trim()!==''}
+function japaneseTextLikeV054a(value){return /[ぁ-んァ-ヶ一-龠々ー]/.test(String(value||''))}
+function englishFaceV054a(c,index){return cardFaces(c)[index]||cardFaces(c)[0]||c}
+function japaneseFaceV054a(c,index){return localizedFace(c,index)||null}
+function faceJapaneseNameAvailableV054a(c,index){
+  const e=englishFaceV054a(c,index),j=japaneseFaceV054a(c,index),value=j?.printed_name||(index===0?c?.jp?.printed_name:'')||'';
+  if(c?.jp?._availability?.faces?.[index]?.name===true||c?.jp?._override_fields?.faces?.[index]?.name===true)return true;
+  if(c?.jp?._availability?.faces?.[index]?.name===false)return false;
+  return !!value&&(value!==e?.name||japaneseTextLikeV054a(value));
+}
+function faceJapaneseTextAvailableV054a(c,index){
+  const e=englishFaceV054a(c,index),j=japaneseFaceV054a(c,index),value=j?.printed_text||(index===0?c?.jp?.printed_text:'')||'';
+  if(!String(e?.oracle_text||'').trim())return true;
+  if(c?.jp?._availability?.faces?.[index]?.text===true||c?.jp?._override_fields?.faces?.[index]?.text===true)return true;
+  if(c?.jp?._availability?.faces?.[index]?.text===false)return false;
+  return !!value&&value!==e?.oracle_text;
+}
+function faceJapaneseImageAvailableV054a(c,index){
+  const e=englishFaceV054a(c,index),j=japaneseFaceV054a(c,index),value=j?.image_uris?.normal||(index===0?c?.jp?.image_uris?.normal:'')||'';
+  if(!e?.image_uris?.normal&&!(index===0&&c?.image_uris?.normal))return true;
+  if(c?.jp?._availability?.faces?.[index]?.image===true||c?.jp?._override_fields?.faces?.[index]?.image===true)return true;
+  if(c?.jp?._availability?.faces?.[index]?.image===false)return false;
+  return !!value;
+}
+function hasJapanese(c){
+  const faces=cardFaces(c);
+  return faces.some((_,i)=>faceJapaneseNameAvailableV054a(c,i)||faceJapaneseTextAvailableV054a(c,i)||faceJapaneseImageAvailableV054a(c,i));
+}
+
+function sanitizeJapaneseFaceV054a(face){
+  if(!face)return null;
+  return {
+    name:face.name||'',
+    printed_name:face.printed_name||'',
+    printed_type_line:face.printed_type_line||'',
+    printed_text:face.printed_text||'',
+    image_uris:face.image_uris||null
+  };
+}
+function mergeJapaneseCards(cards){
+  const map=new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c]));
+  let count=0;
+  pool=pool.map(c=>{
+    const j=map.get(c.oracle_id);if(!j)return c;count++;
+    const rawFaces=Array.isArray(j.card_faces)?j.card_faces:[];
+    const localizedFaces=rawFaces.map(sanitizeJapaneseFaceV054a);
+    const faceNames=rawFaces.map(f=>f.printed_name).filter(Boolean).join(' // ');
+    const faceTypes=rawFaces.map(f=>f.printed_type_line).filter(Boolean).join(' // ');
+    const faceTexts=rawFaces.map(f=>f.printed_text).filter(Boolean).join('\n\n');
+    const availabilityFaces=(c.card_faces?.length?c.card_faces:[c]).map((face,i)=>({
+      name:!!(rawFaces[i]?.printed_name||(i===0&&j.printed_name)),
+      text:!String(face?.oracle_text||'').trim()||!!(rawFaces[i]?.printed_text||(i===0&&j.printed_text)),
+      image:!(face?.image_uris?.normal||(i===0&&c.image_uris?.normal))||!!(rawFaces[i]?.image_uris?.normal||(i===0&&j.image_uris?.normal))
+    }));
+    return {...c,jp:{
+      printed_name:j.printed_name||faceNames||'',
+      printed_type_line:j.printed_type_line||faceTypes||'',
+      printed_text:j.printed_text||faceTexts||'',
+      image_uris:j.image_uris||null,
+      card_faces:localizedFaces.length?localizedFaces:null,
+      set_name:j.set_name||'',released_at:j.released_at||'',collector_number:j.collector_number||'',
+      _availability:{faces:availabilityFaces}
+    }};
+  });
+  return count;
+}
+
+function mergeOverrideFaceV054a(base,override,flags){
+  const out={...(base||{})};
+  if(nonEmptyV054a(override?.printed_name)){out.printed_name=override.printed_name;flags.name=true}
+  if(nonEmptyV054a(override?.printed_type_line))out.printed_type_line=override.printed_type_line;
+  if(nonEmptyV054a(override?.printed_text)){out.printed_text=override.printed_text;flags.text=true}
+  const imageUrl=override?.image_url||override?.image_uris?.normal;
+  if(nonEmptyV054a(imageUrl)){out.image_uris={...(base?.image_uris||{}),...(override?.image_uris||{}),normal:imageUrl};flags.image=true}
+  return out;
+}
+function mergeJapaneseOverrideV054a(base,override,c){
+  const out={...(base||{})},fields={name:false,text:false,image:false,faces:[]};
+  if(nonEmptyV054a(override.printed_name)){out.printed_name=override.printed_name;fields.name=true}
+  if(nonEmptyV054a(override.printed_type_line))out.printed_type_line=override.printed_type_line;
+  if(nonEmptyV054a(override.printed_text)){out.printed_text=override.printed_text;fields.text=true}
+  const imageUrl=override.image_url||override.image_uris?.normal;
+  if(nonEmptyV054a(imageUrl)){out.image_uris={...(base?.image_uris||{}),...(override.image_uris||{}),normal:imageUrl};fields.image=true}
+  if(Array.isArray(override.card_faces)){
+    const byIndex=new Map(override.card_faces.map((face,i)=>[Number.isInteger(face?.face_index)?face.face_index:i,face||{}]));
+    const highest=byIndex.size?Math.max(...byIndex.keys())+1:0;
+    const max=Math.max(cardFaces(c).length,base?.card_faces?.length||0,highest);
+    out.card_faces=Array.from({length:max},(_,i)=>{
+      const flags={name:false,text:false,image:false};
+      const merged=mergeOverrideFaceV054a(base?.card_faces?.[i],byIndex.get(i)||{},flags);fields.faces[i]=flags;return merged;
+    });
+  }
+  if(!fields.faces.length)fields.faces=(cardFaces(c)).map((_,i)=>({name:i===0&&fields.name,text:i===0&&fields.text,image:i===0&&fields.image}));
+  out._override_fields=fields;
+  out._override_note=override.note||'';
+  return out;
+}
+function restoreJapaneseOverrideBaseV054a(){
+  pool=pool.map(c=>{
+    if(!hasOwnV054a(c,'__jpOverrideBaseV054a'))return c;
+    const restored={...c,jp:c.__jpOverrideBaseV054a};return restored;
+  });
+}
+function applyJapaneseOverridesV054a(){
+  const byOracle=new Map(),byName=new Map();
+  for(const item of japaneseOverridesV054a){
+    if(item?.oracle_id)byOracle.set(String(item.oracle_id),item);
+    if(item?.name_en)byName.set(normalizedCardKeyV054a(item.name_en),item);
+  }
+  let applied=0;
+  pool=pool.map(c=>{
+    const base=hasOwnV054a(c,'__jpOverrideBaseV054a')?c.__jpOverrideBaseV054a:(c.jp||null);
+    const override=byOracle.get(String(c.oracle_id||''))||byName.get(normalizedCardKeyV054a(c.name));
+    if(!override){if(hasOwnV054a(c,'__jpOverrideBaseV054a'))return {...c,jp:base};return c}
+    const merged={...c,jp:mergeJapaneseOverrideV054a(base,override,c)};
+    Object.defineProperty(merged,'__jpOverrideBaseV054a',{value:base,enumerable:false,configurable:true});
+    applied++;return merged;
+  });
+  if($('jpOverrideCount'))$('jpOverrideCount').textContent=applied.toLocaleString();
+  return applied;
+}
+async function loadJapaneseOverridesV054a(force=false){
+  if(japaneseOverridesLoadedV054a&&!force)return applyJapaneseOverridesV054a();
+  try{
+    const suffix=force?`?v=${Date.now()}`:`?v=${JAPANESE_COMPLETION_VERSION_V054A}`;
+    const response=await fetch(`data/card-overrides.json${suffix}`,{cache:force?'no-store':'default'});
+    if(!response.ok)throw Error(`補完JSON ${response.status}`);
+    const json=await response.json();
+    japaneseOverridesV054a=Array.isArray(json)?json:(Array.isArray(json.cards)?json.cards:[]);
+    japaneseOverridesLoadedV054a=true;
+    const applied=applyJapaneseOverridesV054a();
+    if($('jpAuditStatus'))$('jpAuditStatus').textContent=`補完データ ${japaneseOverridesV054a.length.toLocaleString()}件を読み込み、${applied.toLocaleString()}種類へ適用しました。`;
+    return applied;
+  }catch(error){
+    japaneseOverridesV054a=[];japaneseOverridesLoadedV054a=true;
+    if($('jpAuditStatus'))$('jpAuditStatus').textContent=`補完データを読み込めませんでした：${error.message}`;
+    return 0;
+  }
+}
+function japaneseAuditEntryV054a(c){
+  const faces=cardFaces(c),missingFaces=[];
+  faces.forEach((face,index)=>{
+    const fields=[];
+    if(!faceJapaneseNameAvailableV054a(c,index))fields.push('name');
+    if(!faceJapaneseTextAvailableV054a(c,index))fields.push('text');
+    if(!faceJapaneseImageAvailableV054a(c,index))fields.push('image');
+    if(fields.length)missingFaces.push({index,label:index===0?'表面':index===1?'裏面':`面${index+1}`,name_en:face?.name||c.name,missing:fields});
+  });
+  const missing=unique(missingFaces.flatMap(x=>x.missing));
+  return {
+    oracle_id:c.oracle_id||'',name_en:c.name||'',current_name_ja:displayName(c)!==c.name?displayName(c):'',layout:c.layout||'normal',set:c.set||'',collector_number:c.collector_number||'',
+    missing,missing_faces:missingFaces,is_double_faced:faces.length>1,partially_missing_faces:faces.length>1&&missingFaces.length>0&&missingFaces.length<faces.length,
+    override_applied:hasOwnV054a(c,'__jpOverrideBaseV054a')
+  };
+}
+function buildJapaneseAuditV054a(){
+  const cards=pool.map(japaneseAuditEntryV054a),incomplete=cards.filter(x=>x.missing.length);
+  const complete=cards.length-incomplete.length;
+  return {
+    version:'1.0',app_version:JAPANESE_COMPLETION_VERSION_V054A,generated_at:new Date().toISOString(),pool_size:cards.length,
+    summary:{complete,missing_any:incomplete.length,missing_name:cards.filter(x=>x.missing.includes('name')).length,missing_text:cards.filter(x=>x.missing.includes('text')).length,missing_image:cards.filter(x=>x.missing.includes('image')).length,partial_double_faced:cards.filter(x=>x.partially_missing_faces).length,overrides_applied:cards.filter(x=>x.override_applied).length},
+    cards:incomplete
+  };
+}
+function auditLabelV054a(field){return ({name:'日本語名',text:'ルール文章',image:'日本語画像'})[field]||field}
+function filteredJapaneseAuditCardsV054a(){
+  if(!japaneseAuditV054a)return [];
+  const q=normalizedCardKeyV054a($('jpAuditQuery')?.value||''),filter=$('jpAuditFilter')?.value||'all';
+  return japaneseAuditV054a.cards.filter(x=>(!q||normalizedCardKeyV054a(`${x.name_en} ${x.current_name_ja}`).includes(q))&&(filter==='all'||(filter==='faces'?x.partially_missing_faces:x.missing.includes(filter))));
+}
+function renderJapaneseAuditV054a(){
+  if(!japaneseAuditV054a)return;
+  const s=japaneseAuditV054a.summary;
+  const ids={jpAuditComplete:s.complete,jpAuditMissingName:s.missing_name,jpAuditMissingText:s.missing_text,jpAuditMissingImage:s.missing_image,jpAuditPartialFaces:s.partial_double_faced,jpOverrideCount:s.overrides_applied};
+  Object.entries(ids).forEach(([id,value])=>{if($(id))$(id).textContent=Number(value||0).toLocaleString()});
+  const cards=filteredJapaneseAuditCardsV054a(),el=$('jpAuditResults');if(!el)return;
+  if(!japaneseAuditV054a.cards.length){el.innerHTML='<div class="jpAuditOk">✓ 日本語名・ルール文章・画像の不足は検出されませんでした。</div>';return}
+  if(!cards.length){el.innerHTML='<div class="empty">現在の絞り込み条件に一致する不足カードはありません。</div>';return}
+  el.innerHTML=cards.slice(0,120).map(x=>{
+    const faceTags=x.missing_faces.length>1||x.is_double_faced?x.missing_faces.map(face=>`<span class="jpAuditTag face">${esc(face.label)}：${face.missing.map(auditLabelV054a).join('・')}</span>`).join(''):'';
+    return `<article class="jpAuditRow"><div><h4>${esc(x.current_name_ja||x.name_en)}</h4>${x.current_name_ja?`<div class="jpAuditEnglish">${esc(x.name_en)}</div>`:''}<div class="jpAuditMissing">${x.missing.map(f=>`<span class="jpAuditTag">${esc(auditLabelV054a(f))}不足</span>`).join('')}${faceTags}</div>${x.override_applied?'<div class="jpAuditNote">手動補完を適用済みですが、まだ不足項目があります。</div>':''}</div><div class="jpAuditMeta"><b>${esc(String(x.set||'').toUpperCase())} #${esc(x.collector_number||'—')}</b>${x.is_double_faced?'両面カード':'通常カード'}</div></article>`;
+  }).join('')+(cards.length>120?`<div class="notice">先頭120件を表示しています。監査JSONには全${cards.length.toLocaleString()}件を収録します。</div>`:'');
+  if($('jpAuditStatus'))$('jpAuditStatus').textContent=`${japaneseAuditV054a.pool_size.toLocaleString()}種類を監査。不足あり ${japaneseAuditV054a.summary.missing_any.toLocaleString()}種類、現在の表示 ${cards.length.toLocaleString()}種類。`;
+}
+async function runJapaneseAuditV054a(){
+  if(!pool.length){if($('jpAuditStatus'))$('jpAuditStatus').textContent='カードデータを取得しています…';const ok=await fetchPool(false);if(!ok)return null}
+  await loadJapaneseOverridesV054a(false);
+  japaneseAuditV054a=buildJapaneseAuditV054a();renderJapaneseAuditV054a();return japaneseAuditV054a;
+}
+function downloadJsonV054a(data,filename){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+async function downloadJapaneseAuditV054a(){const audit=japaneseAuditV054a||await runJapaneseAuditV054a();if(audit){downloadJsonV054a(audit,'card-data-audit.json');toast('日本語データ監査JSONを保存しました')}}
+async function downloadOverrideTemplateV054a(){
+  const audit=japaneseAuditV054a||await runJapaneseAuditV054a();if(!audit)return;
+  const targets=filteredJapaneseAuditCardsV054a();
+  const template={version:'1.0',updated_at:new Date().toISOString().slice(0,10),description:'不足項目だけを入力してください。oracle_idまたはname_enでカードを照合します。',cards:targets.map(x=>({oracle_id:x.oracle_id,name_en:x.name_en,printed_name:'',printed_type_line:'',printed_text:'',image_uris:{normal:''},card_faces:x.is_double_faced?x.missing_faces.map(face=>({face_index:face.index,name_en:face.name_en,printed_name:'',printed_type_line:'',printed_text:'',image_uris:{normal:''}})):[],note:''}))};
+  downloadJsonV054a(template,'card-overrides-template.json');toast(`${targets.length}件の補完テンプレートを保存しました`);
+}
+async function initializeJapaneseCompletionV054a(force=false){
+  if(!pool.length)return;
+  await loadJapaneseOverridesV054a(force);
+  japaneseAuditV054a=buildJapaneseAuditV054a();renderJapaneseAuditV054a();
+  populateCardNames();renderDatabase();if(recs.length)renderResults();
+}
+
+const fetchPoolBaseV054a=fetchPool;
+fetchPool=async function(force=false){
+  restoreJapaneseOverrideBaseV054a();
+  const ok=await fetchPoolBaseV054a(force);
+  if(ok)await initializeJapaneseCompletionV054a(false);
+  return ok;
+};
+const fetchJapaneseBaseV054a=fetchJapanese;
+fetchJapanese=async function(force=false){
+  restoreJapaneseOverrideBaseV054a();
+  const ok=await fetchJapaneseBaseV054a(force);
+  if(ok){await initializeJapaneseCompletionV054a(force);localStorage.setItem('lfJaCompletionVersion',JAPANESE_COMPLETION_VERSION_V054A)}
+  return ok;
+};
+
+function setupJapaneseCompletionV054a(){
+  if($('jpAuditBtn'))$('jpAuditBtn').onclick=runJapaneseAuditV054a;
+  if($('jpOverrideReloadBtn'))$('jpOverrideReloadBtn').onclick=async()=>{japaneseOverridesLoadedV054a=false;restoreJapaneseOverrideBaseV054a();await initializeJapaneseCompletionV054a(true);toast('補完データを再読み込みしました')};
+  if($('jpAuditDownloadBtn'))$('jpAuditDownloadBtn').onclick=downloadJapaneseAuditV054a;
+  if($('jpOverrideTemplateBtn'))$('jpOverrideTemplateBtn').onclick=downloadOverrideTemplateV054a;
+  if($('jpAuditQuery'))$('jpAuditQuery').addEventListener('input',renderJapaneseAuditV054a);
+  if($('jpAuditFilter'))$('jpAuditFilter').addEventListener('change',renderJapaneseAuditV054a);
+  if(pool.length){
+    const migrated=localStorage.getItem('lfJaCompletionVersion')===JAPANESE_COMPLETION_VERSION_V054A;
+    if(!migrated&&displayLang==='ja')setTimeout(()=>fetchJapanese(false),80);
+    else setTimeout(()=>initializeJapaneseCompletionV054a(false),20);
+  }
+}
+setupJapaneseCompletionV054a();

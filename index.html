@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.4</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.4a</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -39,6 +39,28 @@ Sideboard
       <div class="dbActions"><select id="languageSelect" aria-label="表示言語"><option value="ja" selected>日本語優先</option><option value="en">英語</option></select><button class="btn secondary" id="jpLoadBtn">日本語データを取得</button><button class="btn secondary" id="dbLoadBtn">カードデータを取得</button></div>
     </div>
     <div class="status" id="dbStatus">カード検索タブを開くと、スタンダード全カードを自動取得します。</div>
+    <section class="jpAuditPanel section" aria-labelledby="jpAuditTitle">
+      <div class="jpAuditHead">
+        <div><h3 id="jpAuditTitle">日本語データ監査</h3><p class="notice">日本語名・ルール文章・カード画像の不足を検出し、補完用JSONを作成します。</p></div>
+        <div class="jpAuditActions"><button class="btn secondary" id="jpAuditBtn">不足を確認</button><button class="btn secondary" id="jpOverrideReloadBtn">補完データ再読込</button></div>
+      </div>
+      <div class="jpAuditMetrics">
+        <div class="metric good"><b id="jpAuditComplete">0</b><span>完全</span></div>
+        <div class="metric"><b id="jpAuditMissingName">0</b><span>日本語名不足</span></div>
+        <div class="metric"><b id="jpAuditMissingText">0</b><span>文章不足</span></div>
+        <div class="metric"><b id="jpAuditMissingImage">0</b><span>画像不足</span></div>
+        <div class="metric"><b id="jpAuditPartialFaces">0</b><span>両面の部分不足</span></div>
+        <div class="metric"><b id="jpOverrideCount">0</b><span>手動補完</span></div>
+      </div>
+      <div class="jpAuditTools">
+        <input id="jpAuditQuery" placeholder="不足カードを名前で絞り込み" autocomplete="off"/>
+        <select id="jpAuditFilter"><option value="all">全不足</option><option value="name">日本語名不足</option><option value="text">文章不足</option><option value="image">画像不足</option><option value="faces">両面の部分不足</option></select>
+        <button class="smallBtn" id="jpAuditDownloadBtn">監査JSONを保存</button>
+        <button class="smallBtn" id="jpOverrideTemplateBtn">補完テンプレートを保存</button>
+      </div>
+      <div class="status" id="jpAuditStatus">カードデータ取得後に監査できます。補完内容は data/card-overrides.json から読み込みます。</div>
+      <div class="jpAuditResults" id="jpAuditResults"><div class="empty">「不足を確認」を押すと不足カードを表示します。</div></div>
+    </section>
     <div class="dbFilters section">
       <input id="dbQuery" placeholder="カード名・能力・タイプを検索（例：宝物 / 墓地 / ドラゴン / Treasure）" autocomplete="off"/>
       <select id="dbType"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Battle</option><option>Land</option></select>
