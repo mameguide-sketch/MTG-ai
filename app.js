@@ -9,6 +9,49 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 const API='https://api.scryfall.com';const $=x=>document.getElementById(x);let pool=[],deck=[],recs=[],singleRecs=[],poolLoading=null,jpLoading=null,displayLang=localStorage.getItem('lunchForgeLang')||'ja';const sleep=x=>new Promise(r=>setTimeout(r,x));
+
+/* Large card datasets exceed the practical localStorage quota in many browsers.
+   Keep them in IndexedDB and retain localStorage only as a legacy fallback. */
+const LF_CACHE_DB_V054C='LunchForgeCacheV1';
+const LF_CACHE_STORE_V054C='datasets';
+function openLargeCacheV054c(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window))return reject(Error('IndexedDBを利用できません'));
+    const request=indexedDB.open(LF_CACHE_DB_V054C,1);
+    request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(LF_CACHE_STORE_V054C))db.createObjectStore(LF_CACHE_STORE_V054C)};
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error||Error('IndexedDBを開けません'));
+    request.onblocked=()=>reject(Error('IndexedDBが別タブで使用中です'));
+  });
+}
+async function largeCacheGetV054c(key){
+  const db=await openLargeCacheV054c();
+  try{return await new Promise((resolve,reject)=>{const tx=db.transaction(LF_CACHE_STORE_V054C,'readonly'),req=tx.objectStore(LF_CACHE_STORE_V054C).get(key);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||Error('キャッシュを読み込めません'))})}
+  finally{db.close()}
+}
+async function largeCacheSetV054c(key,value){
+  const db=await openLargeCacheV054c();
+  try{return await new Promise((resolve,reject)=>{const tx=db.transaction(LF_CACHE_STORE_V054C,'readwrite');tx.objectStore(LF_CACHE_STORE_V054C).put(value,key);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||Error('キャッシュを保存できません'));tx.onabort=()=>reject(tx.error||Error('キャッシュ保存が中断されました'))})}
+  finally{db.close()}
+}
+function legacyCacheGetV054c(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{try{localStorage.removeItem(key)}catch{}return null}}
+async function readDatasetCacheV054c(indexedKey,legacyKey){
+  try{const cached=await largeCacheGetV054c(indexedKey);if(cached?.cards?.length)return cached}catch(error){console.warn('IndexedDB cache read failed',error)}
+  const legacy=legacyCacheGetV054c(legacyKey);
+  if(legacy?.cards?.length){try{await largeCacheSetV054c(indexedKey,legacy)}catch{}return legacy}
+  return null;
+}
+async function writeDatasetCacheV054c(indexedKey,legacyKey,value){
+  let indexedSaved=false;
+  try{await largeCacheSetV054c(indexedKey,value);indexedSaved=true}catch(error){console.warn('IndexedDB cache write failed',error)}
+  try{
+    const raw=JSON.stringify(value);
+    if(raw.length<=3500000)localStorage.setItem(legacyKey,raw);
+    else if(indexedSaved)localStorage.removeItem(legacyKey);
+  }catch(error){console.warn('Legacy cache write skipped',error)}
+  return indexedSaved;
+}
+
 window.addEventListener('error',e=>{const el=document.getElementById('status');if(el)el.textContent='画面エラー：'+(e.message||'不明なエラー');});
 const JP={W:'白',U:'青',B:'黒',R:'赤',G:'緑'};function colors(a=[]){return a.length?a.map(x=>JP[x]).join(''):'無色'}function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function type(c){return [c.type_line,...(c.card_faces||[]).map(x=>x.type_line)].filter(Boolean).join(' // ')}function text(c){return [c.oracle_text,...(c.card_faces||[]).map(x=>x.oracle_text)].filter(Boolean).join('\n').toLowerCase()}function img(c){return c.image_uris?.normal||c.card_faces?.[0]?.image_uris?.normal||''}function unique(a){return [...new Set(a.filter(Boolean))]}
 function toast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2400)}
@@ -30,15 +73,14 @@ function mergeJapaneseCards(cards){
 async function fetchJapanese(force=false){
   if(jpLoading)return jpLoading;
   jpLoading=(async()=>{
-    let cached=null;
-    try{cached=JSON.parse(localStorage.getItem('mtgStdJaV2')||'null')}catch{localStorage.removeItem('mtgStdJaV2')}
+    let cached=await readDatasetCacheV054c('standard-ja','mtgStdJaV2');
     if(!pool.length){const ok=await fetchPool(false);if(!ok)return false}
     if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*14&&cached.cards?.length){
       try{
         const n=mergeJapaneseCards(cached.cards);
         if(n>0){finishJapanese(`${n.toLocaleString()}種類の日本語データを保存データから結合`);return true}
-        localStorage.removeItem('mtgStdJaV2');
-      }catch(error){console.warn('Japanese cache was ignored',error);localStorage.removeItem('mtgStdJaV2')}
+        try{localStorage.removeItem('mtgStdJaV2')}catch{}
+      }catch(error){console.warn('Japanese cache was ignored',error);try{localStorage.removeItem('mtgStdJaV2')}catch{}}
     }
     const btn=$('jpLoadBtn');if(btn){btn.disabled=true;btn.textContent='日本語取得中…'}
     let cards=[];let page=0;
@@ -58,8 +100,8 @@ async function fetchJapanese(force=false){
       cards=[...new Map(cards.filter(c=>c.oracle_id).map(c=>[c.oracle_id,c])).values()];
       const n=mergeJapaneseCards(cards);
       if(!n)throw Error('英語カードと日本語カードを照合できませんでした。英語データを再取得してからお試しください')
-      try{localStorage.setItem('mtgStdJaV2',JSON.stringify({time:Date.now(),cards}))}catch{}
-      try{localStorage.setItem('mtgStdPoolV5',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
+      await writeDatasetCacheV054c('standard-ja','mtgStdJaV2',{time:Date.now(),cards});
+      await writeDatasetCacheV054c('standard-pool','mtgStdPoolV5',{time:Date.now(),cards:pool});
       finishJapanese(`${n.toLocaleString()}種類の日本語データを結合`);return true;
     }catch(e){
       if(cached?.cards?.length){
@@ -110,28 +152,40 @@ async function fetchJson(url,timeoutMs=30000,maxRetries=3){
 async function fetchPool(force=false){
   if(poolLoading)return poolLoading;
   poolLoading=(async()=>{
-    let cached;
-    try{cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null')}catch{}
-    if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*3&&cached.cards?.length){pool=cached.cards;finishPool('保存データから');return true}
-    pool=[];
+    let cached=await readDatasetCacheV054c('standard-pool','mtgStdPoolV5');
+    const previousPool=Array.isArray(pool)&&pool.length?pool.slice():[];
+    const cachedCards=Array.isArray(cached?.cards)&&cached.cards.length?cached.cards:[];
+    const fallbackCards=previousPool.length?previousPool:cachedCards;
+    if(!force&&cached&&Date.now()-cached.time<1000*60*60*24*3&&cachedCards.length){pool=cachedCards;finishPool('保存データから');return true}
     ['loadBtn','dbLoadBtn'].forEach(id=>{if($(id))$(id).disabled=true});
     if($('dbLoadBtn'))$('dbLoadBtn').textContent='取得中…';
     let url=API+'/cards/search?order=name&unique=cards&q='+encodeURIComponent('f:standard game:paper');
-    let n=0;
+    let n=0,freshPool=[];
     try{
       while(url){
         n++;
         loadStatus(`スタンダードカード取得中：${n}ページ目`,Math.min(94,n*5));
         const j=await fetchJson(url);
-        pool.push(...j.data.filter(c=>!c.digital&&c.legalities?.standard==='legal'));
+        freshPool.push(...j.data.filter(c=>!c.digital&&c.legalities?.standard==='legal'));
         url=j.has_more?j.next_page:null;
-        await sleep(120);
+        if(url)await sleep(180);
       }
-      pool=[...new Map(pool.map(c=>[c.oracle_id||c.id,c])).values()];
-      try{localStorage.setItem('mtgStdPoolV5',JSON.stringify({time:Date.now(),cards:pool}))}catch{}
+      freshPool=[...new Map(freshPool.map(c=>[c.oracle_id||c.id,c])).values()];
+      if(!freshPool.length)throw Error('取得結果が0件でした');
+      pool=freshPool;
+      await writeDatasetCacheV054c('standard-pool','mtgStdPoolV5',{time:Date.now(),cards:pool});
       finishPool('オンラインから');
       return true;
     }catch(e){
+      if(fallbackCards.length){
+        pool=fallbackCards;
+        finishPool('保存データから復旧');
+        const message=`オンライン再取得に失敗したため、保存済みの${pool.length.toLocaleString()}種類を使用しています（${e.message}）`;
+        loadStatus(message,100);
+        if($('dbResults'))renderDatabase();
+        return true;
+      }
+      pool=[];
       loadStatus('カード取得に失敗しました：'+e.message,0);
       if($('dbResults'))$('dbResults').innerHTML='<div class="empty">通信に失敗しました。「再取得」を押してください。広告ブロックや社内ネットワークで api.scryfall.com が遮断されている場合もあります。</div>';
       return false;
@@ -209,7 +263,16 @@ $('saveBtn').onclick=()=>{let text=$('deckInput').value.trim();if(!text)return;l
 $('sampleBtn').onclick=()=>{$('deckInput').value='Deck\n4 Llanowar Elves\n4 Mossborn Hydra\n4 Innkeeper\'s Talent\n4 Snakeskin Veil\n4 Bushwhack\n4 Pawpatch Formation\n4 Bristly Bill, Spine Sower\n4 Railway Brawler\n2 Archdruid\'s Charm\n2 Nissa, Ascended Animist\n24 Forest'};
 $('loadBtn').onclick=()=>fetchPool(true);if($('jpLoadBtn'))$('jpLoadBtn').onclick=()=>fetchJapanese(true);if($('languageSelect')){$('languageSelect').value=displayLang;$('languageSelect').onchange=e=>{displayLang=e.target.value;localStorage.setItem('lunchForgeLang',displayLang);populateCardNames();renderDatabase();if(recs.length)renderResults();toast(displayLang==='ja'?'日本語優先表示に変更しました':'英語表示に変更しました')}};$('analyzeBtn').onclick=analyze;$('singleBtn').onclick=singleAnalyze;$('dbLoadBtn').onclick=()=>prepareDatabase(true);['dbQuery','dbType','dbRole','dbColor','dbSet','dbMv','dbSort'].forEach(id=>$(id).addEventListener('input',renderDatabase));bindActionContainer($('dbResults'));bindActionContainer($('results'));bindActionContainer($('singleResults'));bindActionContainer($('dialogContent'));['search','typeFilter','roleFilter','colorFilter','recLimit'].forEach(id=>$(id).addEventListener('input',renderResults));$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{$('dialogClose').onclick=closeDialog;$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))closeDialog()});$('copyDeckBtn').onclick=async()=>{const text=$('deckInput').value.trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('デッキリストをコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};$('clearDeckBtn').onclick=()=>{if(!$('deckInput').value.trim()||confirm('デッキ入力を消去しますか？')){$('deckInput').value='';toast('デッキ入力を消去しました')}};document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.view).classList.add('on');if(b.dataset.view==='library')renderSaves();if(b.dataset.view==='database'&&!pool.length)prepareDatabase(false);if(b.dataset.view==='inspector'){if(!pool.length)prepareDatabase(false);populateCardNames();renderRecentInspector();}});renderSaves();
 
-try{const cached=JSON.parse(localStorage.getItem('mtgStdPoolV5')||'null');if(cached?.cards?.length){pool=cached.cards;$('dbStatus').textContent=`保存データ ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）を読み込みました。カード検索を開くと一覧を準備します。`;if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),300);}}catch{}
+async function restorePersistentPoolV054c(){
+  if(pool.length)return true;
+  const cached=await readDatasetCacheV054c('standard-pool','mtgStdPoolV5');
+  if(!cached?.cards?.length)return false;
+  pool=cached.cards;
+  if($('dbStatus'))$('dbStatus').textContent=`保存データ ${pool.length.toLocaleString()}種類（日本語 ${pool.filter(hasJapanese).length.toLocaleString()}種類）を読み込みました。カード検索を開くと一覧を準備します。`;
+  if(displayLang==='ja'&&!pool.some(hasJapanese))setTimeout(()=>fetchJapanese(false),300);
+  return true;
+}
+setTimeout(()=>restorePersistentPoolV054c().catch(error=>console.warn('Persistent cache restore failed',error)),0);
 setTimeout(()=>{const el=$('status');if(el&&!pool.length)el.textContent='JavaScript動作確認済み。デッキを入力して「デッキを分析」を押してください。';},100);
 
 /* ===== Lunch Forge v0.3.0: Card Knowledge Base / Inspector ===== */
@@ -509,8 +572,8 @@ async function prepareEngine(force=false){
 }
 function exportKnowledgeData(){
   if(!engineProfiles.length)buildEngineProfiles();
-  const data={version:'0.5.4b',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.4b.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
+  const data={version:'0.5.4c',createdAt:new Date().toISOString(),format:'Standard',tagDefinitions:Object.fromEntries(Object.entries(KNOWLEDGE_TAGS).map(([k,v])=>[k,{label:v.label,group:v.group}])),cards:engineProfiles.map(x=>({oracleId:x.card.oracle_id,name:x.card.name,japaneseName:x.card.jp?.printed_name||null,manaValue:x.card.cmc||0,colorIdentity:x.card.color_identity||[],tags:x.profile.tags,groups:x.profile.grouped,strengths:x.profile.strengths,needs:x.profile.needs,confidence:x.confidence}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='lunch-forge-knowledge-v0.5.4c.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('知識データを書き出しました');
 }
 function setupEngine(){
   if(!$('engineRefreshBtn'))return;
@@ -1005,11 +1068,11 @@ function cardHTML(x){
 }
 
 
-/* ===== Lunch Forge v0.5.4b: Japanese Data Completion Hotfix ===== */
+/* ===== Lunch Forge v0.5.4c: Card Pool Recovery Hotfix ===== */
 let japaneseOverridesV054a=[];
 let japaneseOverridesLoadedV054a=false;
 let japaneseAuditV054a=null;
-const JAPANESE_COMPLETION_VERSION_V054A='0.5.4b';
+const JAPANESE_COMPLETION_VERSION_V054A='0.5.4c';
 
 function normalizedCardKeyV054a(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,' ')}
 function hasOwnV054a(obj,key){return Object.prototype.hasOwnProperty.call(obj||{},key)}

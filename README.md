@@ -1,8 +1,12 @@
-# Lunch Forge v0.5.4b
+# Lunch Forge v0.5.4c
+
+## v0.5.4c カードデータ復旧
+
+オンライン再取得に失敗しても、表示中または保存済みのカードデータを保持します。大容量カードデータは localStorage ではなく IndexedDB に保存し、通信障害でカード一覧と日本語監査が0件になる問題を防止します。
 
 日本語優先のMTGスタンダード向けカード・デッキ構築支援ツールです。
 
-## v0.5.4b 日本語データ補完基盤
+## v0.5.4c 日本語データ補完基盤
 
 カード検索画面に「日本語データ監査」を追加しました。
 
@@ -56,7 +60,7 @@
 推奨コミットメッセージ：
 
 ```text
-feat: add Japanese data audit and overrides v0.5.4b
+feat: add Japanese data audit and overrides v0.5.4c
 ```
 
 ## 継続している機能
@@ -69,6 +73,6 @@ feat: add Japanese data audit and overrides v0.5.4b
 - カード検索、カード辞書、Card Inspector、Knowledge Engine、Card Synergy Advisor
 
 
-## v0.5.4b hotfix
+## v0.5.4c hotfix
 
 日本語データ取得処理を安定版の経路へ戻し、日本語補完・監査処理を取得完了後に独立実行する構成へ変更しました。補完JSONの読み込み失敗がScryfall日本語データ取得を妨げないよう分離しています。
