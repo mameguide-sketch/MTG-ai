@@ -997,7 +997,7 @@ function renderDeckIntelligenceV054(profile){
   const connectionHTML=profile.connections.length?profile.connections.slice(0,7).map(x=>`<div class="deckConnection"><div class="deckConnectionArrow"><span>${esc(KNOWLEDGE_TAGS[x.from].label)}</span><b>→</b><span>${esc(KNOWLEDGE_TAGS[x.to].label)}</span></div><small>${esc(x.label)}・供給${x.fromCount}枚／利用${x.toCount}枚</small></div>`).join(''):'<div class="deckIntelEmpty">明確な供給→利用の接続をまだ検出できません。</div>';
   const gapHTML=profile.gaps.length?profile.gaps.slice(0,8).map(x=>`<div class="deckGap"><span>!</span><div>${esc(x.label)}</div></div>`).join(''):'<div class="deckIntelGood">✓ 主要な不足・孤立は検出されませんでした。</div>';
   const verifiedHTML=verified.length?`<section class="deckVerified section"><div class="knowledgeHeader"><div><h3>デッキ内で成立する検証済み事例</h3><p class="notice">必要カードがすべてメインデッキに含まれています。</p></div><span class="knowledgeCount">${verified.length}件</span></div>${verified.map(verifiedCaseHTMLV053).join('')}</section>`:'';
-  el.innerHTML=`<div class="deckIntelHead"><div><div class="dialogEyebrow">Deck Intelligence v0.5.4</div><h2>デッキの効果構造</h2><p class="notice">カードを「何を供給するか」「何に利用するか」「何が不足しているか」で集計します。</p></div><div class="deckIntelScore"><strong>${profile.engineScore}</strong><span>効果構造点</span></div></div><div class="deckPlan"><span>推定ゲームプラン</span><b>${esc(profile.plan)}</b></div><div class="deckIntelGrid"><section><h3>供給しているもの</h3>${deckTagRowsHTMLV054(profile,profile.supplies,'明確な生成・供給タグがありません。')}</section><section><h3>利用・誘発・勝ち筋</h3>${deckTagRowsHTMLV054(profile,profile.uses,'明確な利用先・誘発条件がありません。')}</section><section><h3>成立している接続</h3>${connectionHTML}</section><section><h3>不足・孤立</h3>${gapHTML}</section></div>${verifiedHTML}`;
+  el.innerHTML=`<div class="deckIntelHead"><div><div class="dialogEyebrow">Deck Intelligence v0.5.5</div><h2>デッキの効果構造</h2><p class="notice">カードを「何を供給するか」「何に利用するか」「何が不足しているか」で集計します。</p></div><div class="deckIntelScore"><strong>${profile.engineScore}</strong><span>効果構造点</span></div></div><div class="deckPlan"><span>推定ゲームプラン</span><b>${esc(profile.plan)}</b></div><div class="deckIntelGrid"><section><h3>供給しているもの</h3>${deckTagRowsHTMLV054(profile,profile.supplies,'明確な生成・供給タグがありません。')}</section><section><h3>利用・誘発・勝ち筋</h3>${deckTagRowsHTMLV054(profile,profile.uses,'明確な利用先・誘発条件がありません。')}</section><section><h3>成立している接続</h3>${connectionHTML}</section><section><h3>不足・孤立</h3>${gapHTML}</section></div>${verifiedHTML}`;
 }
 function gapCoverageForCandidateV054(profile,candidateProfile){
   const why=[],relations=[];
@@ -1314,3 +1314,189 @@ function setupJapaneseCompletionV054a(){
   }
 }
 setupJapaneseCompletionV054a();
+
+
+/* ===== Lunch Forge v0.5.5: Swap Planner ===== */
+let currentSwapRecommendationsV055=[];
+
+function primaryTypeV055(card){
+  const value=type(card);
+  for(const key of ['Land','Creature','Planeswalker','Battle','Artifact','Enchantment','Instant','Sorcery'])if(value.includes(key))return key;
+  return 'Other';
+}
+function isBasicLandV055(card){return /\bBasic\b/i.test(type(card))&&/\bLand\b/i.test(type(card))}
+function normalizeDeckNameV055(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,' ')}
+function entryMatchesCardV055(entry,card){
+  const source=findPoolCard(entry.name),left=source?.oracle_id||source?.name||normalizeDeckNameV055(entry.name),right=card?.oracle_id||card?.name;
+  return left===right||normalizeDeckNameV055(entry.name)===normalizeDeckNameV055(card?.name)||normalizeDeckNameV055(entry.name)===normalizeDeckNameV055(displayName(card));
+}
+function verifiedCoreNamesV055(profile){
+  const names=new Set();
+  for(const testCase of completeVerifiedCasesV054(profile))for(const card of testCase.cards||[]){if(card.nameEn)names.add(normalizeCardNameV053(card.nameEn));if(card.nameJa)names.add(normalizeCardNameV053(card.nameJa));}
+  return names;
+}
+function cutCandidateV055(entry,stats,profile){
+  if(!entry?.card||entry.side||entry.qty<1)return null;
+  const card=entry.card,p=knowledgeProfile(card),cardType=primaryTypeV055(card),isLand=cardType==='Land';
+  if(isBasicLandV055(card)&&stats.lands<=26)return null;
+  if(isLand&&stats.lands<=24)return null;
+  const connectedTags=new Set(profile.connections.flatMap(x=>[x.from,x.to]));
+  const coreNames=verifiedCoreNamesV055(profile),variants=cardNameVariantsV053(card);
+  const isVerifiedCore=variants.some(x=>coreNames.has(x));
+  const reasons=[];let score=0;
+  const relevantGaps=profile.gaps.filter(g=>g.tag&&p.tags.includes(g.tag));
+  if(!p.tags.length){score+=18;reasons.push('現在の知識タグでは、主要な効果接続を確認できない');}
+  if(relevantGaps.length){score+=12+Math.min(8,relevantGaps.length*3);reasons.push('カードの役割がデッキ内で孤立している');}
+  const connected=p.tags.filter(t=>connectedTags.has(t));
+  if(!connected.length&&p.tags.length){score+=10;reasons.push('成立中の供給→利用接続への参加が少ない');}
+  else score-=Math.min(16,connected.length*5);
+  const dominant=Object.entries(profile.tagCounts).filter(([,n])=>n>=8).map(([tag])=>tag);
+  const redundant=p.tags.filter(t=>dominant.includes(t));
+  if(redundant.length){score+=Math.min(12,redundant.length*4);reasons.push(`${KNOWLEDGE_TAGS[redundant[0]]?.label||redundant[0]}の枠が多め`);}
+  const band=Math.min(7,Math.floor(+card.cmc||0));
+  if(!isLand&&stats.curve[band]>=9){score+=8;reasons.push(`${band===7?'7+':band}マナ域が過密`);}
+  if(!isLand&&(+card.cmc||0)>(stats.avg||0)+1.6){score+=5;reasons.push('平均マナ総量より重く、展開速度を圧迫しやすい');}
+  for(const utility of profile.utility){
+    if(utility.count<=utility.target&&utility.tags.some(t=>p.tags.includes(t))){score-=18;reasons.push(`${utility.label}の少ない枠を担っているため、減らし過ぎに注意`);break;}
+  }
+  if(p.tags.includes('alternate_win')||p.tags.includes('go_wide')||p.tags.includes('go_tall'))score-=8;
+  if(isVerifiedCore){score-=40;reasons.push('検証済みシナジーの構成カード');}
+  if(entry.qty>=4)score+=5;
+  if(entry.qty===1)score-=5;
+  let maxCut=entry.qty>=4?2:1;
+  if(isLand)maxCut=Math.max(0,Math.min(maxCut,stats.lands-24));
+  if(maxCut<1||score<-5)return null;
+  return {entry,card,p,score,maxCut,reasons:unique(reasons).slice(0,4),cardType,isLand,band};
+}
+function slotCompatibilityV055(rec,cut,stats){
+  const candidateType=primaryTypeV055(rec.card),candidateLand=candidateType==='Land';let score=0;
+  if(candidateLand!==cut.isLand){
+    if(candidateLand&&stats.lands<23)score+=12;
+    else if(!candidateLand&&stats.lands>26)score+=12;
+    else return -60;
+  }else if(candidateType===cut.cardType)score+=9;
+  else if(!candidateLand&&candidateType==='Creature'&&cut.cardType==='Creature')score+=7;
+  const diff=Math.abs((+rec.card.cmc||0)-(+cut.card.cmc||0));
+  if(diff<=1)score+=8;else if(diff<=2)score+=4;else if(diff>=4)score-=8;
+  if((rec.relations||[]).includes('COVERAGE'))score+=6;
+  if((rec.relations||[]).includes('ENGINE'))score+=5;
+  return score;
+}
+function simulateSwapEntriesV055(entries,cutCard,addCard,qty){
+  const out=[];let remaining=qty;
+  for(const source of entries){
+    const entry={...source};
+    if(!entry.side&&entry.card&&entryMatchesCardV055(entry,cutCard)&&remaining>0){
+      const take=Math.min(entry.qty,remaining);entry.qty-=take;remaining-=take;
+    }
+    if(entry.qty>0)out.push(entry);
+  }
+  const existing=out.find(x=>!x.side&&x.card&&entryMatchesCardV055(x,addCard));
+  if(existing)existing.qty+=qty;else out.push({qty,name:addCard.name,side:false,card:addCard});
+  return out;
+}
+function buildSwapRecommendationsV055(stats,profile,recommendations,mainResolved){
+  const cuts=mainResolved.map(x=>cutCandidateV055(x,stats,profile)).filter(Boolean).sort((a,b)=>b.score-a.score);
+  if(!cuts.length||!recommendations.length)return [];
+  const proposals=[];
+  for(const rec of recommendations.slice(0,32)){
+    let best=null;
+    for(const cut of cuts.slice(0,28)){
+      const compatibility=slotCompatibilityV055(rec,cut,stats);if(compatibility<=-50)continue;
+      const qty=Math.min(cut.maxCut,rec.score>=38?2:1);
+      const simulated=simulateSwapEntriesV055(deck,cut.card,rec.card,qty),afterStats=deckStats(simulated),afterProfile=deckKnowledgeProfileV054(simulated.filter(x=>!x.side&&x.card));
+      const deltaEngine=afterProfile.engineScore-profile.engineScore;
+      const deltaConnections=afterProfile.connections.length-profile.connections.length;
+      const deltaGaps=profile.gaps.length-afterProfile.gaps.length;
+      const landDelta=afterStats.lands-stats.lands;
+      const pairScore=rec.score+cut.score+compatibility+deltaEngine*2.8+deltaConnections*7+deltaGaps*6;
+      const item={add:rec,cut,qty,pairScore,afterStats,afterProfile,deltaEngine,deltaConnections,deltaGaps,landDelta};
+      if(!best||item.pairScore>best.pairScore)best=item;
+    }
+    if(best)proposals.push(best);
+  }
+  proposals.sort((a,b)=>b.pairScore-a.pairScore);
+  const result=[],usedAdds=new Set(),cutUse=new Map();
+  for(const item of proposals){
+    const addKey=item.add.card.oracle_id||item.add.card.name,cutKey=item.cut.card.oracle_id||item.cut.card.name;
+    if(usedAdds.has(addKey)||(cutUse.get(cutKey)||0)>=2)continue;
+    if(item.deltaEngine<-8&&item.deltaConnections<0&&item.deltaGaps<=0)continue;
+    usedAdds.add(addKey);cutUse.set(cutKey,(cutUse.get(cutKey)||0)+1);result.push(item);if(result.length>=6)break;
+  }
+  return result;
+}
+function metricClassV055(before,after,direction='up'){
+  if(before===after)return 'neutral';
+  const improved=direction==='down'?after<before:after>before;return improved?'improved':'declined';
+}
+function swapConfidenceV055(item){
+  const gain=item.deltaEngine+item.deltaConnections*4+item.deltaGaps*3;
+  if(item.pairScore>=75&&gain>=5)return '高';if(item.pairScore>=48)return '中';return '参考';
+}
+function swapMetricHTMLV055(label,before,after,direction='up',digits=0){
+  const format=v=>Number(v).toFixed(digits);
+  return `<div class="swapMetric ${metricClassV055(before,after,direction)}"><span>${esc(label)}</span><b>${format(before)} <i>→</i> ${format(after)}</b></div>`;
+}
+function swapCardPanelV055(card,qty,mode){
+  const p=knowledgeProfile(card);return `<div class="swapCard ${mode}"><div class="swapCardSign">${mode==='add'?'+':'−'}${qty}</div>${displayImg(card)?`<button class="imageButton" data-detail="${esc(card.name)}"><img loading="lazy" src="${displayImg(card)}" alt="${esc(displayName(card))}"></button>`:''}<div><small>${mode==='add'?'追加候補':'減らす候補'}</small><h3><button class="textButton" data-detail="${esc(card.name)}">${esc(displayName(card))}</button></h3>${englishSubName(card)}<div class="meta">${esc(primaryTypeV055(card))}・MV ${card.cmc||0}</div><div class="tags">${p.tags.slice(0,3).map(t=>`<span class="tag">${esc(KNOWLEDGE_TAGS[t]?.label||t)}</span>`).join('')}</div></div></div>`;
+}
+function renderSwapRecommendationsV055(){
+  const root=$('swapRecommendations'),count=$('swapCount');if(!root)return;
+  if(count)count.textContent=`${currentSwapRecommendationsV055.length}件`;
+  if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">安全に提案できる入れ替えを検出できませんでした。追加候補とデッキ内容を確認してください。</div>';return;}
+  const beforeStats=deckStats(deck),beforeProfile=currentDeckKnowledgeV054;
+  root.innerHTML=currentSwapRecommendationsV055.map((item,index)=>{
+    const addReasons=item.add.why.slice(0,3),cutReasons=item.cut.reasons.slice(0,3),confidence=swapConfidenceV055(item);
+    const landMetric=item.landDelta?swapMetricHTMLV055('土地',beforeStats.lands,item.afterStats.lands,'up',0):'';
+    return `<article class="swapProposal"><div class="swapProposalHead"><div><span class="swapRank">提案 ${index+1}</span><h3>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</h3></div><span class="swapConfidence confidence${confidence}">確度 ${confidence}</span></div><div class="swapPair">${swapCardPanelV055(item.add.card,item.qty,'add')}<div class="swapExchange" aria-hidden="true">⇄</div>${swapCardPanelV055(item.cut.card,item.qty,'cut')}</div><div class="swapReasonGrid"><section><h4>追加する理由</h4><ul class="explainList">${addReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section><section><h4>減らす理由</h4><ul class="explainList">${cutReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section></div><div class="swapMetrics">${swapMetricHTMLV055('効果構造点',beforeProfile.engineScore,item.afterProfile.engineScore,'up',0)}${swapMetricHTMLV055('不足・孤立',beforeProfile.gaps.length,item.afterProfile.gaps.length,'down',0)}${swapMetricHTMLV055('効果接続',beforeProfile.connections.length,item.afterProfile.connections.length,'up',0)}${swapMetricHTMLV055('平均MV',beforeStats.avg,item.afterStats.avg,'down',2)}${landMetric}</div><div class="swapActions"><button class="btn" data-swapapply="${index}">${item.qty}枚入れ替えて再分析</button><button class="btn secondary" data-deckadd="${esc(item.add.card.name)}">追加だけ行う</button><button class="btn ghost" data-detail="${esc(item.add.card.name)}">追加カードの詳細</button></div></article>`;
+  }).join('');
+}
+function rebuildDeckTextV055(entries){
+  const main=entries.filter(x=>!x.side&&x.qty>0),side=entries.filter(x=>x.side&&x.qty>0);
+  let text='Deck\n'+main.map(x=>`${x.qty} ${x.name}`).join('\n');
+  if(side.length)text+='\n\nSideboard\n'+side.map(x=>`${x.qty} ${x.name}`).join('\n');
+  return text;
+}
+function applySwapProposalV055(index){
+  const item=currentSwapRecommendationsV055[index];if(!item)return;
+  const parsed=parseDeck($('deckInput').value),entries=parsed.map(x=>({...x}));let remaining=item.qty;
+  for(const entry of entries){
+    if(entry.side||remaining<=0)continue;
+    const card=findPoolCard(entry.name);if(card&&entryMatchesCardV055(entry,item.cut.card)){
+      const take=Math.min(entry.qty,remaining);entry.qty-=take;remaining-=take;
+    }
+  }
+  const existing=entries.find(x=>!x.side&&entryMatchesCardV055(x,item.add.card));
+  if(existing)existing.qty+=item.qty;else entries.push({qty:item.qty,name:item.add.card.name,side:false});
+  $('deckInput').value=rebuildDeckTextV055(entries.filter(x=>x.qty>0));
+  toast(`${displayName(item.cut.card)}を${item.qty}枚減らし、${displayName(item.add.card)}を${item.qty}枚追加しました`);
+  setTimeout(()=>analyze(),80);
+}
+
+async function analyze(){
+  if(!pool.length){status('先にカードデータを取得します。',3);await fetchPool();if(!pool.length)return;}
+  const parsed=parseDeck($('deckInput').value);if(!parsed.length){status('デッキを入力してください。');return;}
+  $('analyzeBtn').disabled=true;deck=[];currentSwapRecommendationsV055=[];renderSwapRecommendationsV055();
+  try{
+    for(let i=0;i<parsed.length;i++){
+      status(`カード特定中 ${i+1}/${parsed.length}`,10+48*i/parsed.length);
+      const c=findPoolCard(parsed[i].name)||await named(parsed[i].name);
+      deck.push({...parsed[i],card:c||null});await sleep(55);
+    }
+    const resolved=deck.filter(x=>x.card),mainResolved=resolved.filter(x=>!x.side),stats=deckStats(deck);
+    currentDeckKnowledgeV054=deckKnowledgeProfileV054(mainResolved);await loadVerifiedSynergiesV053(false);
+    renderStats(stats,parsed.length,resolved.length,currentDeckKnowledgeV054);
+    const present=new Set(resolved.map(x=>x.card.name));
+    recs=pool.filter(c=>!present.has(c.name)).map(c=>scoreCard(c,stats,$('strategy').value,mainResolved)).filter(x=>x.score>=12&&x.why.length).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja'));
+    currentSwapRecommendationsV055=buildSwapRecommendationsV055(stats,currentDeckKnowledgeV054,recs,mainResolved);
+    renderSwapRecommendationsV055();renderResults();
+    status(`${resolved.length}/${parsed.length}種類を特定。効果接続${currentDeckKnowledgeV054.connections.length}件、不足・孤立${currentDeckKnowledgeV054.gaps.length}件、入れ替え提案${currentSwapRecommendationsV055.length}件。`,100);
+  }catch(error){console.error(error);status('デッキ分析中にエラーが発生しました：'+(error?.message||error),0);}
+  finally{$('analyzeBtn').disabled=false;}
+}
+
+const swapRootV055=$('swapRecommendations');
+if(swapRootV055){
+  bindActionContainer(swapRootV055);
+  swapRootV055.addEventListener('click',event=>{const button=event.target.closest('[data-swapapply]');if(button)applySwapProposalV055(+button.dataset.swapapply);});
+}
