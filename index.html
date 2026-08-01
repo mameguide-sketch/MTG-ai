@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.5</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.6</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -30,7 +30,22 @@ Sideboard
 <div class="panelgrid"><div class="mini"><h3>診断</h3><div class="tags" id="diagnostics"><span class="tag">未分析</span></div></div><div class="mini"><h3>マナカーブ</h3><div class="mana" id="curve"></div></div></div>
 <div class="panelgrid section"><div class="mini"><h3>役割構成</h3><div id="roles"></div></div><div class="mini"><h3>解析済みデッキ</h3><div class="notice" id="resolvedDeck">—</div></div></div></div>
 <div class="card section deckIntelligenceCard"><div id="deckIntelligence"><div class="empty">デッキ分析後、供給・利用・成立接続・不足を表示します。</div></div></div>
-<div class="card section swapPlannerCard"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner v0.5.5</div><h2>入れ替え提案</h2><p class="notice">追加候補と、減らす候補を一組で提示し、変更前後の効果構造を比較します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div><div id="swapRecommendations" class="swapRecommendations"><div class="empty">デッキ分析後、入れ替え候補を表示します。</div></div><p class="notice swapDisclaimer">提案はカード本文・役割・マナ域から算出した構築支援です。対戦環境、所持枚数、サイドボード計画は別途確認してください。</p></div>
+<div class="card section swapPlannerCard"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner v0.5.6</div><h2>入れ替え提案</h2><p class="notice">提案条件を指定し、追加候補と減らす候補を比較します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div>
+<div class="swapControlPanel" aria-label="入れ替え提案の条件設定">
+  <div class="swapControlGrid">
+    <label><span>提案方針</span><select id="swapPolicyV056"><option value="balanced">総合バランス</option><option value="aggressive">攻撃的</option><option value="stable">安定性重視</option><option value="synergy">シナジー重視</option></select></label>
+    <label><span>最大変更枚数</span><select id="swapMaxChangesV056"><option value="1">1枚</option><option value="2" selected>2枚</option><option value="4">4枚</option><option value="8">8枚</option></select></label>
+    <label><span>追加カードの最高レアリティ</span><select id="swapRarityCapV056"><option value="all">制限なし</option><option value="common">コモンまで</option><option value="uncommon">アンコモンまで</option><option value="rare">レアまで</option><option value="mythic">神話レアまで</option></select></label>
+  </div>
+  <div class="swapConstraintRow"><label class="swapCheck"><input id="swapKeepLandsV056" type="checkbox" checked><span>土地枚数を固定</span></label><span class="constraintPill">サイドボードは維持</span><button class="smallBtn" id="swapUndoV056" disabled>直前の入れ替えを戻す</button><button class="smallBtn" id="swapResetV056">条件を初期化</button></div>
+  <details class="swapAdvancedV056" open><summary>所有カード・固定カードの設定</summary>
+    <div class="swapOwnedBox"><label class="swapCheck"><input id="swapOwnedOnlyV056" type="checkbox"><span>所有カードだけから追加候補を選ぶ</span></label><textarea id="swapOwnedCardsV056" rows="3" placeholder="所有カードを1行ずつ、またはArena形式で入力" disabled></textarea></div>
+    <div class="swapLockBox"><div class="swapLockHead"><div><b>抜かないカード</b><span class="tiny">チェックしたカードは削減候補から除外します。</span></div><span class="knowledgeCount" id="swapLockCountV056">0枚固定</span></div><div id="swapLockListV056" class="swapLockListV056"><span class="tiny">デッキ分析後にカード一覧を表示します。</span></div></div>
+  </details>
+  <div class="status" id="swapControlStatusV056">条件を変更すると、現在の分析結果から提案を再計算します。</div>
+</div>
+<div id="swapCompareV056" class="swapCompareV056"><div class="empty">デッキ分析後、上位案を比較表示します。</div></div>
+<div id="swapRecommendations" class="swapRecommendations"><div class="empty">デッキ分析後、入れ替え候補を表示します。</div></div><p class="notice swapDisclaimer">提案はカード本文・役割・マナ域から算出した構築支援です。対戦環境や実際の所持枚数は最終確認してください。</p></div>
 <div class="card section"><h2>その他の追加候補</h2><div class="filters"><input id="search" placeholder="候補内検索"/><select id="typeFilter"><option value="">全タイプ</option><option>Creature</option><option>Instant</option><option>Sorcery</option><option>Artifact</option><option>Enchantment</option><option>Planeswalker</option><option>Land</option></select><select id="roleFilter"><option value="">全役割</option><option value="removal">除去</option><option value="draw">ドロー</option><option value="ramp">マナ加速</option><option value="protection">保護</option><option value="finisher">フィニッシャー</option><option value="grave_payoff">墓地利用</option><option value="token_payoff">トークン利用</option></select><select id="colorFilter"><option value="">全色</option><option value="W">白</option><option value="U">青</option><option value="B">黒</option><option value="R">赤</option><option value="G">緑</option><option value="C">無色</option></select></div><div class="results" id="results"><div class="empty">左でカードデータを取得し、デッキを分析してください。</div></div></div></div></div></section>
 
 <section class="view" id="database">

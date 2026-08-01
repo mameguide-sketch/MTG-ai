@@ -1440,6 +1440,9 @@ function swapMetricHTMLV055(label,before,after,direction='up',digits=0){
 function swapCardPanelV055(card,qty,mode){
   const p=knowledgeProfile(card);return `<div class="swapCard ${mode}"><div class="swapCardSign">${mode==='add'?'+':'−'}${qty}</div>${displayImg(card)?`<button class="imageButton" data-detail="${esc(card.name)}"><img loading="lazy" src="${displayImg(card)}" alt="${esc(displayName(card))}"></button>`:''}<div><small>${mode==='add'?'追加候補':'減らす候補'}</small><h3><button class="textButton" data-detail="${esc(card.name)}">${esc(displayName(card))}</button></h3>${englishSubName(card)}<div class="meta">${esc(primaryTypeV055(card))}・MV ${card.cmc||0}</div><div class="tags">${p.tags.slice(0,3).map(t=>`<span class="tag">${esc(KNOWLEDGE_TAGS[t]?.label||t)}</span>`).join('')}</div></div></div>`;
 }
+function swapCardPanelV055(card,qty,mode){
+  const p=knowledgeProfile(card);return `<div class="swapCard ${mode}"><div class="swapCardSign">${mode==='add'?'+':'−'}${qty}</div>${displayImg(card)?`<button class="imageButton" data-detail="${esc(card.name)}"><img loading="lazy" src="${displayImg(card)}" alt="${esc(displayName(card))}"></button>`:''}<div><small>${mode==='add'?'追加候補':'減らす候補'}</small><h3><button class="textButton" data-detail="${esc(card.name)}">${esc(displayName(card))}</button></h3>${englishSubName(card)}<div class="meta">${esc(primaryTypeV055(card))}・MV ${card.cmc||0}・${esc(rarityLabelV056(card.rarity))}</div><div class="tags">${p.tags.slice(0,3).map(t=>`<span class="tag">${esc(KNOWLEDGE_TAGS[t]?.label||t)}</span>`).join('')}</div></div></div>`;
+}
 function renderSwapRecommendationsV055(){
   const root=$('swapRecommendations'),count=$('swapCount');if(!root)return;
   if(count)count.textContent=`${currentSwapRecommendationsV055.length}件`;
@@ -1499,4 +1502,204 @@ const swapRootV055=$('swapRecommendations');
 if(swapRootV055){
   bindActionContainer(swapRootV055);
   swapRootV055.addEventListener('click',event=>{const button=event.target.closest('[data-swapapply]');if(button)applySwapProposalV055(+button.dataset.swapapply);});
+}
+
+
+/* ===== Lunch Forge v0.5.6: Proposal Controls ===== */
+const SWAP_SETTINGS_KEY_V056='lunchForgeSwapSettingsV056';
+const SWAP_HISTORY_KEY_V056='lunchForgeSwapHistoryV056';
+const SWAP_DEFAULTS_V056={policy:'balanced',maxChanges:2,rarityCap:'all',keepLands:true,ownedOnly:false,ownedCards:'',locked:[]};
+let swapSettingsV056=loadSwapSettingsV056();
+let swapHistoryV056=loadSwapHistoryV056();
+let swapRefreshTimerV056=0;
+
+function loadSwapSettingsV056(){
+  try{return {...SWAP_DEFAULTS_V056,...JSON.parse(localStorage.getItem(SWAP_SETTINGS_KEY_V056)||'{}')}}catch{return {...SWAP_DEFAULTS_V056}}
+}
+function saveSwapSettingsV056(){
+  swapSettingsV056.locked=[...new Set(swapSettingsV056.locked||[])];
+  localStorage.setItem(SWAP_SETTINGS_KEY_V056,JSON.stringify(swapSettingsV056));
+}
+function loadSwapHistoryV056(){
+  try{const value=JSON.parse(sessionStorage.getItem(SWAP_HISTORY_KEY_V056)||'[]');return Array.isArray(value)?value.slice(0,10):[]}catch{return []}
+}
+function saveSwapHistoryV056(){sessionStorage.setItem(SWAP_HISTORY_KEY_V056,JSON.stringify(swapHistoryV056.slice(0,10)));updateSwapUndoV056()}
+function cardKeyV056(card){return String(card?.oracle_id||card?.name||'').toLowerCase()}
+function lockedSetV056(){return new Set(swapSettingsV056.locked||[])}
+function isCardLockedV056(card){return lockedSetV056().has(cardKeyV056(card))}
+function rarityRankV056(value){return ({common:0,uncommon:1,rare:2,mythic:3,special:3,bonus:3}[String(value||'').toLowerCase()]??3)}
+function rarityLabelV056(value){return ({common:'コモン',uncommon:'アンコモン',rare:'レア',mythic:'神話レア',special:'特殊',bonus:'ボーナス'}[String(value||'').toLowerCase()]||'不明')}
+function policyLabelV056(){return ({balanced:'総合バランス',aggressive:'攻撃的',stable:'安定性重視',synergy:'シナジー重視'})[swapSettingsV056.policy]||'総合バランス'}
+function ownedNamesV056(){
+  const out=new Set();
+  for(let raw of String(swapSettingsV056.ownedCards||'').split(/\r?\n|,/)){
+    let line=raw.trim();if(!line)continue;
+    line=line.replace(/^\d+\s+/,'').replace(/\s+\([A-Za-z0-9]+\)\s+\d+[A-Za-z]?\s*$/,'').trim();
+    if(!line)continue;
+    out.add(normalizeDeckNameV055(line));
+    const card=findPoolCard(line);if(card){out.add(normalizeDeckNameV055(card.name));out.add(normalizeDeckNameV055(displayName(card)));out.add(cardKeyV056(card));}
+  }
+  return out;
+}
+function isOwnedCardV056(card){
+  if(!swapSettingsV056.ownedOnly)return true;
+  const owned=ownedNamesV056();if(!owned.size)return false;
+  return owned.has(cardKeyV056(card))||owned.has(normalizeDeckNameV055(card?.name))||owned.has(normalizeDeckNameV055(displayName(card)));
+}
+function rarityAllowedV056(card){
+  if(swapSettingsV056.rarityCap==='all')return true;
+  return rarityRankV056(card?.rarity)<=rarityRankV056(swapSettingsV056.rarityCap);
+}
+function recommendationAllowedV056(card){return isOwnedCardV056(card)&&rarityAllowedV056(card)}
+function countCardInDeckV056(card){return deck.filter(x=>!x.side&&x.card&&entryMatchesCardV055(x,card)).reduce((sum,x)=>sum+x.qty,0)}
+function policyBonusV056(rec,cut,stats,profile){
+  const p=knowledgeProfile(rec.card),cmc=+rec.card.cmc||0,relations=rec.relations||[];let score=0,reason='';
+  if(swapSettingsV056.policy==='aggressive'){
+    score+=Math.max(-5,(4-cmc)*3);
+    if(p.tags.some(t=>['go_wide','go_tall','direct_damage','evasion','attack_trigger'].includes(t))){score+=12;reason='早く勝ち切る役割を優先';}
+    if(cmc<=2){score+=5;reason=reason||'低マナ域を優先';}
+  }else if(swapSettingsV056.policy==='stable'){
+    if(p.tags.some(t=>['single_removal','board_wipe','counterspell','draw_cards','impulse','protection','mana_add','extra_land'].includes(t))){score+=12;reason='除去・ドロー・保護などの安定枠を優先';}
+    if(relations.includes('COVERAGE')||relations.includes('SUPPORT'))score+=7;
+    if(cmc>=6)score-=5;
+  }else if(swapSettingsV056.policy==='synergy'){
+    if(relations.some(x=>['SYNERGY','ENGINE','ENABLE'].includes(x))){score+=14;reason='供給→利用のシナジー接続を優先';}
+    const connected=new Set(profile.connections.flatMap(x=>[x.from,x.to]));
+    score+=Math.min(10,p.tags.filter(t=>connected.has(t)).length*3);
+  }else{
+    if(relations.includes('COVERAGE')){score+=4;reason='不足補完と効果接続のバランスを優先';}
+  }
+  return {score,reason};
+}
+
+const cutCandidateBaseV056=cutCandidateV055;
+cutCandidateV055=function(entry,stats,profile){
+  if(entry?.card&&isCardLockedV056(entry.card))return null;
+  const result=cutCandidateBaseV056(entry,stats,profile);if(!result)return null;
+  let maxCut=Math.min(entry.qty,Math.max(1,+swapSettingsV056.maxChanges||2));
+  if(!isBasicLandV055(entry.card))maxCut=Math.min(maxCut,4);
+  if(result.isLand)maxCut=Math.max(0,Math.min(maxCut,stats.lands-20));
+  if(maxCut<1)return null;
+  result.maxCut=maxCut;return result;
+};
+const slotCompatibilityBaseV056=slotCompatibilityV055;
+slotCompatibilityV055=function(rec,cut,stats){
+  const candidateLand=primaryTypeV055(rec.card)==='Land';
+  if(swapSettingsV056.keepLands&&candidateLand!==cut.isLand)return -100;
+  return slotCompatibilityBaseV056(rec,cut,stats);
+};
+
+function buildSwapRecommendationsV055(stats,profile,recommendations,mainResolved){
+  const allowed=recommendations.filter(x=>recommendationAllowedV056(x.card));
+  const cuts=mainResolved.map(x=>cutCandidateV055(x,stats,profile)).filter(Boolean).sort((a,b)=>b.score-a.score);
+  if(!cuts.length||!allowed.length)return [];
+  const proposals=[],maxSetting=Math.max(1,+swapSettingsV056.maxChanges||2);
+  for(const rec of allowed.slice(0,56)){
+    let best=null;
+    for(const cut of cuts.slice(0,36)){
+      const compatibility=slotCompatibilityV055(rec,cut,stats);if(compatibility<=-50)continue;
+      const existing=countCardInDeckV056(rec.card),legalMax=isBasicLandV055(rec.card)?maxSetting:Math.max(0,4-existing);if(legalMax<1)continue;
+      let confidenceQty=rec.score>=52?4:rec.score>=36?2:1;
+      if(swapSettingsV056.policy==='aggressive'&&(+rec.card.cmc||0)<=2&&rec.score>=28)confidenceQty=Math.max(confidenceQty,4);
+      const qty=Math.min(cut.maxCut,maxSetting,legalMax,confidenceQty);if(qty<1)continue;
+      const simulated=simulateSwapEntriesV055(deck,cut.card,rec.card,qty),afterStats=deckStats(simulated),afterProfile=deckKnowledgeProfileV054(simulated.filter(x=>!x.side&&x.card));
+      const deltaEngine=afterProfile.engineScore-profile.engineScore,deltaConnections=afterProfile.connections.length-profile.connections.length,deltaGaps=profile.gaps.length-afterProfile.gaps.length,landDelta=afterStats.lands-stats.lands;
+      if(swapSettingsV056.keepLands&&landDelta!==0)continue;
+      const policy=policyBonusV056(rec,cut,stats,profile);
+      const pairScore=rec.score+cut.score+compatibility+deltaEngine*2.8+deltaConnections*7+deltaGaps*6+policy.score;
+      const item={add:rec,cut,qty,pairScore,afterStats,afterProfile,deltaEngine,deltaConnections,deltaGaps,landDelta,policyReason:policy.reason};
+      if(!best||item.pairScore>best.pairScore)best=item;
+    }
+    if(best)proposals.push(best);
+  }
+  proposals.sort((a,b)=>b.pairScore-a.pairScore);
+  const result=[],usedAdds=new Set(),cutUse=new Map();
+  for(const item of proposals){
+    const addKey=cardKeyV056(item.add.card),cutKey=cardKeyV056(item.cut.card);
+    if(usedAdds.has(addKey)||(cutUse.get(cutKey)||0)>=2)continue;
+    if(item.deltaEngine<-8&&item.deltaConnections<0&&item.deltaGaps<=0)continue;
+    usedAdds.add(addKey);cutUse.set(cutKey,(cutUse.get(cutKey)||0)+1);result.push(item);if(result.length>=8)break;
+  }
+  return result;
+}
+
+function renderSwapLockListV056(mainResolved){
+  const root=$('swapLockListV056'),counter=$('swapLockCountV056');if(!root)return;
+  const map=new Map();for(const entry of mainResolved||[]){const key=cardKeyV056(entry.card);if(!map.has(key))map.set(key,{card:entry.card,qty:0});map.get(key).qty+=entry.qty;}
+  const cards=[...map.values()].sort((a,b)=>(primaryTypeV055(a.card)==='Land')-(primaryTypeV055(b.card)==='Land')||displayName(a.card).localeCompare(displayName(b.card),'ja'));
+  const valid=new Set(cards.map(x=>cardKeyV056(x.card)));swapSettingsV056.locked=(swapSettingsV056.locked||[]).filter(x=>valid.has(x));saveSwapSettingsV056();
+  if(counter)counter.textContent=`${swapSettingsV056.locked.length}種類固定`;
+  root.innerHTML=cards.length?cards.map(({card,qty})=>`<label class="swapLockItemV056"><input type="checkbox" data-swaplock="${esc(cardKeyV056(card))}" ${isCardLockedV056(card)?'checked':''}><span>${qty} ${esc(displayName(card))}</span></label>`).join(''):'<span class="tiny">解析済みのメインデッキがありません。</span>';
+}
+function renderSwapCompareV056(){
+  const root=$('swapCompareV056');if(!root)return;
+  if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">現在の条件では比較できる提案がありません。</div>';return;}
+  root.innerHTML=currentSwapRecommendationsV055.slice(0,3).map((item,index)=>`<button class="swapCompareCardV056" data-swapfocus="${index}"><small>案 ${index+1}・${item.qty}枚変更</small><strong>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</strong><div class="swapCompareMetricsV056"><span>構造 ${item.deltaEngine>=0?'+':''}${item.deltaEngine}</span><span>接続 ${item.deltaConnections>=0?'+':''}${item.deltaConnections}</span><span>不足 ${item.deltaGaps>0?'-'+item.deltaGaps:item.deltaGaps===0?'±0':'+'+Math.abs(item.deltaGaps)}</span></div></button>`).join('');
+}
+function renderSwapRecommendationsV055(){
+  const root=$('swapRecommendations'),count=$('swapCount');if(!root)return;
+  if(count)count.textContent=`${currentSwapRecommendationsV055.length}件`;
+  if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">現在の固定・所有・レアリティ条件では、安全に提案できる入れ替えを検出できませんでした。</div>';renderSwapCompareV056();return;}
+  const beforeStats=deckStats(deck),beforeProfile=currentDeckKnowledgeV054;
+  root.innerHTML=currentSwapRecommendationsV055.map((item,index)=>{
+    const addReasons=unique([item.policyReason,...item.add.why]).filter(Boolean).slice(0,3),cutReasons=item.cut.reasons.slice(0,3),confidence=swapConfidenceV055(item),landMetric=item.landDelta?swapMetricHTMLV055('土地',beforeStats.lands,item.afterStats.lands,'up',0):'';
+    const ownedBadge=swapSettingsV056.ownedOnly?'<span class="swapOwnedBadgeV056">所有確認済み</span>':'';
+    return `<article class="swapProposal" id="swapProposalV056-${index}"><div class="swapProposalHead"><div><div class="swapProposalHeadTagsV056"><span class="swapRank">提案 ${index+1}</span><span class="swapPolicyBadgeV056">${esc(policyLabelV056())}</span>${ownedBadge}</div><h3>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</h3></div><span class="swapConfidence confidence${confidence}">確度 ${confidence}</span></div><div class="swapPair">${swapCardPanelV055(item.add.card,item.qty,'add')}<div class="swapExchange" aria-hidden="true">⇄</div>${swapCardPanelV055(item.cut.card,item.qty,'cut')}</div><div class="swapReasonGrid"><section><h4>追加する理由</h4><ul class="explainList">${addReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section><section><h4>減らす理由</h4><ul class="explainList">${cutReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section></div><div class="swapMetrics">${swapMetricHTMLV055('効果構造点',beforeProfile.engineScore,item.afterProfile.engineScore,'up',0)}${swapMetricHTMLV055('不足・孤立',beforeProfile.gaps.length,item.afterProfile.gaps.length,'down',0)}${swapMetricHTMLV055('効果接続',beforeProfile.connections.length,item.afterProfile.connections.length,'up',0)}${swapMetricHTMLV055('平均MV',beforeStats.avg,item.afterStats.avg,'down',2)}${landMetric}</div><div class="swapActions"><button class="btn" data-swapapply="${index}">${item.qty}枚入れ替えて再分析</button><button class="btn secondary" data-deckadd="${esc(item.add.card.name)}">追加だけ行う</button><button class="btn ghost" data-detail="${esc(item.add.card.name)}">追加カードの詳細</button><button class="smallBtn" data-lockcut="${esc(cardKeyV056(item.cut.card))}">この削減候補を固定</button></div></article>`;
+  }).join('');renderSwapCompareV056();
+}
+function updateSwapUndoV056(){const button=$('swapUndoV056');if(button){button.disabled=!swapHistoryV056.length;button.textContent=swapHistoryV056.length?`直前の入れ替えを戻す（${swapHistoryV056.length}）`:'直前の入れ替えを戻す';}}
+function pushSwapHistoryV056(label){const text=$('deckInput').value;if(!text.trim())return;swapHistoryV056.unshift({text,label,at:new Date().toISOString()});swapHistoryV056=swapHistoryV056.slice(0,10);saveSwapHistoryV056()}
+function undoSwapV056(){
+  const item=swapHistoryV056.shift();if(!item)return toast('戻せる入れ替えがありません');
+  $('deckInput').value=item.text;saveSwapHistoryV056();toast(`入れ替え前へ戻しました${item.label?'：'+item.label:''}`);setTimeout(()=>analyze(),60);
+}
+function applySwapProposalV055(index){
+  const item=currentSwapRecommendationsV055[index];if(!item)return;if(isCardLockedV056(item.cut.card))return toast('固定カードは減らせません');
+  pushSwapHistoryV056(`${displayName(item.cut.card)} → ${displayName(item.add.card)}`);
+  const parsed=parseDeck($('deckInput').value),entries=parsed.map(x=>({...x}));let remaining=item.qty;
+  for(const entry of entries){if(entry.side||remaining<=0)continue;const card=findPoolCard(entry.name);if(card&&entryMatchesCardV055(entry,item.cut.card)){const take=Math.min(entry.qty,remaining);entry.qty-=take;remaining-=take;}}
+  const existing=entries.find(x=>!x.side&&entryMatchesCardV055(x,item.add.card));if(existing)existing.qty+=item.qty;else entries.push({qty:item.qty,name:item.add.card.name,side:false});
+  $('deckInput').value=rebuildDeckTextV055(entries.filter(x=>x.qty>0));toast(`${displayName(item.cut.card)}を${item.qty}枚減らし、${displayName(item.add.card)}を${item.qty}枚追加しました`);setTimeout(()=>analyze(),80);
+}
+function readSwapControlsV056(){
+  swapSettingsV056.policy=$('swapPolicyV056')?.value||'balanced';swapSettingsV056.maxChanges=+($('swapMaxChangesV056')?.value||2);swapSettingsV056.rarityCap=$('swapRarityCapV056')?.value||'all';swapSettingsV056.keepLands=!!$('swapKeepLandsV056')?.checked;swapSettingsV056.ownedOnly=!!$('swapOwnedOnlyV056')?.checked;swapSettingsV056.ownedCards=$('swapOwnedCardsV056')?.value||'';saveSwapSettingsV056();if($('swapOwnedCardsV056'))$('swapOwnedCardsV056').disabled=!swapSettingsV056.ownedOnly;
+}
+function syncSwapControlsV056(){
+  if($('swapPolicyV056'))$('swapPolicyV056').value=swapSettingsV056.policy;if($('swapMaxChangesV056'))$('swapMaxChangesV056').value=String(swapSettingsV056.maxChanges);if($('swapRarityCapV056'))$('swapRarityCapV056').value=swapSettingsV056.rarityCap;if($('swapKeepLandsV056'))$('swapKeepLandsV056').checked=swapSettingsV056.keepLands;if($('swapOwnedOnlyV056'))$('swapOwnedOnlyV056').checked=swapSettingsV056.ownedOnly;if($('swapOwnedCardsV056')){$('swapOwnedCardsV056').value=swapSettingsV056.ownedCards;$('swapOwnedCardsV056').disabled=!swapSettingsV056.ownedOnly;}updateSwapUndoV056();
+}
+function refreshSwapPlannerV056(showMessage=false){
+  clearTimeout(swapRefreshTimerV056);swapRefreshTimerV056=setTimeout(()=>{
+    readSwapControlsV056();
+    if(!deck.length||!currentDeckKnowledgeV054){if(showMessage)toast('先にデッキを分析してください');return;}
+    const mainResolved=deck.filter(x=>!x.side&&x.card),stats=deckStats(deck);
+    currentSwapRecommendationsV055=buildSwapRecommendationsV055(stats,currentDeckKnowledgeV054,recs,mainResolved);renderSwapRecommendationsV055();renderSwapLockListV056(mainResolved);
+    const allowed=recs.filter(x=>recommendationAllowedV056(x.card)).length;
+    if($('swapControlStatusV056'))$('swapControlStatusV056').textContent=`${policyLabelV056()}・最大${swapSettingsV056.maxChanges}枚・追加候補${allowed.toLocaleString()}件から、${currentSwapRecommendationsV055.length}案を作成しました。`;
+    if(showMessage)toast('提案条件を反映しました');
+  },80);
+}
+function resetSwapControlsV056(){swapSettingsV056={...SWAP_DEFAULTS_V056};saveSwapSettingsV056();syncSwapControlsV056();refreshSwapPlannerV056(true)}
+function setupSwapControlsV056(){
+  syncSwapControlsV056();
+  ['swapPolicyV056','swapMaxChangesV056','swapRarityCapV056','swapKeepLandsV056','swapOwnedOnlyV056'].forEach(id=>{const el=$(id);if(el)el.addEventListener('change',()=>refreshSwapPlannerV056(false));});
+  if($('swapOwnedCardsV056'))$('swapOwnedCardsV056').addEventListener('input',()=>refreshSwapPlannerV056(false));
+  if($('swapUndoV056'))$('swapUndoV056').onclick=undoSwapV056;if($('swapResetV056'))$('swapResetV056').onclick=resetSwapControlsV056;
+  if($('swapLockListV056'))$('swapLockListV056').addEventListener('change',event=>{const input=event.target.closest('[data-swaplock]');if(!input)return;const set=lockedSetV056();if(input.checked)set.add(input.dataset.swaplock);else set.delete(input.dataset.swaplock);swapSettingsV056.locked=[...set];saveSwapSettingsV056();refreshSwapPlannerV056(false);});
+  if($('swapRecommendations'))$('swapRecommendations').addEventListener('click',event=>{const lock=event.target.closest('[data-lockcut]');if(!lock)return;const set=lockedSetV056();set.add(lock.dataset.lockcut);swapSettingsV056.locked=[...set];saveSwapSettingsV056();refreshSwapPlannerV056(true);});
+  if($('swapCompareV056'))$('swapCompareV056').addEventListener('click',event=>{const button=event.target.closest('[data-swapfocus]');if(!button)return;document.querySelectorAll('.swapProposal.focusV056').forEach(x=>x.classList.remove('focusV056'));const card=$(`swapProposalV056-${button.dataset.swapfocus}`);if(card){card.classList.add('focusV056');card.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>card.classList.remove('focusV056'),1800);}});
+}
+setupSwapControlsV056();
+
+async function analyze(){
+  if(!pool.length){status('先にカードデータを取得します。',3);await fetchPool();if(!pool.length)return;}
+  const parsed=parseDeck($('deckInput').value);if(!parsed.length){status('デッキを入力してください。');return;}
+  $('analyzeBtn').disabled=true;deck=[];currentSwapRecommendationsV055=[];renderSwapRecommendationsV055();
+  try{
+    for(let i=0;i<parsed.length;i++){status(`カード特定中 ${i+1}/${parsed.length}`,10+48*i/parsed.length);const c=findPoolCard(parsed[i].name)||await named(parsed[i].name);deck.push({...parsed[i],card:c||null});await sleep(55);}
+    const resolved=deck.filter(x=>x.card),mainResolved=resolved.filter(x=>!x.side),stats=deckStats(deck);currentDeckKnowledgeV054=deckKnowledgeProfileV054(mainResolved);await loadVerifiedSynergiesV053(false);renderStats(stats,parsed.length,resolved.length,currentDeckKnowledgeV054);
+    const present=new Set(resolved.map(x=>x.card.name));recs=pool.filter(c=>!present.has(c.name)).map(c=>scoreCard(c,stats,$('strategy').value,mainResolved)).filter(x=>x.score>=12&&x.why.length).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja'));
+    renderSwapLockListV056(mainResolved);currentSwapRecommendationsV055=buildSwapRecommendationsV055(stats,currentDeckKnowledgeV054,recs,mainResolved);renderSwapRecommendationsV055();renderResults();
+    const allowed=recs.filter(x=>recommendationAllowedV056(x.card)).length;if($('swapControlStatusV056'))$('swapControlStatusV056').textContent=`${policyLabelV056()}・最大${swapSettingsV056.maxChanges}枚・追加候補${allowed.toLocaleString()}件から、${currentSwapRecommendationsV055.length}案を作成しました。`;
+    status(`${resolved.length}/${parsed.length}種類を特定。効果接続${currentDeckKnowledgeV054.connections.length}件、不足・孤立${currentDeckKnowledgeV054.gaps.length}件、条件適用後の入れ替え提案${currentSwapRecommendationsV055.length}件。`,100);
+  }catch(error){console.error(error);status('デッキ分析中にエラーが発生しました：'+(error?.message||error),0);}finally{$('analyzeBtn').disabled=false;}
 }
