@@ -1,0 +1,3983 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-07-31",
+  "description": "Lunch Forge 日本語補完データ。2026-07-31のcard-data-audit.jsonを基に、日本語カードリストから名称・タイプ・ルール文章を補完。日本語画像未収録カードは英語画像へフォールバックします。",
+  "generation_summary": {
+    "audit_pool_size": 4702,
+    "audit_missing_cards": 373,
+    "cards_in_override": 373,
+    "names_completed": 176,
+    "texts_completed": 286,
+    "images_unresolved": 27,
+    "expected_after_reload": {
+      "complete": 4675,
+      "missing_any": 27,
+      "missing_name": 0,
+      "missing_text": 0,
+      "missing_image": 27,
+      "partial_double_faced": 4,
+      "overrides_applied": 373
+    }
+  },
+  "cards": [
+    {
+      "oracle_id": "2f5f46ed-b8aa-4864-bd20-17281d4632bf",
+      "name_en": "Abigale, Poet Laureate // Heroic Stanza",
+      "printed_name": "桂冠詩人、アビゲール // 英雄的一節",
+      "printed_type_line": "伝説のクリーチャー --- 鳥(Bird)・バード(Bard) // ソーサリー",
+      "printed_text": "飛行\nあなたがクリーチャー呪文１つを唱えるたび、これは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Heroic Stanza",
+          "printed_name": "英雄的一節",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "324d2aa8-6dea-4b0d-898d-1e52ed187565",
+      "name_en": "Acolyte of Aclazotz",
+      "printed_name": "アクロゾズの侍祭",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・クレリック(Cleric)",
+      "printed_text": "(Ｔ),クリーチャーやアーティファクトでありこれでない１つを生け贄に捧げる：各対戦相手はそれぞれ１点のライフを失い、あなたは１点のライフを得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "02125db4-4507-467a-ac0c-406de2c7d533",
+      "name_en": "Adventurous Eater // Have a Bite",
+      "printed_name": "ゲテモノ喰らい // ひとかじり",
+      "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。あなたは１点のライフを得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Have a Bite",
+          "printed_name": "ひとかじり",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。あなたは１点のライフを得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cef5361a-a189-4e05-a8b8-fc764aed73b9",
+      "name_en": "All-Fates Scroll",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "(Ｔ)：好きな色１色のマナ１点を加える。\n(７),(Ｔ),このアーティファクトを生け贄に捧げる：カードＸ枚を引く。Ｘは、あなたがコントロールしていて互いに異なる名前を持つ土地の数に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e4be4071-7910-460f-90f3-6c4d8cc9db65",
+      "name_en": "Alpharael, Dreaming Acolyte",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・クレリック(Cleric)",
+      "printed_text": "夢追いの侍祭、アルファラエルが戦場に出たとき、カード２枚を引く。その後、あなたがアーティファクト・カード１枚を捨てないかぎり、カード２枚を捨てる。\nあなたのターンの間、これは接死を持つ。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d08e9784-75f7-4164-ac48-d06160f8c56b",
+      "name_en": "Annul",
+      "printed_type_line": "インスタント",
+      "printed_text": "アーティファクトかエンチャントである呪文１つを対象とする。それを打ち消す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "aceea999-90ab-472c-86a7-48af1542cbcf",
+      "name_en": "Anticausal Vestige",
+      "printed_type_line": "クリーチャー --- エルドラージ(Eldrazi)",
+      "printed_text": "このクリーチャーが戦場を離れたとき、カード１枚を引く。その後、あなたの手札から、マナ総量があなたがコントロールしている土地の数以下であるパーマネント・カード１枚を、タップ状態で戦場に出してもよい。\nワープ(４)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a78b063a-7f74-465a-9670-34f927f4bfe9",
+      "name_en": "Aquatic Alchemist // Bubble Up",
+      "printed_name": "水生まれの錬金術師 // 泡立て",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Aquatic Alchemist",
+          "printed_name": "水生まれの錬金術師",
+          "printed_type_line": "クリーチャー --- エレメンタル(Elemental)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "52c6afc6-aff1-46a8-b1ea-b183facec1ae",
+      "name_en": "Atmospheric Greenhouse",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、あなたがコントロールしている各クリーチャーの上にそれぞれ+1/+1カウンター１個を置く。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。８個以上なら、これはアーティファクト・クリーチャーである。）\n8+｜飛行、トランプル",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "048c3b0b-48ef-42f5-a2af-90aa1d133296",
+      "name_en": "Atomic Microsizer",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment)",
+      "printed_text": "装備しているクリーチャーは+1/+0の修整を受ける。\n装備しているクリーチャーが攻撃するたび、クリーチャー最大１体を対象とする。このターン、そのクリーチャーはブロックされず、ターン終了時まで、それの基本のパワーとタフネスは1/1である。\n装備(２)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ffa3b20b-d77b-43d5-86ac-6a591df1877f",
+      "name_en": "Auxiliary Boosters",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment)",
+      "printed_text": "この装備品(Equipment)が戦場に出たとき、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成し、この装備品をそれにつける。\n装備しているクリーチャーは+1/+2の修整を受け飛行を持つ。\n装備(３)（(３)：あなたがコントロールしているクリーチャー１体を対象とする。これをそれにつける。装備はソーサリーとしてのみ行う。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d31fd12f-b4dd-4bc3-ace4-703dabd0f607",
+      "name_en": "Aven Interrupter",
+      "printed_name": "エイヴンの阻む者",
+      "printed_type_line": "クリーチャー --- 鳥(Bird)・ならず者(Rogue)",
+      "printed_text": "瞬速\n飛行\nエイヴンの阻む者が戦場に出たとき、呪文１つを対象とする。それを追放する。それは計画された状態になる。（後のターンに、それのオーナーはそれをソーサリーとしてそのマナ・コストを支払うことなく唱えてもよい。）\n対戦相手が墓地や追放領域から呪文を唱えるためのコストは(２)多くなる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8b84fec5-617c-4088-8250-2ba1f1f9479a",
+      "name_en": "Balamb Garden, SeeD Academy // Balamb Garden, Airborne",
+      "printed_name": "SeeDの学び舎、バラムガーデン // 空飛ぶバラムガーデン",
+      "printed_type_line": "土地 --- 街(Town) // 伝説のアーティファクト --- 機体(Vehicle)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Balamb Garden, SeeD Academy",
+          "printed_name": "SeeDの学び舎、バラムガーデン",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Balamb Garden, Airborne",
+          "printed_name": "空飛ぶバラムガーデン",
+          "printed_type_line": "伝説のアーティファクト --- 機体(Vehicle)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f28b21a6-f7ce-437a-8c5b-0423cb55cefb",
+      "name_en": "Banishing Light",
+      "printed_type_line": "エンチャント",
+      "printed_text": "このエンチャントが戦場に出たとき、対戦相手がコントロールしていて土地でないパーマネント１つを対象とする。このエンチャントが戦場を離れるまで、それを追放する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bbe740f8-6e7c-4cfd-9134-9bf8d5f48cf5",
+      "name_en": "Beamsaw Prospector",
+      "printed_type_line": "クリーチャー --- 人間(Human)・工匠(Artificer)",
+      "printed_text": "このクリーチャーが死亡したとき、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a2192c80-c48f-44e2-807c-2f9ee1aa1152",
+      "name_en": "Beanstalk Wurm // Plant Beans",
+      "printed_name": "豆の木のワーム // 豆撒き",
+      "printed_type_line": "クリーチャー --- 植物(Plant)・ワーム(Wurm) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Beanstalk Wurm",
+          "printed_name": "豆の木のワーム",
+          "printed_type_line": "クリーチャー --- 植物(Plant)・ワーム(Wurm)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cdb84830-faf2-4beb-8d57-ad696d75876b",
+      "name_en": "Bellowing Bruiser // Beat a Path",
+      "printed_name": "吼える暴れ者 // 道を切り拓く",
+      "printed_type_line": "クリーチャー --- オーガ(Ogre) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Bellowing Bruiser",
+          "printed_name": "吼える暴れ者",
+          "printed_type_line": "クリーチャー --- オーガ(Ogre)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "06374e6d-62fa-4833-81cd-b4d0a35e7365",
+      "name_en": "Beluna Grandsquall // Seek Thrills",
+      "printed_name": "ベルーナ・グランドスコール // 快楽の渇望",
+      "printed_type_line": "伝説のクリーチャー --- 巨人(Giant)・貴族(Noble) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Beluna Grandsquall",
+          "printed_name": "ベルーナ・グランドスコール",
+          "printed_type_line": "伝説のクリーチャー --- 巨人(Giant)・貴族(Noble)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "52fd9309-b849-419a-8d19-5882c00a72b4",
+      "name_en": "Beluna's Gatekeeper // Entry Denied",
+      "printed_name": "ベルーナの門番 // 立ち入り禁止",
+      "printed_type_line": "クリーチャー --- 巨人(Giant)・兵士(Soldier) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Beluna's Gatekeeper",
+          "printed_name": "ベルーナの門番",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)・兵士(Soldier)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c96424e7-63c4-4f07-959f-6ad09f91279a",
+      "name_en": "Beyond the Quiet",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "すべてのクリーチャーと宇宙船(Spacecraft)を追放する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "08a0e845-9ef9-4de1-b9fe-4530357346ca",
+      "name_en": "Biblioplex Tomekeeper",
+      "printed_name": "大図書棟の秘本管理人",
+      "printed_type_line": "アーティファクト・クリーチャー --- 構築物(Construct)",
+      "printed_text": "このクリーチャーが戦場に出たとき、以下から最大１つを選ぶ。\n・クリーチャー１体を対象とする。それは準備済状態になる。（準備呪文を持つクリーチャーのみが準備済状態になれる。）\n・クリーチャー１体を対象とする。それは未準備状態になる。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "6fa78914-85b3-46fd-977a-0e5b4d29eca4",
+      "name_en": "Bioengineered Future",
+      "printed_type_line": "エンチャント",
+      "printed_text": "このエンチャントが戦場に出たとき、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）\nあなたがコントロールしている各クリーチャーはそれぞれ、このターンにあなたのコントロール下で戦場に出た土地１つにつき１個の、追加の+1/+1カウンターが置かれた状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b395925b-2456-454e-9262-3b55c9f2799a",
+      "name_en": "Biomechan Engineer",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・工匠(Artificer)",
+      "printed_text": "このクリーチャーが戦場に出たとき、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）\n(８)：カード２枚を引き、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3abd2342-f783-4871-ac78-1a54b35722c2",
+      "name_en": "Biosynthic Burst",
+      "printed_type_line": "インスタント",
+      "printed_text": "あなたがコントロールしているクリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。ターン終了時まで、それは到達とトランプルと破壊不能を得る。それをアンタップする。（ダメージや「破壊」と書かれた効果では、それは破壊されない。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "78de77ef-c325-4342-869f-042921229577",
+      "name_en": "Biotech Specialist",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・科学者(Scientist)",
+      "printed_text": "このクリーチャーが戦場に出たとき、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）\nあなたがアーティファクト１つを生け贄に捧げるたび、対戦相手１人を対象とする。このクリーチャーはそのプレイヤーに２点のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1bf505a7-292e-4642-83b6-8ff41ebe5d51",
+      "name_en": "Blazing Firesinger // Seething Song",
+      "printed_name": "燃え立つ火歌い // 煮えたぎる歌",
+      "printed_type_line": "クリーチャー --- ドワーフ(Dwarf)・バード(Bard) // インスタント",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n(赤)(赤)(赤)(赤)(赤)を加える。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Seething Song",
+          "printed_name": "煮えたぎる歌",
+          "printed_type_line": "インスタント",
+          "printed_text": "(赤)(赤)(赤)(赤)(赤)を加える。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "469956a2-7cd4-4695-b8f4-c841526f160d",
+      "name_en": "Bloodletter of Aclazotz",
+      "printed_name": "アクロゾズの放血者",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・デーモン(Demon)",
+      "printed_text": "飛行\nあなたのターンの間に対戦相手１人がライフを失うなら、代わりにそのプレイヤーはその２倍の点数のライフを失う。（ダメージによりライフは失われる。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ab282bb1-900e-40b8-9821-8e2de88927bc",
+      "name_en": "Blooming Stinger",
+      "printed_type_line": "クリーチャー --- 植物(Plant)・蠍(Scorpion)",
+      "printed_text": "接死\nこのクリーチャーが戦場に出たとき、あなたがコントロールしていてこれでないクリーチャー１体を対象とする。ターン終了時まで、それは接死を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "da1e019c-2ffb-412d-90d7-f2e5e5c44c4b",
+      "name_en": "Bloomvine Regent // Claim Territory",
+      "printed_name": "咲蔦森の執政 // 縄張りの要求",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "printed_text": "飛行\nこのクリーチャーか、あなたがコントロールしていてこれでないドラゴン(Dragon)１体が戦場に出るたび、３点のライフを得る。\n\nあなたのライブラリーから基本森(Forest)カード最大２枚を探し、公開し、そのうち１枚をタップ状態で戦場に、残りをあなたの手札に加える。その後、ライブラリーを切り直す。（このカードも加えて切り直す。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Bloomvine Regent",
+          "printed_name": "咲蔦森の執政",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+          "printed_text": "飛行\nこのクリーチャーか、あなたがコントロールしていてこれでないドラゴン(Dragon)１体が戦場に出るたび、３点のライフを得る。"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Claim Territory",
+          "printed_name": "縄張りの要求",
+          "printed_type_line": "ソーサリー --- 前兆(Omen)",
+          "printed_text": "あなたのライブラリーから基本森(Forest)カード最大２枚を探し、公開し、そのうち１枚をタップ状態で戦場に、残りをあなたの手札に加える。その後、ライブラリーを切り直す。（このカードも加えて切り直す。）"
+        }
+      ],
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "c0899c12-5462-4ff1-a9e5-d99cffa7c6cc",
+      "name_en": "Bombard",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャー１体を対象とする。砲撃はそれに４点のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "68f36dfa-bbd2-4860-b09b-37e35136be72",
+      "name_en": "Bramble Familiar // Fetch Quest",
+      "printed_name": "木苺の使い魔 // 初めてのお使い",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・アライグマ(Raccoon) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Bramble Familiar",
+          "printed_name": "木苺の使い魔",
+          "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・アライグマ(Raccoon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "20283c4a-f1f0-42f0-bc08-6da87474426b",
+      "name_en": "Breeding Pool",
+      "printed_type_line": "土地 --- 森(Forest)・島(Island)",
+      "printed_text": "（(Ｔ)：(緑)か(青)を加える。）\nこの土地が戦場に出るに際し、２点のライフを支払ってもよい。そうしないなら、これはタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "31a0c9a2-c9bd-47f7-872b-a43fb64d873c",
+      "name_en": "Brightspear Zealot",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "警戒\nあなたが２つ以上の呪文を唱えたターンの間、このクリーチャーは+2/+0の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1bd584d5-4e11-428c-b51e-462e4292b07f",
+      "name_en": "Bygone Colossus",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・巨人(Giant)",
+      "printed_text": "ワープ(３)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0e7405e3-e9e6-4213-a73f-e0c01a7d6721",
+      "name_en": "Callous Sell-Sword // Burn Together",
+      "printed_name": "無感情の売剣 // 合同火葬",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Callous Sell-Sword",
+          "printed_name": "無感情の売剣",
+          "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9b3155c1-c662-4ff1-80e2-4064e6233dc5",
+      "name_en": "Campus Composer // Aqueous Aria",
+      "printed_name": "構内の作曲家 // 水のアリア",
+      "printed_type_line": "クリーチャー --- マーフォーク(Merfolk)・バード(Bard) // ",
+      "printed_text": "護法(２)\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n飛行を持つ青赤の3/3のエレメンタル(Elemental)・クリーチャー・トークン１体を生成する。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Aqueous Aria",
+          "printed_name": "水のアリア",
+          "printed_text": "飛行を持つ青赤の3/3のエレメンタル(Elemental)・クリーチャー・トークン１体を生成する。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e4719557-d94e-490f-8a56-c1867a01d2ef",
+      "name_en": "Cecil, Dark Knight // Cecil, Redeemed Paladin",
+      "printed_name": "暗黒騎士、セシル // 覚醒のパラディン、セシル",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight) // 〔白〕 伝説のクリーチャー --- 人間(Human)・騎士(Knight)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Cecil, Dark Knight",
+          "printed_name": "暗黒騎士、セシル",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Cecil, Redeemed Paladin",
+          "printed_name": "覚醒のパラディン、セシル",
+          "printed_type_line": "〔白〕 伝説のクリーチャー --- 人間(Human)・騎士(Knight)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f27889b9-40d9-4cc7-b8af-8716c53c44f5",
+      "name_en": "Cerebral Download",
+      "printed_type_line": "インスタント",
+      "printed_text": "諜報Ｘを行う。Ｘは、あなたがコントロールしているアーティファクトの数に等しい。その後、カード３枚を引く。（諜報Ｘを行うとは、あなたのライブラリーの一番上にあるカードＸ枚を見て、そのうちの望む枚数をあなたの墓地に、残りをあなたのライブラリーの一番上に望む順番で置くことである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "db70ddae-0ac1-47f2-9158-8448e337a08f",
+      "name_en": "Cheeky House-Mouse // Squeak By",
+      "printed_name": "小癪な家ネズミ // 危機一髪",
+      "printed_type_line": "クリーチャー --- ハツカネズミ(Mouse) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Cheeky House-Mouse",
+          "printed_name": "小癪な家ネズミ",
+          "printed_type_line": "クリーチャー --- ハツカネズミ(Mouse)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fd01229f-1c4c-4ad1-bc6f-4023f24d8c71",
+      "name_en": "Cheerful Osteomancer // Raise Dead",
+      "printed_name": "陽気な骨術師 // 死者再生",
+      "printed_type_line": "クリーチャー --- オーク(Orc)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nあなたの墓地にあるクリーチャー・カード１枚を対象とする。それをあなたの手札に戻す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Raise Dead",
+          "printed_name": "死者再生",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたの墓地にあるクリーチャー・カード１枚を対象とする。それをあなたの手札に戻す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1ac6fabb-71db-442f-8c14-ba9e659f906c",
+      "name_en": "Chrome Companion",
+      "printed_type_line": "アーティファクト・クリーチャー --- 犬(Dog)",
+      "printed_text": "このクリーチャーがタップ状態になるたび、１点のライフを得る。\n(２),(Ｔ)：墓地にあるカード１枚を対象とする。それをオーナーのライブラリーの一番下に置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f1266a1b-bae6-4ded-b4d5-7586a5b6c5d0",
+      "name_en": "Clarion Conqueror",
+      "printed_name": "鳴り渡る龍哮の征服者",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+      "printed_text": "飛行\nアーティファクトとクリーチャーとプレインズウォーカーのすべての起動型能力は起動できない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ceba3d03-be5a-4dd7-b829-7db216a0f44e",
+      "name_en": "Clive, Ifrit's Dominant // Ifrit, Warden of Inferno",
+      "printed_name": "イフリートのドミナント、クライヴ // 火の召喚獣、イフリート",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior) // 〔赤〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・デーモン(Demon)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Clive, Ifrit's Dominant",
+          "printed_name": "イフリートのドミナント、クライヴ",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Ifrit, Warden of Inferno",
+          "printed_name": "火の召喚獣、イフリート",
+          "printed_type_line": "〔赤〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・デーモン(Demon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "032fdd08-2ea7-442e-8162-0a8e5a585253",
+      "name_en": "Close Encounter",
+      "printed_type_line": "インスタント",
+      "printed_text": "この呪文を唱えるための追加コストとして、あなたがコントロールしているクリーチャー１体か追放領域にありあなたがオーナーでありワープしているクリーチャー・カード１枚を選ぶ。\nクリーチャー１体を対象とする。接近遭遇はそれに、その選ばれたクリーチャーかカードのパワーに等しい点数のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7c5183be-cddf-48fb-a4b5-dc5f6faf26de",
+      "name_en": "Cloudsculpt Technician",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・工匠(Artificer)",
+      "printed_text": "飛行\nあなたがアーティファクトをコントロールしているかぎり、このクリーチャーは+1/+0の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0c1b6305-8863-43e0-b50d-ae1c5e31be55",
+      "name_en": "Comet Crawler",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・ホラー(Horror)",
+      "printed_text": "絆魂\nこのクリーチャーが攻撃するたび、クリーチャーやアーティファクトでありこれでない１つを生け贄に捧げてもよい。そうしたなら、ターン終了時まで、このクリーチャーは+2/+0の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "87c8e1ed-258a-4a89-bcc6-211405e49692",
+      "name_en": "Command Bridge",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\nこの土地が戦場に出たとき、あなたがコントロールしていてアンタップ状態であるパーマネント１つをタップしないかぎり、これを生け贄に捧げる。\n(Ｔ)：好きな色１色のマナ１点を加える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1c751201-24ba-4e5c-bf44-71c3e4693a92",
+      "name_en": "Conceited Witch // Price of Beauty",
+      "printed_name": "自惚れた魔女 // 美の代価",
+      "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Conceited Witch",
+          "printed_name": "自惚れた魔女",
+          "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "798aaf78-16d9-474b-a963-f5e9c39aae6e",
+      "name_en": "Cosmium Confluence",
+      "printed_name": "コズミュームの合流点",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "以下から３つを選ぶ。同じモードを２回以上選んでもよい。\n・あなたのライブラリーから洞窟(Cave)カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。\n・あなたがコントロールしている洞窟１つの上に+1/+1カウンター３個を置く。それは速攻を持つ0/0のエレメンタル(Elemental)・クリーチャーになる。それは土地でもある。\n・エンチャント１つを対象とする。それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "997bdec5-f67b-4822-a3ba-c636e2685e8a",
+      "name_en": "Cruel Somnophage // Can't Wake Up",
+      "printed_name": "非情なソムノファージ // 永遠の眠り",
+      "printed_type_line": "クリーチャー --- ナイトメア(Nightmare) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Cruel Somnophage",
+          "printed_name": "非情なソムノファージ",
+          "printed_type_line": "クリーチャー --- ナイトメア(Nightmare)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "865715e9-6759-4e01-803d-702c959e386e",
+      "name_en": "Cryoshatter",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（クリーチャー）\nエンチャントしているクリーチャーは-5/-0の修整を受ける。\nエンチャントしているクリーチャーがタップ状態になるかダメージを受けたとき、それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b291d046-7649-4a05-98c4-224ecaece912",
+      "name_en": "Crystal Fragments // Summon: Alexander",
+      "printed_name": "封印の宝珠 // 召喚：アレクサンダー",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment) // 〔白〕 クリーチャー・エンチャント --- 英雄譚(Saga)・構築物(Construct)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Crystal Fragments",
+          "printed_name": "封印の宝珠",
+          "printed_type_line": "アーティファクト --- 装備品(Equipment)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Summon: Alexander",
+          "printed_name": "召喚：アレクサンダー",
+          "printed_type_line": "〔白〕 クリーチャー・エンチャント --- 英雄譚(Saga)・構築物(Construct)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cf3234f2-09d7-4d8b-b871-3bf0fcb75b6d",
+      "name_en": "Cut Propulsion",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャー１体を対象とする。それは自身に、自身のパワーに等しい点数のダメージを与える。そのクリーチャーが飛行を持っているなら、代わりに、それは自身に、その点数の２倍に等しい点数のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ded4009d-be23-4e36-a7a3-9e07230712ee",
+      "name_en": "Dark Endurance",
+      "printed_type_line": "インスタント",
+      "printed_text": "この呪文がブロック・クリーチャーを対象とするなら、これを唱えるためのコストは(１)少なくなる。\nクリーチャー１体を対象とする。ターン終了時まで、それは+2/+0の修整を受け破壊不能を得る。（ダメージや「破壊」と書かれた効果では、それは破壊されない。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b75ca527-4494-4957-b2e3-8c590df42e95",
+      "name_en": "Dauntless Scrapbot",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "このクリーチャーが戦場に出たとき、すべての対戦相手の墓地を追放する。着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "afc9436b-8cad-4916-929d-ff33a37b42d5",
+      "name_en": "Dawnsire, Sunstar Dreadnought",
+      "printed_type_line": "伝説のアーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。２０個以上なら、これはアーティファクト・クリーチャーである。）\n10+｜あなたが攻撃するたび、クリーチャーやプレインズウォーカーである最大１体を対象とする。これはそれに１００点のダメージを与える。\n20+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "69892dc7-4087-447c-a41c-99cf3d5c0c12",
+      "name_en": "Dawnstrike Vanguard",
+      "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight)",
+      "printed_text": "絆魂\nあなたの終了ステップの開始時に、あなたが２体以上のタップ状態であるクリーチャーをコントロールしている場合、あなたがコントロールしていてこれでない各クリーチャーの上にそれぞれ+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d057289d-5e28-43d5-8ff3-4a1bc723477d",
+      "name_en": "Day of Judgment",
+      "printed_name": "審判の日",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "すべてのクリーチャーを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5df44b8d-b337-49d8-8427-34253f52cb47",
+      "name_en": "Decadent Dragon // Expensive Taste",
+      "printed_name": "退廃的なドラゴン // 贅沢な嗜好",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Decadent Dragon",
+          "printed_name": "退廃的なドラゴン",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "188656d8-4ea8-4e58-88da-b010a16eb6f2",
+      "name_en": "Deeproot Pilgrimage",
+      "printed_name": "深根の巡礼",
+      "printed_type_line": "エンチャント",
+      "printed_text": "あなたがコントロールしていてトークンでない１体以上のマーフォーク(Merfolk)がタップ状態になるたび、呪禁を持つ青の1/1のマーフォーク・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d620de15-8141-4877-9330-8328a3fa85e1",
+      "name_en": "Defossilize",
+      "printed_name": "非化石化",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "あなたの墓地にあるクリーチャー・カード１枚を対象とする。それを戦場に戻す。そのクリーチャーは探検を行う。その後、それはもう１回探検を行う。（あなたのライブラリーの一番上にあるカード１枚を公開する。それが土地なら、そのカードをあなたの手札に加える。そうでないなら、このクリーチャーの上に+1/+1カウンター１個を置く。その後、そのカードを戻すかあなたの墓地に置く。その後、この手順を繰り返す。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "245d0ccf-87b6-460a-8b99-9e2079f2d375",
+      "name_en": "Delney, Streetwise Lookout",
+      "printed_name": "世慣れた見張り、デルニー",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・スカウト(Scout)",
+      "printed_text": "あなたがコントロールしていてパワーが２以下であるすべてのクリーチャーは、パワーが３以上であるクリーチャーにはブロックされない。\nあなたがコントロールしていてパワーが２以下であるクリーチャーの誘発型能力１つが誘発するなら、その能力は追加でもう１回誘発する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "abcb5321-c295-4abf-8622-7de79679d27a",
+      "name_en": "Depressurize",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャー１体を対象とする。ターン終了時まで、それは-3/-0の修整を受ける。その後、そのクリーチャーのパワーが０以下なら、それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2d80ee9c-55d4-4115-8a58-63e8460f9795",
+      "name_en": "Desculpting Blast",
+      "printed_type_line": "インスタント",
+      "printed_text": "土地でないパーマネント１つを対象とする。それをオーナーの手札に戻す。それが攻撃していたなら、あなたは飛行と「このトークンでは飛行を持つクリーチャーしかブロックできない。」を持つ無色の1/1のドローン(Drone)・アーティファクト・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2e17cd4c-ebf0-40d0-b52d-b4d84bbcf7b3",
+      "name_en": "Devastating Onslaught",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "あなたがコントロールしていてアーティファクトやクリーチャーである１つを対象とする。それのコピーであるトークンＸ個を生成する。ターン終了時まで、それらのトークンは速攻を得る。次の終了ステップの開始時に、それらを生け贄に捧げる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c8bc28ea-5630-49d5-963a-5789fa83f3c7",
+      "name_en": "Devouring Sugarmaw // Have for Dinner",
+      "printed_name": "貪る甘味大口 // 夕食の献立",
+      "printed_type_line": "クリーチャー --- ホラー(Horror) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Devouring Sugarmaw",
+          "printed_name": "貪る甘味大口",
+          "printed_type_line": "クリーチャー --- ホラー(Horror)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "98b43c61-4563-4a29-8cf0-fb8b34f337ce",
+      "name_en": "Diary of Dreams",
+      "printed_name": "夢の日記",
+      "printed_type_line": "アーティファクト --- 本(Book)",
+      "printed_text": "あなたがインスタントやソーサリーである呪文１つを唱えるたび、このアーティファクトの上にページ(page)・カウンター１個を置く。\n(５),(Ｔ)：カード１枚を引く。この能力を起動するためのコストは、このアーティファクトの上にあるページ・カウンター１個につき(１)少なくなる。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "4a0cc2a2-3711-473a-b2c5-b1e52b34e4fb",
+      "name_en": "Dion, Bahamut's Dominant // Bahamut, Warden of Light",
+      "printed_name": "バハムートのドミナント、ディオン // 光の召喚獣、バハムート",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・騎士(Knight) // 〔白〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ドラゴン(Dragon)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Dion, Bahamut's Dominant",
+          "printed_name": "バハムートのドミナント、ディオン",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・騎士(Knight)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Bahamut, Warden of Light",
+          "printed_name": "光の召喚獣、バハムート",
+          "printed_type_line": "〔白〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "57b75be4-9229-4a48-a59e-a0f812f38637",
+      "name_en": "Diplomatic Relations",
+      "printed_type_line": "インスタント",
+      "printed_text": "あなたがコントロールしているクリーチャー１体を対象とし、対戦相手がコントロールしているクリーチャー１体を対象とする。ターン終了時まで、その前者は+1/+0の修整を受け警戒を得る。その前者はその後者に、その前者のパワーに等しい点数のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "76fdbc2c-d2b1-466f-9230-06e187bcc9e6",
+      "name_en": "Divert Disaster",
+      "printed_type_line": "インスタント",
+      "printed_text": "呪文１つを対象とする。そのコントローラーが(２)を支払わないかぎり、それを打ち消す。そのプレイヤーが支払ったなら、あなたは着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "aa704b26-729a-4d0f-b92d-56aadb1e20b9",
+      "name_en": "Dockworker Drone",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "このクリーチャーは+1/+1カウンター１個が置かれた状態で戦場に出る。\nこのクリーチャーが死亡したとき、あなたがコントロールしているクリーチャー１体を対象とする。これの上にあるすべてのカウンターをそれの上に置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "155e01a1-5809-4be9-ad38-c11553a4a723",
+      "name_en": "Dual-Sun Adepts",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "二段攻撃\n(５)：ターン終了時まで、あなたがコントロールしているすべてのクリーチャーは+1/+1の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "89ec0f03-47d0-4657-8987-95e680404f24",
+      "name_en": "Dual-Sun Technique",
+      "printed_type_line": "インスタント",
+      "printed_text": "あなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは二段攻撃を得る。それの上に+1/+1カウンターがあるなら、カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "697b8045-0edb-4f7b-a933-4d41ec2b53d5",
+      "name_en": "Dubious Delicacy",
+      "printed_type_line": "アーティファクト --- 食物(Food)",
+      "printed_text": "瞬速\nこのアーティファクトが戦場に出たとき、クリーチャー最大１体を対象とする。ターン終了時まで、それは-3/-3の修整を受ける。\n(２),(Ｔ),このアーティファクトを生け贄に捧げる：３点のライフを得る。\n(２),(Ｔ),このアーティファクトを生け贄に捧げる：対戦相手１人を対象とする。そのプレイヤーは３点のライフを失う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "618a2272-62e0-4d0e-834d-7b81719eba12",
+      "name_en": "Dyadrine, Synthesis Amalgam",
+      "printed_type_line": "伝説のアーティファクト・クリーチャー --- 構築物(Construct)",
+      "printed_text": "トランプル\nこれは、これを唱えるために支払ったマナの点数に等しい個数の+1/+1カウンターが置かれた状態で戦場に出る。\nあなたが攻撃するたび、あなたがコントロールしているクリーチャー２体の上からそれぞれ+1/+1カウンター１個を取り除いてもよい。そうしたなら、カード１枚を引き、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b907d375-b715-446b-8966-79959feb9f58",
+      "name_en": "Edge Rover",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・スカウト(Scout)",
+      "printed_text": "到達\nこのクリーチャーが死亡したとき、各プレイヤーはそれぞれ着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d97de156-5a6d-4dc6-953e-d4bad63cbad2",
+      "name_en": "Elite Interceptor // Rejoinder",
+      "printed_name": "精鋭の迎撃手 // 再答弁",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。それをタップかアンタップしてもよい。\nカード１枚を引く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Rejoinder",
+          "printed_name": "再答弁",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。それをタップかアンタップしてもよい。\nカード１枚を引く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "54175132-2c44-4749-8dfd-d08dcc63e4b3",
+      "name_en": "Elusive Otter // Grove's Bounty",
+      "printed_name": "神出鬼没のカワウソ // 木立ちの報奨",
+      "printed_type_line": "クリーチャー --- カワウソ(Otter) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Elusive Otter",
+          "printed_name": "神出鬼没のカワウソ",
+          "printed_type_line": "クリーチャー --- カワウソ(Otter)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0fad5713-c09c-43d3-9cc0-10c65aead488",
+      "name_en": "Embrace Oblivion",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "この呪文を唱えるための追加コストとして、アーティファクトやクリーチャーである１つを生け贄に捧げる。\nクリーチャーや宇宙船(Spacecraft)である１つを対象とする。それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "da363da1-aecf-4d49-8e77-8dc56981a741",
+      "name_en": "Emergency Eject",
+      "printed_type_line": "インスタント",
+      "printed_text": "土地でないパーマネント１つを対象とする。それを破壊する。それのコントローラーは着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e5152e8d-9f55-493d-a0fc-753cc72ee299",
+      "name_en": "Emeritus of Abundance // Regrowth",
+      "printed_name": "豊穣の名誉教授 // 新たな芽吹き",
+      "printed_type_line": "クリーチャー --- エルフ(Elf)・ドルイド(Druid) // ソーサリー",
+      "printed_text": "警戒\nこのクリーチャーは準備済状態で戦場に出る。\nこのクリーチャーが攻撃するたび、あなたが８つ以上の土地をコントロールしている場合、このクリーチャーは準備済状態になる。\n\nあなたの墓地にあるカード１枚を対象とする。それをあなたの手札に戻す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Regrowth",
+          "printed_name": "新たな芽吹き",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたの墓地にあるカード１枚を対象とする。それをあなたの手札に戻す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5963eef1-1022-42b1-8a0c-fc9850bfc2a3",
+      "name_en": "Emeritus of Conflict // Lightning Bolt",
+      "printed_name": "対立の名誉教授 // 稲妻",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard) // インスタント",
+      "printed_text": "先制攻撃\nあなたが各ターン内のあなたの３つ目の呪文を唱えるたび、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n１つを対象とする。対立の名誉教授はそれに３点のダメージを与える。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Lightning Bolt",
+          "printed_name": "稲妻",
+          "printed_type_line": "インスタント",
+          "printed_text": "１つを対象とする。対立の名誉教授はそれに３点のダメージを与える。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "24a29be4-5bc2-469b-b2ce-2fb305c3facb",
+      "name_en": "Emeritus of Ideation // Ancestral Recall",
+      "printed_name": "観念の名誉教授 // 祖先の回想",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard) // インスタント",
+      "printed_text": "飛行、護法(２)\nこのクリーチャーは準備済状態で戦場に出る。\nこのクリーチャーが攻撃するたび、あなたの墓地にあるカード８枚を追放してもよい。そうしたなら、このクリーチャーは準備済状態になる。\n\nプレイヤー１人を対象とする。そのプレイヤーはカード３枚を引く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Ancestral Recall",
+          "printed_name": "祖先の回想",
+          "printed_type_line": "インスタント",
+          "printed_text": "プレイヤー１人を対象とする。そのプレイヤーはカード３枚を引く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e6c41473-2398-4888-9f0c-467dce7c39a4",
+      "name_en": "Emeritus of Truce // Swords to Plowshares",
+      "printed_name": "休戦の名誉教授 // 剣を鍬に",
+      "printed_type_line": "クリーチャー --- 猫(Cat)・クレリック(Cleric) // インスタント",
+      "printed_text": "このクリーチャーが戦場に出たとき、プレイヤー１人を対象とする。そのプレイヤーは、飛行を持つ白黒の1/1の墨獣(Inkling)クリーチャー・トークン１体を生成する。その後、対戦相手１人があなたよりも多くのクリーチャーをコントロールしているなら、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。それを追放する。それのコントローラーは、それのパワーに等しい点数のライフを得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Swords to Plowshares",
+          "printed_name": "剣を鍬に",
+          "printed_type_line": "インスタント",
+          "printed_text": "クリーチャー１体を対象とする。それを追放する。それのコントローラーは、それのパワーに等しい点数のライフを得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "93056597-b964-421f-be2f-e92abef1c2a4",
+      "name_en": "Emeritus of Woe // Demonic Tutor",
+      "printed_name": "悲哀の名誉教授 // 悪魔の教示者",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\nあなたの終了ステップの開始時に、そのターンに２体上のクリーチャーが死亡していた場合、このクリーチャーは準備済状態になる。\n\nあなたのライブラリーからカード１枚を探し、そのカードをあなたの手札に加える。その後、ライブラリーを切り直す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Demonic Tutor",
+          "printed_name": "悪魔の教示者",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたのライブラリーからカード１枚を探し、そのカードをあなたの手札に加える。その後、ライブラリーを切り直す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3b102ccc-7629-457c-aba6-e9b00fd50c85",
+      "name_en": "Emet-Selch, Unsundered // Hades, Sorcerer of Eld",
+      "printed_name": "オリジナル、アシエン・エメトセルク // 最古の魔道士、ハーデス",
+      "printed_type_line": "伝説のクリーチャー --- エルダー(Elder)・ウィザード(Wizard) // 〔青/黒〕 伝説のクリーチャー --- アバター(Avatar)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Emet-Selch, Unsundered",
+          "printed_name": "オリジナル、アシエン・エメトセルク",
+          "printed_type_line": "伝説のクリーチャー --- エルダー(Elder)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Hades, Sorcerer of Eld",
+          "printed_name": "最古の魔道士、ハーデス",
+          "printed_type_line": "〔青/黒〕 伝説のクリーチャー --- アバター(Avatar)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7d8b53f4-bdb5-4ba1-b6c0-f4846d8d3565",
+      "name_en": "Emissary Escort",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・兵士(Soldier)",
+      "printed_text": "このクリーチャーは+X/+0の修整を受ける。Ｘは、あなたがコントロールしていてこれでないすべてのアーティファクトのマナ総量の中の最大値に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d6accaed-ff35-4324-b31b-35e6837bc079",
+      "name_en": "Encouraging Aviator // Jump",
+      "printed_name": "激励する飛行士 // ジャンプ",
+      "printed_type_line": "クリーチャー --- 鳥(Bird)・ウィザード(Wizard) // インスタント",
+      "printed_text": "飛行\nこのクリーチャーが攻撃するたび、準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。ターン終了時まで、それは飛行を得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Jump",
+          "printed_name": "ジャンプ",
+          "printed_type_line": "インスタント",
+          "printed_text": "クリーチャー１体を対象とする。ターン終了時まで、それは飛行を得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "90c5ea2b-d004-4219-b60c-d51bc1a5ee6b",
+      "name_en": "Entropic Battlecruiser",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。８個以上なら、これはアーティファクト・クリーチャーである。）\n1+｜対戦相手１人がカード１枚を捨てるたび、そのプレイヤーは３点のライフを失う。\n8+｜飛行、接死\nこの宇宙船が攻撃するたび、各対戦相手はそれぞれカード１枚を捨てる。そうできなかった各対戦相手はそれぞれ３点のライフを失う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "947b40a2-e272-4ef6-85fb-3d767a21bc7a",
+      "name_en": "Esper Origins // Summon: Esper Maduin",
+      "printed_name": "幻獣との交わり // 召喚：幻獣マディン",
+      "printed_type_line": "ソーサリー // 〔緑〕 クリーチャー・エンチャント --- 英雄譚(Saga)・エレメンタル(Elemental)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Esper Origins",
+          "printed_name": "幻獣との交わり",
+          "printed_type_line": "ソーサリー"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Summon: Esper Maduin",
+          "printed_name": "召喚：幻獣マディン",
+          "printed_type_line": "〔緑〕 クリーチャー・エンチャント --- 英雄譚(Saga)・エレメンタル(Elemental)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "83161d59-2520-4741-9328-e2a4a8b5d5bc",
+      "name_en": "Evendo, Waking Haven",
+      "printed_type_line": "土地 --- 惑星(Planet)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(緑)を加える。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの惑星(Planet)の上に置く。配備はソーサリーとしてのみ行う。）\n12+｜(緑),(Ｔ)：あなたがコントロールしているクリーチャー１体につき(緑)を加える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "98c9d798-8c48-4a2d-a076-ce17d31df6f5",
+      "name_en": "Exdeath, Void Warlock // Neo Exdeath, Dimension's End",
+      "printed_name": "「無」の暗黒魔道士、エクスデス // すべてを「無」に帰すもの、ネオエクスデス",
+      "printed_type_line": "伝説のクリーチャー --- スピリット(Spirit)・邪術師(Warlock) // 〔黒/緑〕 伝説のクリーチャー --- スピリット(Spirit)・アバター(Avatar)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Exdeath, Void Warlock",
+          "printed_name": "「無」の暗黒魔道士、エクスデス",
+          "printed_type_line": "伝説のクリーチャー --- スピリット(Spirit)・邪術師(Warlock)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Neo Exdeath, Dimension's End",
+          "printed_name": "すべてを「無」に帰すもの、ネオエクスデス",
+          "printed_type_line": "〔黒/緑〕 伝説のクリーチャー --- スピリット(Spirit)・アバター(Avatar)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8b13ec4d-812a-48b0-8a64-6847a694a03a",
+      "name_en": "Exosuit Savior",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "飛行\nこのクリーチャーが戦場に出たとき、あなたがコントロールしていてこれでないパーマネント最大１つを対象とする。それをオーナーの手札に戻す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cce3dcc3-57bb-4b95-8b70-337c67bb3c4e",
+      "name_en": "Extinguisher Battleship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、クリーチャーでないパーマネント１つを対象とする。それを破壊する。その後、この宇宙船は各クリーチャーにそれぞれ４点のダメージを与える。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。５個以上なら、これはアーティファクト・クリーチャーである。）\n5+｜飛行、トランプル",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "df7500e8-76b4-49b3-a427-9a28ffa14637",
+      "name_en": "Faller's Faithful",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard)",
+      "printed_text": "このクリーチャーが戦場に出たとき、これでないクリーチャー最大１体を対象とする。それを破壊する。このターン、そのクリーチャーがダメージを受けていないなら、それのコントローラーはカード２枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e7f53928-a4cc-41ed-877d-b72d786e77d9",
+      "name_en": "Famished Worldsire",
+      "printed_type_line": "クリーチャー --- リバイアサン(Leviathan)",
+      "printed_text": "護法(３)\n土地の貪食３（このクリーチャーが戦場に出るに際し、望む数の土地を生け贄に捧げてもよい。これは、その数の３倍に等しい個数の+1/+1カウンターが置かれた状態で戦場に出る。）\nこのクリーチャーが戦場に出たとき、あなたのライブラリーの一番上にあるカードＸ枚を見る。Ｘは、このクリーチャーのパワーに等しい。その中から望む枚数の土地カードをタップ状態で戦場に出す。その後、ライブラリーを切り直す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "04ac8b2c-95e9-40e9-8cc0-af9b075a94c0",
+      "name_en": "Fang, Fearless l'Cie",
+      "printed_name": "恐れなきルシ、ファング",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・戦士(Warrior)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1a82be68-3b74-4dfc-9068-3abea61db709",
+      "name_en": "Fell Gravship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、カード３枚を切削し、その後、あなたの墓地からクリーチャーや宇宙船であるカード１枚をあなたの手札に戻す。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。８個以上なら、これはアーティファクト・クリーチャーである。）\n8+｜飛行、絆魂",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fab8d954-807b-426f-8057-99a5d2fec618",
+      "name_en": "Fell Horseman // Deathly Ride",
+      "printed_name": "不吉な騎手 // 既死の馬",
+      "printed_type_line": "クリーチャー --- ゾンビ(Zombie)・騎士(Knight) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Fell Horseman",
+          "printed_name": "不吉な騎手",
+          "printed_type_line": "クリーチャー --- ゾンビ(Zombie)・騎士(Knight)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1722f814-2d4e-4d59-9b74-10ef8e89def9",
+      "name_en": "Feral Deathgorger // Dusk Sight",
+      "printed_name": "獰猛なる死喰らい // 薄暮の視覚",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Feral Deathgorger",
+          "printed_name": "獰猛なる死喰らい",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fef67393-9b7b-495d-8b03-865537386d42",
+      "name_en": "Ferocious Werefox // Guard Change",
+      "printed_name": "凶暴な人狐 // 守り手の交代",
+      "printed_type_line": "クリーチャー --- エルフ(Elf)・狐(Fox)・戦士(Warrior) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Ferocious Werefox",
+          "printed_name": "凶暴な人狐",
+          "printed_type_line": "クリーチャー --- エルフ(Elf)・狐(Fox)・戦士(Warrior)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a32e08fa-bea4-4ba9-a126-9bf0a91f67e2",
+      "name_en": "Fields of Strife",
+      "printed_name": "紛争の曠野",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(赤)か(白)を加える。\n(２)(赤)(白),(Ｔ)：諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "57927909-11a9-44ef-989d-1dcca1f6e23f",
+      "name_en": "Flight-Deck Coordinator",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "あなたの終了ステップの開始時に、あなたが２体以上のタップ状態のクリーチャーをコントロールしている場合、２点のライフを得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6c4514be-fda7-45e8-83fe-04d49e2b932c",
+      "name_en": "Focus Fire",
+      "printed_type_line": "インスタント",
+      "printed_text": "攻撃かブロックしているクリーチャー１体を対象とする。一点砲火はそれにＸ点のダメージを与える。Ｘは、あなたがコントロールしているクリーチャーや宇宙船(Spacecraft)の合計に２を足した数に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+      "name_en": "Forest",
+      "printed_type_line": "基本土地 --- 森(Forest)",
+      "printed_text": "(緑)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "349ea6c7-6b3e-417f-b082-b712e2b1635b",
+      "name_en": "Forum of Amity",
+      "printed_name": "アミティの公開討論所",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(白)か(黒)を加える。\n(２)(白)(黒),(Ｔ)：諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "6a4ef075-9254-4d36-9572-622833fae54e",
+      "name_en": "Frenzied Baloth",
+      "printed_type_line": "クリーチャー --- ビースト(Beast)",
+      "printed_text": "この呪文は打ち消されない。\nトランプル、速攻\nあなたがコントロールしているすべてのクリーチャー呪文は打ち消されない。\n戦闘ダメージは軽減できない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bbb6867f-7186-41de-9828-21be469178c1",
+      "name_en": "Frolicking Familiar // Blow Off Steam",
+      "printed_name": "遊び戯れの使い魔 // 鬱憤ばらし",
+      "printed_type_line": "クリーチャー --- カワウソ(Otter)・ウィザード(Wizard) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Frolicking Familiar",
+          "printed_name": "遊び戯れの使い魔",
+          "printed_type_line": "クリーチャー --- カワウソ(Otter)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "610d006a-3ceb-4136-b92b-a500c74d06b0",
+      "name_en": "Frontline War-Rager",
+      "printed_type_line": "クリーチャー --- カヴー(Kavu)・兵士(Soldier)",
+      "printed_text": "あなたの終了ステップの開始時に、あなたが２体以上のタップ状態であるクリーチャーをコントロールしている場合、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4b96d003-d3b4-4181-9f50-06a3e6eb1916",
+      "name_en": "Full Bore",
+      "printed_type_line": "インスタント",
+      "printed_text": "あなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは+3/+2の修整を受ける。そのクリーチャーがワープ・コストで唱えられていたなら、ターン終了時まで、それはトランプルと速攻も得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b17ea905-0696-4e58-b564-557e87236e27",
+      "name_en": "Fumigate",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "すべてのクリーチャーを破壊する。これにより破壊されたクリーチャー１体につき、あなたは１点のライフを得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ce25dd89-dcc7-4576-b148-ef4c1cd5290c",
+      "name_en": "Fungal Colossus",
+      "printed_type_line": "クリーチャー --- ファンガス(Fungus)・ビースト(Beast)",
+      "printed_text": "この呪文を唱えるためのコストは(Ｘ)少なくなる。Ｘは、あなたがコントロールしていて互いに異なる名前を持つ土地の数に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cf73d2e7-584f-41d0-8fc7-50d886dcf9fe",
+      "name_en": "Fungal Fortitude",
+      "printed_name": "不屈の菌類",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "瞬速\nエンチャント（クリーチャー）\nエンチャントしているクリーチャーは+2/+0の修整を受ける。\nエンチャントしているクリーチャーが死亡したとき、そのクリーチャーをオーナーのコントロール下でタップ状態で戦場に戻す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "86746a84-3e8a-44b4-8494-60cbee9816b5",
+      "name_en": "Galactic Wayfarer",
+      "printed_type_line": "クリーチャー --- 人間(Human)・スカウト(Scout)",
+      "printed_text": "このクリーチャーが戦場に出たとき、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "48ab8ba0-0e85-4656-a798-ceb961fb02ce",
+      "name_en": "Galvanic Giant // Storm Reading",
+      "printed_name": "通電の巨人 // 嵐読み",
+      "printed_type_line": "クリーチャー --- 巨人(Giant)・ウィザード(Wizard) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Galvanic Giant",
+          "printed_name": "通電の巨人",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "dfe8f77a-cc26-438b-92ae-2ca7a91f813b",
+      "name_en": "Galvanizing Sawship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。３個以上なら、これはアーティファクト・クリーチャーである。）\n3+｜飛行、速攻",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "75e930dd-32e9-4c39-81a7-d833a3976b8d",
+      "name_en": "Garland, Knight of Cornelia // Chaos, the Endless",
+      "printed_name": "コーネリアの騎士、ガーランド // 時を越えしカオス",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight) // 〔黒/赤〕 伝説のクリーチャー --- デーモン(Demon)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Garland, Knight of Cornelia",
+          "printed_name": "コーネリアの騎士、ガーランド",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Chaos, the Endless",
+          "printed_name": "時を越えしカオス",
+          "printed_type_line": "〔黒/赤〕 伝説のクリーチャー --- デーモン(Demon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0a356d04-2e86-435b-9766-27b93b468a61",
+      "name_en": "Gene Pollinator",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・昆虫(Insect)",
+      "printed_text": "(Ｔ)：あなたがコントロールしていてアンタップ状態であるパーマネント１つをタップする：好きな色１色のマナ１点を加える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "522dd417-364b-44ab-8ca9-fb55db5f26a6",
+      "name_en": "Get Lost",
+      "printed_name": "失せろ",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャーやエンチャントやプレインズウォーカーである１つを対象とする。それを破壊する。それのコントローラーは地図(Map)トークン２つを生成する。（それは「(１),(Ｔ),このアーティファクトを生け贄に捧げる：あなたがコントロールしているクリーチャー１体を対象とする。それは探検を行う。起動はソーサリーとしてのみ行う。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "48e6d3d8-2f27-4017-acdd-40bce8cdbc02",
+      "name_en": "Giada, Font of Hope",
+      "printed_name": "希望の源、ジアーダ",
+      "printed_type_line": "伝説のクリーチャー --- 天使(Angel)",
+      "printed_text": "飛行、警戒\nあなたがコントロールしていてこれでないすべての天使(Angel)は、あなたがすでにコントロールしている天使１体につき１個の+1/+1カウンターが追加で置かれた状態で戦場に出る。\n(Ｔ)：(白)を加える。このマナは天使呪文を唱えるためにしか支払えない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ef06e10c-553b-45b8-abf0-1d2e87c22128",
+      "name_en": "Gigastorm Titan",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental)",
+      "printed_text": "このターンにあなたがこれでない呪文を唱えていたなら、この呪文を唱えるためのコストは(３)少なくなる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f762c225-1c8c-4f12-aa88-c8c89e0a7185",
+      "name_en": "Gingerbread Hunter // Puny Snack",
+      "printed_name": "お菓子を狩る者 // つまらぬお菓子",
+      "printed_type_line": "クリーチャー --- 巨人(Giant) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Gingerbread Hunter",
+          "printed_name": "お菓子を狩る者",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fa44fa48-d270-4f0f-b672-d63e1c1942ce",
+      "name_en": "Glimpse the Core",
+      "printed_name": "中心核の瞥見",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "以下から１つを選ぶ。\n・あなたのライブラリーから基本森(Forest)カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。\n・あなたの墓地にある洞窟(Cave)カード１枚を対象とする。それをタップ状態で戦場に戻す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "23c3de07-8aa2-48e9-848c-50b5a40bd133",
+      "name_en": "Goblin Glasswright // Craft with Pride",
+      "printed_name": "ゴブリンのガラス職人 // 誇りを込めた製作",
+      "printed_type_line": "クリーチャー --- ゴブリン(Goblin)・魔術師(Sorcerer) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n宝物(Treasure)トークン１つを生成する。（それは、「(Ｔ),このトークンを生け贄に捧げる：好きな色１色のマナ１点を加える。」を持つアーティファクトである。）",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Craft with Pride",
+          "printed_name": "誇りを込めた製作",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "宝物(Treasure)トークン１つを生成する。（それは、「(Ｔ),このトークンを生け贄に捧げる：好きな色１色のマナ１点を加える。」を持つアーティファクトである。）"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "73864fcc-1bde-4bc0-831e-2b93e546e417",
+      "name_en": "Godless Shrine",
+      "printed_type_line": "土地 --- 平地(Plains)・沼(Swamp)",
+      "printed_text": "（(Ｔ)：(白)か(黒)を加える）\nこの土地が戦場に出るに際し、２点のライフを支払ってもよい。そうしないなら、これはタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e6f59807-eaf6-4889-8c89-2ac915afefff",
+      "name_en": "Grabby Giant // That's Mine",
+      "printed_name": "がめつい巨人 // それは俺のだ",
+      "printed_type_line": "クリーチャー --- 巨人(Giant) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Grabby Giant",
+          "printed_name": "がめつい巨人",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "67821712-e58f-4fee-81af-021059ac72ea",
+      "name_en": "Gravblade Heavy",
+      "printed_type_line": "クリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "あなたがアーティファクトをコントロールしているかぎり、このクリーチャーは+1/+0の修整を受け接死を持つ。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6cb8b8c4-0674-4f14-9d89-010969fbb80e",
+      "name_en": "Grave Researcher // Reanimate",
+      "printed_name": "墓場の研究者 // 再活性",
+      "printed_type_line": "クリーチャー --- トロール(Troll)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "あなたのアップキープの開始時に、諜報１を行う。その後、あなたの墓地に３枚以上のクリーチャー・カードがあるなら、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n墓地にあるクリーチャー・カード１枚を対象とする。それをあなたのコントロール下で戦場に出す。そのカードのマナ総量に等しい点数のライフを失う。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Reanimate",
+          "printed_name": "再活性",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "墓地にあるクリーチャー・カード１枚を対象とする。それをあなたのコントロール下で戦場に出す。そのカードのマナ総量に等しい点数のライフを失う。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "15c6837c-775b-4b4a-a2f7-9fd79215fa05",
+      "name_en": "Gravkill",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャーや宇宙船(Spacecraft)である１体を対象とする。それを追放する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9c009b3f-6580-4ab8-84e8-d4cf7a456a02",
+      "name_en": "Gravpack Monoist",
+      "printed_type_line": "クリーチャー --- 人間(Human)・スカウト(Scout)",
+      "printed_text": "飛行\nこのクリーチャーが死亡したとき、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体をタップ状態で生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a8c70dab-1e27-4a9c-bd2d-910d5720d02d",
+      "name_en": "Great Hall of the Biblioplex",
+      "printed_name": "大図書棟の大ホール",
+      "printed_type_line": "土地",
+      "printed_text": "(Ｔ)：(◇)を加える。\n(Ｔ),１点のライフを支払う：好きな色１色のマナ１点を加える。このマナは、インスタントやソーサリーである呪文を唱えるためにしか支払えない。\n(５)：この土地がクリーチャーでないなら、これは「あなたがインスタントやソーサリーである呪文１つを唱えるたび、ターン終了時まで、このクリーチャーは+1/+0の修整を受ける。」を持つ2/4のウィザード(Wizard)・クリーチャーになる。これは土地でもある。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "ea9c459a-6047-43aa-968f-a582be4000e8",
+      "name_en": "Growing Rites of Itlimoc // Itlimoc, Cradle of the Sun",
+      "printed_name": "イトリモクの成長儀式 // 太陽の揺籃の地、イトリモク",
+      "printed_type_line": "伝説のエンチャント // 伝説の土地",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Growing Rites of Itlimoc",
+          "printed_name": "イトリモクの成長儀式",
+          "printed_type_line": "伝説のエンチャント"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Itlimoc, Cradle of the Sun",
+          "printed_name": "太陽の揺籃の地、イトリモク",
+          "printed_type_line": "伝説の土地"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4f5ebbb8-f49b-488f-bb85-888aaa918bdd",
+      "name_en": "Gumdrop Poisoner // Tempt with Treats",
+      "printed_name": "ガムドロップの毒殺者 // お菓子の誘惑",
+      "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Gumdrop Poisoner",
+          "printed_name": "ガムドロップの毒殺者",
+          "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6846448b-d5a0-4ae0-bb11-ea7fa6ed2558",
+      "name_en": "Haliya, Ascendant Cadet",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "これが戦場に出るか攻撃するたび、あなたがコントロールしているクリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。\nあなたがコントロールしていて+1/+1カウンターが置かれている１体以上のクリーチャーがプレイヤー１人に戦闘ダメージを与えるたび、あなたはカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9b0af3ad-1b4d-4480-af91-fe9baee5d1c5",
+      "name_en": "Haliya, Guided by Light",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・兵士(Soldier)",
+      "printed_text": "これか、あなたがコントロールしていてクリーチャーやアーティファクトでありこれでない１つが戦場に出るたび、１点のライフを得る。\nあなたの終了ステップの開始時に、このターンにあなたが３点以上のライフを得ていたなら、カード１枚を引く。\nワープ(白)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8054092a-1940-4f4b-991d-81f4d384cdb1",
+      "name_en": "Hardlight Containment",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（あなたがコントロールしているアーティファクト）\nこのオーラ(Aura)が戦場に出たとき、対戦相手がコントロールしているクリーチャー１体を対象とする。このオーラが戦場を離れるまで、それを追放する。\nエンチャントしているパーマネントは護法(１)を持つ。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f6036065-7196-44d4-8a27-2199f0e1a03c",
+      "name_en": "Harmonized Trio // Brainstorm",
+      "printed_name": "調和したトリオ // 渦まく知識",
+      "printed_type_line": "クリーチャー --- マーフォーク(Merfolk)・バード(Bard)・ウィザード(Wizard) // インスタント",
+      "printed_text": "(Ｔ),あなたがコントロールしていてアンタップ状態であるクリーチャー２体をタップする：このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nカード３枚を引く。その後、あなたの手札にあるカード２枚をあなたのライブラリーの一番上に望む順番で置く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Brainstorm",
+          "printed_name": "渦まく知識",
+          "printed_type_line": "インスタント",
+          "printed_text": "カード３枚を引く。その後、あなたの手札にあるカード２枚をあなたのライブラリーの一番上に望む順番で置く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3ca07da2-29a1-40ce-a7f3-4838e95ca1d9",
+      "name_en": "Heartflame Duelist // Heartflame Slash",
+      "printed_name": "炎心の決闘者 // 炎心の切りつけ",
+      "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Heartflame Duelist",
+          "printed_name": "炎心の決闘者",
+          "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f01cf0c5-0ac6-4ad3-8642-dd21c8e8563e",
+      "name_en": "Hearth Elemental // Stoke Genius",
+      "printed_name": "かまどの精 // 火おこしの天才",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Hearth Elemental",
+          "printed_name": "かまどの精",
+          "printed_type_line": "クリーチャー --- エレメンタル(Elemental)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "103e0b63-fbde-4054-91f7-dd04b40b59ef",
+      "name_en": "Hemosymbic Mite",
+      "printed_type_line": "クリーチャー --- ダニ(Mite)",
+      "printed_text": "このクリーチャーがタップ状態になるたび、あなたがコントロールしていてこれでないクリーチャー１体を対象とする。ターン終了時まで、それは+X/+Xの修整を受ける。Ｘは、このクリーチャーのパワーに等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4fad3816-41af-4fa4-85b4-ba37614ec848",
+      "name_en": "Hollow Scavenger // Bakery Raid",
+      "printed_name": "虚ろの死体あさり // パン屋への襲撃",
+      "printed_type_line": "クリーチャー --- 狼(Wolf) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Hollow Scavenger",
+          "printed_name": "虚ろの死体あさり",
+          "printed_type_line": "クリーチャー --- 狼(Wolf)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "48c0cd06-465d-4901-bf23-948a003afc0b",
+      "name_en": "Honor",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。\nカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "66ee56b9-aca8-4efa-b9b5-50717e0784a7",
+      "name_en": "Honorbound Page // Forum's Favor",
+      "printed_name": "名誉にかける小姓 // 討論所のはからい",
+      "printed_type_line": "クリーチャー --- 猫(Cat)・クレリック(Cleric) // ソーサリー",
+      "printed_text": "先制攻撃\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。ターン終了時まで、それは+1/+0の修整を受け飛行を得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Forum's Favor",
+          "printed_name": "討論所のはからい",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。ターン終了時まで、それは+1/+0の修整を受け飛行を得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "adca3929-4ecc-45bc-932e-604bcc32550a",
+      "name_en": "Horned Loch-Whale // Lagoon Breach",
+      "printed_name": "有角の湖鯨 // 礁湖の決壊",
+      "printed_type_line": "クリーチャー --- 鯨(Whale) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Horned Loch-Whale",
+          "printed_name": "有角の湖鯨",
+          "printed_type_line": "クリーチャー --- 鯨(Whale)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "931c2153-e5e5-4642-bff0-f9dadcc24c9a",
+      "name_en": "Hullcarver",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・暗殺者(Assassin)",
+      "printed_text": "接死",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fed3bc35-4269-48f0-9133-a595ce49c2d1",
+      "name_en": "Ice Out",
+      "printed_name": "氷封",
+      "printed_type_line": "インスタント",
+      "printed_text": "協約（この呪文を唱えるに際し、アーティファクトやエンチャントやトークンのうち１つを生け贄に捧げてもよい。）\nこれが協約されていたなら、この呪文を唱えるためのコストは(１)少なくなる。\n呪文１つを対象とする。それを打ち消す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d6273621-c36c-491b-85ca-37445ed30097",
+      "name_en": "Illvoi Galeblade",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・戦士(Warrior)",
+      "printed_text": "瞬速\n飛行\n(２),このクリーチャーを生け贄に捧げる：カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3084377f-73fb-4b00-9dd9-3844b1ecafc2",
+      "name_en": "Illvoi Infiltrator",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・ならず者(Rogue)",
+      "printed_text": "このターンにあなたが２つ以上の呪文を唱えていたなら、このクリーチャーはブロックされない。\nこのクリーチャーがプレイヤー１人に戦闘ダメージを与えるたび、あなたはカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cbc0b136-544d-45a6-be3e-cd21a573bf19",
+      "name_en": "Illvoi Light Jammer",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment)",
+      "printed_text": "瞬速\nこの装備品(Equipment)が戦場に出たとき、あなたがコントロールしているクリーチャー１体を対象とする。これをそれにつける。ターン終了時まで、そのクリーチャーは呪禁を得る。（それは対戦相手がコントロールしている呪文や能力の対象にならない。）\n装備しているクリーチャーは+1/+2の修整を受ける。\n装備(３)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2e0b225a-d4b4-4f53-8fea-8c6c37102920",
+      "name_en": "Illvoi Operative",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・ならず者(Rogue)",
+      "printed_text": "あなたが各ターン内のあなたの２つ目の呪文を唱えるたび、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "50bee80e-89df-48c2-b608-ba66ff3e794a",
+      "name_en": "Imodane's Recruiter // Train Troops",
+      "printed_name": "イモデーンの徴募兵 // 兵団の訓練",
+      "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Imodane's Recruiter",
+          "printed_name": "イモデーンの徴募兵",
+          "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cda39514-86c9-483e-8d95-fd08138ce33a",
+      "name_en": "Infinite Guideline Station",
+      "printed_type_line": "伝説のアーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "無限導線基地が戦場に出たとき、あなたがコントロールしていて多色であるパーマネント１つにつき１体の、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークンをタップ状態で生成する。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。１２個以上なら、これはアーティファクト・クリーチャーである。）\n12+｜飛行\n無限導線基地が攻撃するたび、あなたがコントロールしていて多色であるパーマネント１つにつき１枚のカードを引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4cbbdebc-b807-4d7b-92dd-312637d2a5de",
+      "name_en": "Infirmary Healer // Stream of Life",
+      "printed_name": "保健室の癒し手 // 命の川",
+      "printed_type_line": "クリーチャー --- 猫(Cat)・クレリック(Cleric) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nプレイヤー１人を対象とする。そのプレイヤーはＸ点のライフを得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Stream of Life",
+          "printed_name": "命の川",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "プレイヤー１人を対象とする。そのプレイヤーはＸ点のライフを得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "176f5ba8-6e7b-4234-a298-b6164f51656f",
+      "name_en": "Inti, Seneschal of the Sun",
+      "printed_name": "太陽の執事長、インティ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight)",
+      "printed_text": "あなたが攻撃するたび、カード１枚を捨ててもよい。そうしたとき、攻撃クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。ターン終了時まで、それはトランプルを得る。\nあなたが１枚以上のカードを捨てるたび、あなたのライブラリーの一番上にあるカード１枚を追放する。次のあなたの終了ステップまで、それをプレイしてもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "94023b23-339a-426e-85cc-cc361ef68754",
+      "name_en": "Intrepid Tenderfoot",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・市民(Citizen)",
+      "printed_text": "(３)：このクリーチャーの上に+1/+1カウンター１個を置く。起動はソーサリーとしてのみ行う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "147d1e5c-fcfd-4115-a2f9-bea9b7ad7bb6",
+      "name_en": "Intrepid Trufflesnout // Go Hog Wild",
+      "printed_name": "剛胆なトリュフ嗅ぎ // 猪突猛進",
+      "printed_type_line": "クリーチャー --- 猪(Boar) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Intrepid Trufflesnout",
+          "printed_name": "剛胆なトリュフ嗅ぎ",
+          "printed_type_line": "クリーチャー --- 猪(Boar)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4c376349-1a50-4215-8a40-f702da81eb7b",
+      "name_en": "Invasive Maneuvers",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャー１体を対象とする。侵襲運動はそれに３点のダメージを与える。あなたが宇宙船(Spacecraft)をコントロールしているなら、代わりに、これは５点のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4f4358cb-59df-46d9-be27-69929f5a615c",
+      "name_en": "Ishgard, the Holy See // Faith & Grief",
+      "printed_name": "山の都、イシュガルド // 信仰と欺瞞",
+      "printed_type_line": "土地 --- 街(Town) // ソーサリー --- 出来事(Adventure)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(白)を加える。\n\nあなたの墓地にありアーティファクトやエンチャントであるカード最大２枚を対象とする。それらをあなたの手札に戻す。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Ishgard, the Holy See",
+          "printed_name": "山の都、イシュガルド",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Faith & Grief",
+          "printed_name": "信仰と欺瞞",
+          "printed_type_line": "ソーサリー --- 出来事(Adventure)",
+          "printed_text": "あなたの墓地にありアーティファクトやエンチャントであるカード最大２枚を対象とする。それらをあなたの手札に戻す。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b2c6aa39-2d2a-459c-a555-fb48ba993373",
+      "name_en": "Island",
+      "printed_type_line": "基本土地 --- 島(Island)",
+      "printed_text": "(青)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cbd483b5-5554-43ed-a729-535d01b0d5d3",
+      "name_en": "Jace Reawakened",
+      "printed_name": "再覚醒したジェイス",
+      "printed_type_line": "伝説のプレインズウォーカー --- ジェイス(Jace)",
+      "printed_text": "あなたの第１第２第３ターンには、あなたはこの呪文を唱えられない。\n[+1]：カード１枚を引き、その後、カード１枚を捨てる。\n[+1]：あなたの手札にありマナ総量が３以下であり土地でないカード１枚を追放してもよい。そうしたなら、それは計画された状態になる。\n[-6]：ターン終了時まで、あなたが呪文１つを唱えるたび、それをコピーする。そのコピーの新しい対象を選んでもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c63b3511-d597-4c6e-9094-eabdeaa8a394",
+      "name_en": "Jadzi, Steward of Fate // Oracle's Gift",
+      "printed_name": "運命の執事、ジャズィ // 神託者の贈り物",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "これは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\nこれが戦場に出たとき、カード２枚を引く。その後、カード２枚を捨てる。\n\n緑青の0/0のフラクタル(Fractal)・クリーチャー・トークンＸ体を生成する。その後、あなたがコントロールしている各フラクタルの上にそれぞれ+1/+1カウンターＸ個を置く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Oracle's Gift",
+          "printed_name": "神託者の贈り物",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "緑青の0/0のフラクタル(Fractal)・クリーチャー・トークンＸ体を生成する。その後、あなたがコントロールしている各フラクタルの上にそれぞれ+1/+1カウンターＸ個を置く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b6cebf8d-37e1-42de-b3f1-1c174ab17ac8",
+      "name_en": "Jecht, Reluctant Guardian // Braska's Final Aeon",
+      "printed_name": "幻のガード、ジェクト // ブラスカの究極召喚",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・戦士(Warrior) // 〔黒〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ナイトメア(Nightmare)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Jecht, Reluctant Guardian",
+          "printed_name": "幻のガード、ジェクト",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・戦士(Warrior)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Braska's Final Aeon",
+          "printed_name": "ブラスカの究極召喚",
+          "printed_type_line": "〔黒〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ナイトメア(Nightmare)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bd513d9d-5aa2-4860-bd86-8b5d9430f133",
+      "name_en": "Jidoor, Aristocratic Capital // Overture",
+      "printed_name": "貴族の町、ジドール // オペラの幕開け",
+      "printed_type_line": "土地 --- 街(Town) // ソーサリー --- 出来事(Adventure)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(青)を加える。\n\n対戦相手１人を対象とする。そのプレイヤーは自分のライブラリーの枚数の端数を切り捨てた半分の枚数のカードを切削する。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Jidoor, Aristocratic Capital",
+          "printed_name": "貴族の町、ジドール",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Overture",
+          "printed_name": "オペラの幕開け",
+          "printed_type_line": "ソーサリー --- 出来事(Adventure)",
+          "printed_text": "対戦相手１人を対象とする。そのプレイヤーは自分のライブラリーの枚数の端数を切り捨てた半分の枚数のカードを切削する。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c6655e05-9e31-4a74-a97d-1eeb473fe900",
+      "name_en": "Jill, Shiva's Dominant // Shiva, Warden of Ice",
+      "printed_name": "シヴァのドミナント、ジル // 氷の召喚獣、シヴァ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior) // 〔青〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・エレメンタル(Elemental)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Jill, Shiva's Dominant",
+          "printed_name": "シヴァのドミナント、ジル",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Shiva, Warden of Ice",
+          "printed_name": "氷の召喚獣、シヴァ",
+          "printed_type_line": "〔青〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・エレメンタル(Elemental)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ec744a2d-4a33-4807-bce0-d95cd5277b1f",
+      "name_en": "Joined Researchers // Secret Rendezvous",
+      "printed_name": "一心同体な研究者たち // 秘密のランデブー",
+      "printed_type_line": "クリーチャー --- 人間(Human)・クレリック(Cleric)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "先制攻撃\n各終了ステップの開始時に、対戦相手１人の手札にあるカードがあなたよりも多い場合、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n対戦相手１人を対象とする。あなたとそのプレイヤーはそれぞれカード３枚を引く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Secret Rendezvous",
+          "printed_name": "秘密のランデブー",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "対戦相手１人を対象とする。あなたとそのプレイヤーはそれぞれカード３枚を引く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f4629329-a79b-4460-a1bc-9ae0f59adf5a",
+      "name_en": "Joshua, Phoenix's Dominant // Phoenix, Warden of Fire",
+      "printed_name": "フェニックスのドミナント、ジョシュア // 火の召喚獣、フェニックス",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・ウィザード(Wizard) // 〔赤/白〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・フェニックス(Phoenix)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Joshua, Phoenix's Dominant",
+          "printed_name": "フェニックスのドミナント、ジョシュア",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Phoenix, Warden of Fire",
+          "printed_name": "火の召喚獣、フェニックス",
+          "printed_type_line": "〔赤/白〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・フェニックス(Phoenix)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1972e0db-e595-4ec2-b97c-902561bb275b",
+      "name_en": "Kavaron Harrier",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・兵士(Soldier)",
+      "printed_text": "このクリーチャーが攻撃するたび、(２)を支払ってもよい。そうしたなら、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体をタップ状態かつ攻撃している状態で生成する。戦闘終了時に、そのトークンを生け贄に捧げる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3ebb8542-5d1d-4f0b-92a9-5a98425860fd",
+      "name_en": "Kavaron Turbodrone",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・スカウト(Scout)",
+      "printed_text": "(Ｔ)：あなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは+1/+1の修整を受け速攻を得る。起動はソーサリーとしてのみ行う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "528fe479-dab9-4cf8-bda0-1d226a644366",
+      "name_en": "Kav Landseeker",
+      "printed_type_line": "クリーチャー --- カヴー(Kavu)・兵士(Soldier)",
+      "printed_text": "威迫（このクリーチャーは２体以上のクリーチャーにしかブロックされない。）\nこのクリーチャーが戦場に出たとき、着陸船(Lander)トークン１つを生成する。次のあなたのターンの終了ステップの開始時に、そのトークンを生け贄に捧げる。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0a094c5f-cefb-4ba1-90c8-dd78ae8efe95",
+      "name_en": "Kaya, Spirits' Justice",
+      "printed_name": "幽霊の裁き、ケイヤ",
+      "printed_type_line": "伝説のプレインズウォーカー --- ケイヤ(Kaya)",
+      "printed_text": "あなたがコントロールしているクリーチャーやあなたがの墓地にあるクリーチャー・カードである１つ以上が追放領域に置かれるたび、あなたがコントロールしているトークン１つを対象とする。それらの追放されているカードの中からクリーチャー・カード１枚を選んでもよい。ターン終了時まで、そのトークンは飛行を持つことを除きその選んだカードのコピーになる。\n[+2]：諜報２を行う。その後、墓地にあるカード１枚を追放する。\n[+1]：飛行を持つ白黒の1/1のスピリット(Spirit)・クリーチャー・トークン１体を生成する。\n[-2]：あなたがコントロールしているクリーチャー１体を対象とし、あなたでない各プレイヤーにつきそれぞれ、そのプレイヤーがコントロールしているクリーチャー最大１体を対象とする。その前者を追放する。それらの後者を追放する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6d3ca5cb-781d-4608-b7f1-38c020536376",
+      "name_en": "Kefka, Court Mage // Kefka, Ruler of Ruin",
+      "printed_name": "人造魔導士、ケフカ // 破壊の化身、ケフカ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard) // 〔青/黒/赤〕 伝説のクリーチャー --- アバター(Avatar)・ウィザード(Wizard)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Kefka, Court Mage",
+          "printed_name": "人造魔導士、ケフカ",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Kefka, Ruler of Ruin",
+          "printed_name": "破壊の化身、ケフカ",
+          "printed_type_line": "〔青/黒/赤〕 伝説のクリーチャー --- アバター(Avatar)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7af69a44-e958-42e5-9d65-75e53a601e96",
+      "name_en": "Kellan, Daring Traveler // Journey On",
+      "printed_name": "勇敢な旅人、ケラン // 旅路の続き",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie)・スカウト(Scout) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Kellan, Daring Traveler",
+          "printed_name": "勇敢な旅人、ケラン",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie)・スカウト(Scout)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2f2d75a0-d751-4c74-b357-8f92a992447f",
+      "name_en": "Kellan, Inquisitive Prodigy // Tail the Suspect",
+      "printed_name": "好奇心の神童、ケラン // 容疑者の尾行",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie)・探偵(Detective) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Kellan, Inquisitive Prodigy",
+          "printed_name": "好奇心の神童、ケラン",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie)・探偵(Detective)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "10c48d19-d91f-4674-b186-477acaf08e5a",
+      "name_en": "Kellan, the Fae-Blooded // Birthright Boon",
+      "printed_name": "フェイの血筋のケラン // 生まれつきの加護",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Kellan, the Fae-Blooded",
+          "printed_name": "フェイの血筋のケラン",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・フェアリー(Faerie)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "df1c0d06-2109-4297-9271-8a003fc892bc",
+      "name_en": "Kirol, History Buff // Pack a Punch",
+      "printed_name": "歴史通、キーロル // 強拳の持ち主",
+      "printed_type_line": "伝説のクリーチャー --- 吸血鬼(Vampire)・クレリック(Cleric) // ソーサリー",
+      "printed_text": "１枚以上のカードがあなたの墓地を離れるたび、これは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。カード１枚を切削する。それの上に+1/+1カウンター２個を置く。ターン終了時まで、それはトランプルを得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Pack a Punch",
+          "printed_name": "強拳の持ち主",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。カード１枚を切削する。それの上に+1/+1カウンター２個を置く。ターン終了時まで、それはトランプルを得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3998a60d-9521-4100-8d41-3e612972a3de",
+      "name_en": "Kuja, Genome Sorcerer // Trance Kuja, Fate Defied",
+      "printed_name": "ジェノムの魔術師、クジャ // 運命への反逆者、トランス・クジャ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ミュータント(Mutant)・ウィザード(Wizard) // 〔黒/赤〕 伝説のクリーチャー --- アバター(Avatar)・ウィザード(Wizard)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Kuja, Genome Sorcerer",
+          "printed_name": "ジェノムの魔術師、クジャ",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ミュータント(Mutant)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Trance Kuja, Fate Defied",
+          "printed_name": "運命への反逆者、トランス・クジャ",
+          "printed_type_line": "〔黒/赤〕 伝説のクリーチャー --- アバター(Avatar)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5ba7abbc-f6e8-40c2-800b-11efd10cca5b",
+      "name_en": "Landscape Painter // Vibrant Idea",
+      "printed_name": "風景画家 // 鮮烈なアイデア",
+      "printed_type_line": "クリーチャー --- マーフォーク(Merfolk)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nカード２枚を引く。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Vibrant Idea",
+          "printed_name": "鮮烈なアイデア",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "カード２枚を引く。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b3f3d55c-a3f6-441b-a380-60c0734dc514",
+      "name_en": "Larval Scoutlander",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、土地や着陸船(Lander)である１つを生け贄に捧げてもよい。そうしたなら、あなたのライブラリーから基本土地カード最大２枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。７個以上なら、これはアーティファクト・クリーチャーである。）\n7+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "56035e66-e730-436d-8de2-4ded7fd1b51e",
+      "name_en": "Lashwhip Predator",
+      "printed_type_line": "クリーチャー --- 植物(Plant)・ビースト(Beast)",
+      "printed_text": "あなたの対戦相手が合計３体以上のクリーチャーをコントロールしているなら、この呪文を唱えるためのコストは(２)少なくなる。\n到達",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "84bb960c-c34e-4979-8c0f-893c85cee27d",
+      "name_en": "Leech Collector // Bloodletting",
+      "printed_name": "ヒルの収集家 // 流血",
+      "printed_type_line": "クリーチャー --- 人間(Human)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "あなたが各ターン内で初めてライフを得るたび、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n各対戦相手はそれぞれ２点のライフを失う。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Bloodletting",
+          "printed_name": "流血",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "各対戦相手はそれぞれ２点のライフを失う。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b162ccf8-e0c2-46ae-84e7-dff2b6fceec1",
+      "name_en": "Lightless Evangel",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・クレリック(Cleric)",
+      "printed_text": "あなたがクリーチャーやアーティファクトでありこれでない１つを生け贄に捧げるたび、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "800c258a-cfc4-4a54-a667-065ea8dea69e",
+      "name_en": "Lightning Helix",
+      "printed_name": "稲妻のらせん",
+      "printed_type_line": "インスタント",
+      "printed_text": "１つを対象とする。稲妻のらせんはそれに３点のダメージを与え、あなたは３点のライフを得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "57012049-06d7-4354-8125-9ea9e742f14d",
+      "name_en": "Lightstall Inquisitor",
+      "printed_type_line": "クリーチャー --- 天使(Angel)・ウィザード(Wizard)",
+      "printed_text": "警戒\nこのクリーチャーが戦場に出たとき、各対戦相手はそれぞれ自分の手札からカード１枚を追放し、そのカードが追放され続けているかぎり、それをプレイしてもよい。これにより唱えるすべての呪文は唱えるためのコストが(１)多くなる。これによりプレイされるすべての土地はタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4cc014f3-05e0-442e-9dee-03eab1aa65a3",
+      "name_en": "Lindblum, Industrial Regency // Mage Siege",
+      "printed_name": "工業公国、リンドブルム // 魔道士の包囲",
+      "printed_type_line": "土地 --- 街(Town) // インスタント --- 出来事(Adventure)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(赤)を加える。\n\n「あなたがクリーチャーでない呪文１つを唱えるたび、このトークンは各対戦相手にそれぞれ１点のダメージを与える。」を持つ黒の0/1のウィザード(Wizard)・クリーチャー・トークン１体を生成する。",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Lindblum, Industrial Regency",
+          "printed_name": "工業公国、リンドブルム",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Mage Siege",
+          "printed_name": "魔道士の包囲",
+          "printed_type_line": "インスタント --- 出来事(Adventure)",
+          "printed_text": "「あなたがクリーチャーでない呪文１つを唱えるたび、このトークンは各対戦相手にそれぞれ１点のダメージを与える。」を持つ黒の0/1のウィザード(Wizard)・クリーチャー・トークン１体を生成する。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "118c4be1-2204-4133-a80e-990ef96c7e35",
+      "name_en": "Lithobraking",
+      "printed_type_line": "インスタント",
+      "printed_text": "着陸船(Lander)トークン１つを生成する。その後、あなたはアーティファクト１つを生け贄に捧げてもよい。そうしたとき、岩力制動は各クリーチャーにそれぞれ２点のダメージを与える。（着陸船トークンは、「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cb125cd4-c7c2-415d-b802-bdcfc2454403",
+      "name_en": "Lluwen, Exchange Student // Pest Friend",
+      "printed_name": "交換留学生、ルーウェン // 害獣の親友",
+      "printed_type_line": "伝説のクリーチャー --- エルフ(Elf)・ドルイド(Druid) // ソーサリー",
+      "printed_text": "これは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\nあなたの墓地にあるクリーチャー・カード１枚を追放する：これは準備済状態になる。起動はソーサリーとしてのみ行う。\n\n「このトークンが攻撃するたび、１点のライフを得る。」を持つ黒緑の1/1の邪魔者(Pest)クリーチャー・トークン１体を生成する。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Pest Friend",
+          "printed_name": "害獣の親友",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "「このトークンが攻撃するたび、１点のライフを得る。」を持つ黒緑の1/1の邪魔者(Pest)クリーチャー・トークン１体を生成する。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "16156274-8dc0-439c-94c4-e8c89bbb5687",
+      "name_en": "Loading Zone",
+      "printed_type_line": "エンチャント",
+      "printed_text": "あなたがコントロールしていて、クリーチャーや宇宙船(Spacecraft)や惑星(Planet)である１つの上に１個以上のカウンターが置かれるなら、代わりに、それの上にその２倍の個数のそれらの各種類のカウンターを置く。\nワープ(緑)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cec95b9f-9d1e-4988-befe-d0c9e20e428d",
+      "name_en": "Lost in Space",
+      "printed_type_line": "インスタント",
+      "printed_text": "アーティファクトやクリーチャーである１つを対象とする。それのオーナーはそれを自分のライブラリーの一番上か一番下のうち選んだほうに置く。諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3aa0cda4-fb2d-4fd4-84f6-482089a85547",
+      "name_en": "Lumen-Class Frigate",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。１２個以上なら、これはアーティファクト・クリーチャーである。）\n2+｜あなたがコントロールしていてこれでないすべてのクリーチャーは+1/+1の修整を受ける。\n12+｜飛行、絆魂",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e0a508b5-0896-4620-a93e-60b958829703",
+      "name_en": "Luxknight Breacher",
+      "printed_type_line": "クリーチャー --- 人間(Human)・騎士(Knight)",
+      "printed_text": "このクリーチャーは、あなたがコントロールしていてクリーチャーやアーティファクトでありこれでない１つにつき１個の+1/+1カウンターが置かれた状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "03931270-504a-4b0b-af3f-918bf124ea07",
+      "name_en": "Maelstrom Artisan // Rocket Volley",
+      "printed_name": "大渦の職工 // ロケット斉射",
+      "printed_type_line": "クリーチャー --- ミノタウルス(Minotaur)・魔術師(Sorcerer) // ソーサリー",
+      "printed_text": "速攻\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n基本でない土地１つを対象とする。それを破壊する。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Rocket Volley",
+          "printed_name": "ロケット斉射",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "基本でない土地１つを対象とする。それを破壊する。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3f27988b-0863-4cc1-8eb9-83bd0cd8561c",
+      "name_en": "Mage Tower Referee",
+      "printed_name": "メイジタワーの審判",
+      "printed_type_line": "アーティファクト・クリーチャー --- 構築物(Construct)",
+      "printed_text": "あなたが多色の呪文１つを唱えるたび、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "099b8d2c-b482-48dd-b6bc-dedf546d66c5",
+      "name_en": "Marang River Regent // Coil and Catch",
+      "printed_name": "マラング川の執政 // 巻きつき捕らえ",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // インスタント --- 前兆(Omen)",
+      "printed_text": "飛行\nこのクリーチャーが戦場に出たとき、土地でもこれでもないパーマネント最大２つを対象とする。それらをオーナーの手札に戻す。\n\nカード３枚を引き、その後、カード１枚を捨てる。（その後、このカードをオーナーのライブラリーに加えて切り直す。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Marang River Regent",
+          "printed_name": "マラング川の執政",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+          "printed_text": "飛行\nこのクリーチャーが戦場に出たとき、土地でもこれでもないパーマネント最大２つを対象とする。それらをオーナーの手札に戻す。"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Coil and Catch",
+          "printed_name": "巻きつき捕らえ",
+          "printed_type_line": "インスタント --- 前兆(Omen)",
+          "printed_text": "カード３枚を引き、その後、カード１枚を捨てる。（その後、このカードをオーナーのライブラリーに加えて切り直す。）"
+        }
+      ],
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "2c2ef1ed-2f93-48c5-bf86-e46318599aeb",
+      "name_en": "Mechan Assembler",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・工匠(Artificer)",
+      "printed_text": "あなたがコントロールしていてこれでないアーティファクト１つが戦場に出るたび、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成する。この能力は、毎ターン１回しか誘発しない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fa72c607-7eb4-41b7-9af1-f3d6c69abf09",
+      "name_en": "Mechan Navigator",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・操縦士(Pilot)",
+      "printed_text": "このクリーチャーがタップ状態になるたび、カード１枚を引き、その後、カード１枚を捨てる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d0025d29-d652-4af8-b367-13142d5532df",
+      "name_en": "Mechan Shieldmate",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・兵士(Soldier)",
+      "printed_text": "防衛\nアーティファクトがあなたのコントロール下で戦場に出たターンの間、このクリーチャーは防衛を持たないかのように攻撃できる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "86e0e718-82b5-4c99-9837-1b4d8729a27e",
+      "name_en": "Melded Moxite",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "このアーティファクトが戦場に出たとき、カード１枚を捨ててもよい。そうしたなら、カード２枚を引く。\n(３),このアーティファクトを生け贄に捧げる：無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体をタップ状態で生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "046b60da-0a14-40b0-a36c-5328f6b8972b",
+      "name_en": "Meltstrider Eulogist",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・兵士(Soldier)",
+      "printed_text": "あなたがコントロールしていて+1/+1カウンターが置かれているクリーチャー１体が死亡するたび、カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1d6742a3-592b-4e67-8cc6-56e2962ad7c7",
+      "name_en": "Meltstrider's Gear",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment)",
+      "printed_text": "この装備品(Equipment)が戦場に出たとき、あなたがコントロールしているクリーチャー１体を対象とする。これをそれにつける。\n装備しているクリーチャーは+2/+1の修整を受け到達を持つ。\n装備(５)（(５)：あなたがコントロールしているクリーチャー１体を対象とする。これをそれにつける。起動はソーサリーとしてのみ行う。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6f9bc0c6-1792-4771-a839-95a22d9c699a",
+      "name_en": "Meltstrider's Resolve",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（あなたがコントロールしているクリーチャー）\nこのオーラ(Aura)が戦場に出たとき、対戦相手がコントロールしているクリーチャー最大１体を対象とする。エンチャントしているクリーチャーはそれと格闘を行う。（それぞれはもう一方に自身のパワーに等しい点数のダメージを与える。）\nエンチャントしているクリーチャーは+0/+2の修整を受け、２体以上のクリーチャーにはブロックされない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "10dda10f-2549-47e5-9a8b-fb414cf38d3f",
+      "name_en": "Memorial Vault",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "(Ｔ),これでないアーティファクト１つを生け贄に捧げる：あなたのライブラリーの一番上からカードＸ枚を追放する。Ｘは、その生け贄に捧げられたアーティファクトのマナ総量に１を足した値に等しい。このターン、それらのカードをプレイしてもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "448d9391-9d15-4aa1-87b3-a1d755666c03",
+      "name_en": "Mental Modulation",
+      "printed_type_line": "インスタント",
+      "printed_text": "あなたのターンの間、この呪文を唱えるためのコストは(１)少なくなる。\nアーティファクトやクリーチャーである１つを対象とする。それをタップする。\nカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4e34a49d-f031-48ac-a458-97b79124b76c",
+      "name_en": "Midgar, City of Mako // Reactor Raid",
+      "printed_name": "魔晄都市、ミッドガル // 魔晄炉爆破作戦",
+      "printed_type_line": "土地 --- 街(Town) // ソーサリー --- 出来事(Adventure)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(黒)を加える。\n\nアーティファクトやクリーチャーである１つを生け贄に捧げてもよい。そうしたなら、カード２枚を引く。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Midgar, City of Mako",
+          "printed_name": "魔晄都市、ミッドガル",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Reactor Raid",
+          "printed_name": "魔晄炉爆破作戦",
+          "printed_type_line": "ソーサリー --- 出来事(Adventure)",
+          "printed_text": "アーティファクトやクリーチャーである１つを生け贄に捧げてもよい。そうしたなら、カード２枚を引く。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "df555f60-2164-49dc-be67-00aca9eb0d45",
+      "name_en": "Minecart Daredevil // Ride the Rails",
+      "printed_name": "トロッコの向こう見ず // 軌条を乗りこなせ",
+      "printed_type_line": "クリーチャー --- ドワーフ(Dwarf)・騎士(Knight) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Minecart Daredevil",
+          "printed_name": "トロッコの向こう見ず",
+          "printed_type_line": "クリーチャー --- ドワーフ(Dwarf)・騎士(Knight)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "de58fa4b-eeeb-4dc8-aab9-6521b15678cc",
+      "name_en": "Mm'menon, the Right Hand",
+      "printed_type_line": "伝説のクリーチャー --- クラゲ(Jellyfish)・アドバイザー(Advisor)",
+      "printed_text": "飛行\nあなたのライブラリーの一番上にあるカード１枚をいつ見てもよい。\nあなたのライブラリーの一番上にあるアーティファクト呪文を唱えてもよい。\nあなたがコントロールしているすべてのアーティファクトは「(Ｔ)：(青)を加える。このマナは、あなたの手札以外から呪文を唱えるためにしか支払えない。」を持つ。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6c05b882-51d9-43d8-93b8-c3317590f76a",
+      "name_en": "Mm'menon, Uthros Exile",
+      "printed_type_line": "伝説のクリーチャー --- クラゲ(Jellyfish)・アドバイザー(Advisor)",
+      "printed_text": "飛行\nあなたがコントロールしているアーティファクト１つが戦場に出るたび、クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d0e58b8e-2c41-4602-a905-c2a6086ecf70",
+      "name_en": "Molecular Modifier",
+      "printed_type_line": "クリーチャー --- カヴー(Kavu)・工匠(Artificer)",
+      "printed_text": "あなたのターンの戦闘の開始時に、あなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは+1/+0の修整を受け先制攻撃を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "de70a6bb-32ed-4a89-a522-c2a71f08fb02",
+      "name_en": "Monoist Circuit-Feeder",
+      "printed_type_line": "アーティファクト・クリーチャー --- オウムガイ(Nautilus)",
+      "printed_text": "飛行\nこのクリーチャーが戦場に出たとき、あなたがコントロールしているクリーチャー１体を対象とし、対戦相手がコントロールしているクリーチャー１体を対象とする。ターン終了時まで、その前者は+X/+0の修整を受け、その後者は-0/-Xの修整を受ける。Ｘは、あなたがコントロールしているアーティファクトの数に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0b4cb111-ecf7-4ff7-a9e3-c944054f3370",
+      "name_en": "Monoist Sentry",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "防衛",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "df702b0c-e011-497f-ae29-9876efac4a4c",
+      "name_en": "Moonlit Meditation",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（あなたがコントロールしているアーティファクトやクリーチャー）\nあなたが各ターン内で初めて１つ以上のトークンを生成するなら、代わりに同じ数の、エンチャントしているパーマネントのコピーであるトークンを生成してもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a3fb7228-e76b-4e96-a40e-20b5fed75685",
+      "name_en": "Mountain",
+      "printed_type_line": "基本土地 --- 山(Mountain)",
+      "printed_text": "(赤)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "832fbb1f-0ff5-4d6c-b1ee-2231923a6f64",
+      "name_en": "Mouth of the Storm",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental)",
+      "printed_text": "飛行\n護法(２)（このクリーチャーが対戦相手がコントロールしている呪文や能力の対象になるたび、そのプレイヤーが(２)を支払わないかぎり、その呪文や能力を打ち消す。）\nこのクリーチャーが戦場に出たとき、次のあなたのターンまで、対戦相手がコントロールしているすべてのクリーチャーは-3/-0の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9fdd445a-c8e1-4309-9d74-374676fcac1d",
+      "name_en": "Mutinous Massacre",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "奇数か偶数を選ぶ。その選ばれた性質のマナ総量を持つすべてのクリーチャーを破壊する。その後、ターン終了時まで、すべてのクリーチャーのコントロールを得る。それらをアンタップする。ターン終了時まで、それらは速攻を得る。（０は偶数である。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "07155470-c5ab-41ae-ade3-bdc06d357379",
+      "name_en": "Nanoform Sentinel",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "このクリーチャーがタップ状態になるたび、これでないパーマネント１つを対象とする。それをアンタップする。この能力は、毎ターン１回しか誘発しない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "724b4a59-9c69-4f2b-a436-72183c62f1ff",
+      "name_en": "Nebula Dragon",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+      "printed_text": "飛行\nこのクリーチャーが戦場に出たとき、１つを対象とする。これはそれに３点のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "04a0382f-7e4e-4450-ae70-18999379d875",
+      "name_en": "Nutrient Block",
+      "printed_type_line": "アーティファクト --- 食物(Food)",
+      "printed_text": "破壊不能（「破壊する」と書かれた効果では、このアーティファクトは破壊されない。）\n(２),(Ｔ),このアーティファクトを生け贄に捧げる：３点のライフを得る。\nこのアーティファクトが戦場から墓地に置かれたとき、カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "396b088d-f9af-4ee1-843f-dbe1633f9cc8",
+      "name_en": "Obyra's Attendants // Desperate Parry",
+      "printed_name": "オビラの従者 // 捨て身の受け流し",
+      "printed_type_line": "クリーチャー --- フェアリー(Faerie)・ウィザード(Wizard) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Obyra's Attendants",
+          "printed_name": "オビラの従者",
+          "printed_type_line": "クリーチャー --- フェアリー(Faerie)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4f10b164-6d36-4935-92e7-53be73ac4c8a",
+      "name_en": "Orbital Plunge",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "クリーチャー１体を対象とする。軌道からの突入はそれに６点のダメージを与える。これにより余剰のダメージが与えられたなら、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "72e8c978-f66d-42e1-ac5f-d1c307d7b93c",
+      "name_en": "Oreplate Pangolin",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・センザンコウ(Pangolin)",
+      "printed_text": "あなたがコントロールしていてこれでないアーティファクト１つが戦場に出るたび、(１)を支払ってもよい。そうしたなら、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "50d6fd91-23d3-4d32-804f-6233e4386904",
+      "name_en": "Ouroboroid",
+      "printed_type_line": "クリーチャー --- 植物(Plant)・ワーム(Wurm)",
+      "printed_text": "あなたのターンの戦闘の開始時に、あなたがコントロールしている各クリーチャーの上にそれぞれ+1/+1カウンターＸ個を置く。Ｘは、このクリーチャーのパワーに等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3bbad38b-7d88-4ff2-9fd3-5081536e7c56",
+      "name_en": "Page, Loose Leaf",
+      "printed_name": "気ままな紙片、ページ",
+      "printed_type_line": "伝説のアーティファクト・クリーチャー --- 構築物(Construct)",
+      "printed_text": "(Ｔ)：(◇)を加える。\n壮大 ― 《気ままな紙片、ページ/Page, Loose Leaf》という名前を持ちこれでないカード１枚を捨てる：インスタントやソーサリーであるカード１枚が公開されるまで、あなたのライブラリーの一番上から１枚ずつ公開していく。そのカードをあなたの手札に、残りをあなたのライブラリーの一番下に無作為の順番で置く。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "4eedf21c-0ad1-48da-a9fe-2ffdbf8371e9",
+      "name_en": "Pain for All",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（あなたがコントロールしているクリーチャー）\nこのオーラ(Aura)が戦場に出たとき、エンチャントしているクリーチャーでない１つを対象とする。エンチャントしているクリーチャーはそれに、自身のパワーに等しい点数のダメージを与える。\nエンチャントしているクリーチャーがダメージを受けるたび、それは各対戦相手にそれぞれ、その点数に等しい点数のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "638ff242-63d5-457d-a7a6-40ad51052e2e",
+      "name_en": "Paradox Gardens",
+      "printed_name": "逆説の庭園",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(緑)か(青)を加える。\n(２)(緑)(青),(Ｔ)：諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "78a2972c-14f4-41f3-99f9-167948bdd73a",
+      "name_en": "Petrified Hamlet",
+      "printed_name": "石化した村落",
+      "printed_type_line": "土地",
+      "printed_text": "この土地が戦場に出たとき、土地カードのカード名１つを選ぶ。\nその選ばれた名前を持つ発生源の起動型能力は、それがマナ能力でないかぎり起動できない。\nその選ばれた名前を持つすべての土地は「(Ｔ)：(◇)を加える。」を持つ。\n(Ｔ)：(◇)を加える。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "334fba11-e500-40fd-a142-41ff553642b5",
+      "name_en": "Picnic Ruiner // Stolen Goodies",
+      "printed_name": "ピクニック荒らし // 盗まれたお菓子",
+      "printed_type_line": "クリーチャー --- ゴブリン(Goblin)・ならず者(Rogue) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Picnic Ruiner",
+          "printed_name": "ピクニック荒らし",
+          "printed_type_line": "クリーチャー --- ゴブリン(Goblin)・ならず者(Rogue)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c008d60a-ee06-4411-b8e7-c2df13616105",
+      "name_en": "Pigment Wrangler // Striking Palette",
+      "printed_name": "絵の具の世話人 // 目を見張るパレット",
+      "printed_type_line": "クリーチャー --- オーク(Orc)・魔術師(Sorcerer) // ソーサリー",
+      "printed_text": "飛行\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nこのターン、次のあなたがインスタントやソーサリーである呪文を唱えたとき、その呪文をコピーする。そのコピーの新しい対象を選んでもよい。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Striking Palette",
+          "printed_name": "目を見張るパレット",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "このターン、次のあなたがインスタントやソーサリーである呪文を唱えたとき、その呪文をコピーする。そのコピーの新しい対象を選んでもよい。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ad556aee-3dbf-4c8b-9f3a-31947e26c6f5",
+      "name_en": "Pinnacle Kill-Ship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、クリーチャー最大１体を対象とする。これはそれに１０点のダメージを与える。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。７個以上なら、これはアーティファクト・クリーチャーである。）\n7+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bc71ebf6-2056-41f7-be35-b2e5c34afa99",
+      "name_en": "Plains",
+      "printed_type_line": "基本土地 --- 平地(Plains)",
+      "printed_text": "(白)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3ef02f2b-b611-40c3-a1d5-8b34989643cf",
+      "name_en": "Pollen-Shield Hare // Hare Raising",
+      "printed_name": "花粉盾の兎 // 兎の子育て",
+      "printed_type_line": "クリーチャー --- 兎(Rabbit) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Pollen-Shield Hare",
+          "printed_name": "花粉盾の兎",
+          "printed_type_line": "クリーチャー --- 兎(Rabbit)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d604c75e-9d81-49de-80bc-08f4ef3ee975",
+      "name_en": "Potioner's Trove",
+      "printed_name": "水薬師の収集品",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "(Ｔ)：好きな色１色のマナ１点を加える。\n(Ｔ)：２点のライフを得る。このターンにあなたがインスタントやソーサリーである呪文を唱えていなければ起動できない。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "37bd9e54-c93e-4fec-9b21-6940da75ab7a",
+      "name_en": "Pull Through the Weft",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "あなたの墓地にあり土地でないパーマネント・カード最大２枚を対象とし、あなたの墓地にある土地カード最大２枚を対象とする。その前者をあなたの手札に戻し、その後、その後者をタップ状態で戦場に戻す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8019e879-cfea-40a2-ac0d-86b47ec02b48",
+      "name_en": "Pulsar Squadron Ace",
+      "printed_type_line": "クリーチャー --- 人間(Human)・操縦士(Pilot)",
+      "printed_text": "このクリーチャーが戦場に出たとき、あなたのライブラリーの一番上にあるカード５枚を見る。その中から宇宙船(Spacecraft)カード１枚を公開し、あなたの手札に加えてもよい。残りをあなたのライブラリーの一番下に無作為の順番で置く。これによりあなたの手札にカードを加えなかったなら、このクリーチャーの上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5e8086d5-ea48-4555-b65a-a33d08ba4afd",
+      "name_en": "Purging Stormbrood // Absorb Essence",
+      "printed_name": "粛清の嵐孵り // 本質の吸い上げ",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // インスタント --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Purging Stormbrood",
+          "printed_name": "粛清の嵐孵り",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "555df32f-f8e9-49af-bc4a-1194ea325a97",
+      "name_en": "Questing Druid // Seek the Beast",
+      "printed_name": "探索するドルイド // 獣の探索",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ドルイド(Druid) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Questing Druid",
+          "printed_name": "探索するドルイド",
+          "printed_type_line": "クリーチャー --- 人間(Human)・ドルイド(Druid)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bd9d3a70-faed-4bc6-97d8-1601b36cdb21",
+      "name_en": "Quill-Blade Laureate // Twofold Intent",
+      "printed_name": "羽ペン剣の桂冠詩人 // 二重の意図",
+      "printed_type_line": "クリーチャー --- 人間(Human)・クレリック(Cleric) // ソーサリー",
+      "printed_text": "二段攻撃\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体を対象とする。ターン終了時まで、それは+1/+0の修整を受け二段攻撃を得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Twofold Intent",
+          "printed_name": "二重の意図",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体を対象とする。ターン終了時まで、それは+1/+0の修整を受け二段攻撃を得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "186efd85-83d4-40cc-b617-76f32dbe99ce",
+      "name_en": "Radiant Strike",
+      "printed_type_line": "インスタント",
+      "printed_text": "アーティファクトやタップ状態のクリーチャーである１つを対象とする。それを破壊する。３点のライフを得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "14b839ef-80b1-4e7d-b2fd-38e973899cde",
+      "name_en": "Ragnarok, Divine Deliverance",
+      "printed_name": "神聖なる救済者、ラグナロク",
+      "printed_type_line": "〔黒/緑〕 伝説のクリーチャー --- ビースト(Beast)・アバター(Avatar)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "76f5445a-5193-4794-8593-b44f961334b6",
+      "name_en": "Ragost, Deft Gastronaut",
+      "printed_type_line": "伝説のクリーチャー --- ロブスター(Lobster)・市民(Citizen)",
+      "printed_text": "あなたがコントロールしているすべてのアーティファクトは他のタイプに加えて食物(Food)であり「(２),(Ｔ),このアーティファクトを生け贄に捧げる：３点のライフを得る。」を持つ。\n(１),(Ｔ),食物１つを生け贄に捧げる：これは各対戦相手にそれぞれ３点のダメージを与える。\n各終了ステップの開始時に、このターンにあなたがライフを得ていた場合、これをアンタップする。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ecc91e38-90fa-4d89-b262-d5f36dce5be4",
+      "name_en": "Ratcatcher Trainee // Pest Problem",
+      "printed_name": "ネズミ捕りの見習い // 害獣被害",
+      "printed_type_line": "クリーチャー --- 人間(Human)・農民(Peasant) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Ratcatcher Trainee",
+          "printed_name": "ネズミ捕りの見習い",
+          "printed_type_line": "クリーチャー --- 人間(Human)・農民(Peasant)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "50ace222-57f1-477f-9e06-155d7b403512",
+      "name_en": "Realm-Scorcher Hellkite",
+      "printed_name": "王国焦がしのヘルカイト",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+      "printed_text": "協約（この呪文を唱えるに際し、アーティファクトやエンチャントやトークンのうち１つを生け贄に捧げてもよい。）\n飛行、速攻\n王国焦がしのヘルカイトが戦場に出たとき、これが協約されていた場合、望む色の組み合わせのマナ４点を加える。\n(１)(赤)：１つを対象とする。王国焦がしのヘルカイトはそれに１点のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "13a8b19b-23bd-4e45-81ff-23371665e4fc",
+      "name_en": "Requiem Monolith",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "(Ｔ)：クリーチャー１体を対象とする。ターン終了時まで、それは「このクリーチャーがダメージを受けるたび、あなたはその点数に等しい枚数のカードを引き、その点数に等しい点数のライフを失う。」を得る。そのクリーチャーのコントローラーは「このアーティファクトはそれに１点のダメージを与える。」を選んでもよい。起動はソーサリーとしてのみ行う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "112aaaf0-3301-4f79-9640-d36c75a0fb30",
+      "name_en": "Rescue Skiff",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、あなたの墓地にありクリーチャーやエンチャントであるカード１枚を対象とする。それを戦場に戻す。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。１０個以上なら、これはアーティファクト・クリーチャーである。）\n10+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "05bbd557-e2c0-4855-8fe6-00527fa39878",
+      "name_en": "Rig for War",
+      "printed_type_line": "インスタント",
+      "printed_text": "クリーチャー１体を対象とする。ターン終了時まで、それは+3/+0の修整を受け先制攻撃と到達を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "57f15861-82cf-4faf-827c-9bc7f4844d2a",
+      "name_en": "Runaway Boulder",
+      "printed_name": "遁走する岩石",
+      "printed_type_line": "アーティファクト",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "af7db15c-93af-4c7e-a028-42181d91a923",
+      "name_en": "Runescale Stormbrood // Chilling Screech",
+      "printed_name": "ルーン鱗の嵐孵り // 凍える金切り声",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // インスタント --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Runescale Stormbrood",
+          "printed_name": "ルーン鱗の嵐孵り",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9ad956c8-71d3-436f-961e-e2dfc1d2ca70",
+      "name_en": "Rust Harvester",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "威迫\n(２),(Ｔ),あなたの墓地にあるアーティファクト・カード１枚を追放する：１つを対象とする。このクリーチャーの上に+1/+1カウンター１個を置く。その後、これはそれに、これのパワーに等しい点数のダメージを与える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "45181cb8-2090-4471-ba90-e5a8f04d525f",
+      "name_en": "Sacred Foundry",
+      "printed_type_line": "土地 --- 山(Mountain)・平地(Plains)",
+      "printed_text": "（(Ｔ)：(赤)か(白)を加える。）\nこの土地が戦場に出るに際し、２点のライフを支払ってもよい。そうしないなら、これはタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7cee6d43-5dec-4989-85ec-c635ec783ec7",
+      "name_en": "Sagu Wildling // Roost Seek",
+      "printed_name": "サグの原生龍 // 止まり木探し",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Sagu Wildling",
+          "printed_name": "サグの原生龍",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5aa76c5d-8046-42ce-b61d-cc9b4806c11a",
+      "name_en": "Saheeli, the Sun's Brilliance",
+      "printed_name": "太陽の高揚、サヒーリ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・工匠(Artificer)",
+      "printed_text": "(青)(赤),(Ｔ)：クリーチャーやアーティファクトでありあなたがコントロールしていてこれでない１つを対象とする。他のタイプに加えてアーティファクトであることを除き、それのコピーであるトークン１つを生成する。そのトークンは速攻を得る。次の終了ステップの開始時に、そのトークンを生け贄に捧げる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5f532b7f-cb76-4be7-b361-0106c561dcb2",
+      "name_en": "Sami's Curiosity",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "２点のライフを得る。着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "470c16c5-b078-47f5-89b0-42991e1f7157",
+      "name_en": "Sami, Ship's Engineer",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・工匠(Artificer)",
+      "printed_text": "あなたの終了ステップの開始時に、あなたが２体以上のタップ状態であるクリーチャーをコントロールしている場合、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体をタップ状態で生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c4175a34-70bb-47e5-8406-efdc4d2cd079",
+      "name_en": "Sami, Wildcat Captain",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・工匠(Artificer)・ならず者(Rogue)",
+      "printed_text": "二段攻撃、警戒\nあなたが唱えるすべての呪文は親和（アーティファクト）を持つ。（それらを唱えるためのコストは、あなたがコントロールしているアーティファクト１つにつき(１)少なくなる。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a8c44bd9-6470-47d7-934f-77c76a44a984",
+      "name_en": "Sanar, Unfinished Genius // Wild Idea",
+      "printed_name": "荒削りな天才、サナール // 突飛なアイデア",
+      "printed_type_line": "伝説のクリーチャー --- ゴブリン(Goblin)・魔術師(Sorcerer) // ソーサリー",
+      "printed_text": "これは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n(Ｔ)：宝物(Treasure)トークン１つを生成する。このターンにあなたがインスタントやソーサリーである呪文を唱えていなければ起動できない。\n\nあなたのライブラリーからインスタントやソーサリーであるカード１枚を探し、公開し、あなたの手札に加える。その後、ライブラリーを切り直す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Wild Idea",
+          "printed_name": "突飛なアイデア",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたのライブラリーからインスタントやソーサリーであるカード１枚を探し、公開し、あなたの手札に加える。その後、ライブラリーを切り直す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "12c71296-1243-49e6-a196-8b016a7b635c",
+      "name_en": "Scalding Viper // Steam Clean",
+      "printed_name": "煮えたぎるバイパー // 蒸気洗浄",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・蛇(Snake) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Scalding Viper",
+          "printed_name": "煮えたぎるバイパー",
+          "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・蛇(Snake)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2796c3d9-9e56-40f2-8398-7a131c4657ff",
+      "name_en": "Scathing Shadelock // Venomous Words",
+      "printed_name": "容赦なき妨術士 // 毒ある言葉",
+      "printed_type_line": "クリーチャー --- 蛇(Snake)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "あなたの第１メイン・フェイズの開始時に、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nあなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは+2/+0の修整を受け接死を得る。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Venomous Words",
+          "printed_name": "毒ある言葉",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたがコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは+2/+0の修整を受け接死を得る。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7e97a242-0bac-4f18-9228-e98ecca36254",
+      "name_en": "Scavenger Regent // Exude Toxin",
+      "printed_name": "ゴミあさりの執政 // にじむ毒素",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "printed_text": "飛行\n護法 ― カード１枚を捨てる。\n\nターン終了時まで、ドラゴン(Dragon)でないすべてのクリーチャーは-X/-Xの修整を受ける。（その後、このカードをオーナーのライブラリーに加えて切り直す。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Scavenger Regent",
+          "printed_name": "ゴミあさりの執政",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)",
+          "printed_text": "飛行\n護法 ― カード１枚を捨てる。"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Exude Toxin",
+          "printed_name": "にじむ毒素",
+          "printed_type_line": "ソーサリー --- 前兆(Omen)",
+          "printed_text": "ターン終了時まで、ドラゴン(Dragon)でないすべてのクリーチャーは-X/-Xの修整を受ける。（その後、このカードをオーナーのライブラリーに加えて切り直す。）"
+        }
+      ],
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "44443716-8356-40cd-a879-35264b29108c",
+      "name_en": "Scheming Silvertongue // Sign in Blood",
+      "printed_name": "策謀の能弁術師 // 血の署名",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・邪術師(Warlock) // ソーサリー",
+      "printed_text": "飛行、絆魂\nあなたの第２メイン・フェイズの開始時に、このターンにあなたが２点以上のライフを得ていた場合、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nプレイヤー１人を対象とする。そのプレイヤーはカード２枚を引き、２点のライフを失う。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Sign in Blood",
+          "printed_name": "血の署名",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "プレイヤー１人を対象とする。そのプレイヤーはカード２枚を引き、２点のライフを失う。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5a367c9c-9a7f-4587-aa05-c0fba46ed838",
+      "name_en": "Scout for Survivors",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "あなたの墓地にあるクリーチャー・カード最大３枚を、そのマナ総量の合計が３以下になるように選んで対象とする。それらを戦場に戻す。それらの上にそれぞれ+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "71982b17-1d9a-4f98-b8b5-d232e3a8cf1d",
+      "name_en": "Scrounge for Eternity",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "この呪文を唱えるための追加コストとして、アーティファクトやクリーチャーである１つを生け贄に捧げる。\nあなたの墓地にありマナ総量が５以下でありクリーチャーや宇宙船(Spacecraft)であるカード１枚を対象とする。それを戦場に戻す。その後、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "dfd5939e-a71a-4e16-9b93-752162be4ccd",
+      "name_en": "Seam Rip",
+      "printed_type_line": "エンチャント",
+      "printed_text": "このエンチャントが戦場に出たとき、対戦相手がコントロールしていてマナ総量が２以下であり土地でないパーマネント１つを対象とする。このエンチャントが戦場を離れるまで、それを追放する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "69f55a7c-6ddf-412e-b63b-b395731a1ff2",
+      "name_en": "Secluded Starforge",
+      "printed_type_line": "土地",
+      "printed_text": "(Ｔ)：(◇)を加える。\n(２),(Ｔ),あなたがコントロールしていてアンタップ状態であるアーティファクトＸ個をタップする：クリーチャー１体を対象とする。ターン終了時まで、それは+X/+0の修整を受ける。起動はソーサリーとしてのみ行う。\n(５),(Ｔ)：無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c6d89c4a-351f-4d63-ba57-b978a695191e",
+      "name_en": "Seedship Impact",
+      "printed_type_line": "インスタント",
+      "printed_text": "アーティファクトやエンチャントである１つを対象とする。それを破壊する。それのマナ総量が２以下なら、着陸船(Lander)トークン１つを生成する。（それは「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4ba4cb4b-f421-4abd-8fcf-a01174447790",
+      "name_en": "Selfcraft Mechan",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・工匠(Artificer)",
+      "printed_text": "このクリーチャーが戦場に出たとき、アーティファクト１つを生け贄に捧げてもよい。そうしたとき、クリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置き、あなたはカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "70113003-be5e-406a-9aec-cb480468c36d",
+      "name_en": "Sephiroth, Fabled SOLDIER // Sephiroth, One-Winged Angel",
+      "printed_name": "威名のソルジャー、セフィロス // 片翼の天使、セフィロス",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・アバター(Avatar)・兵士(Soldier) // 〔黒〕 伝説のクリーチャー --- 天使(Angel)・ナイトメア(Nightmare)・アバター(Avatar)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Sephiroth, Fabled SOLDIER",
+          "printed_name": "威名のソルジャー、セフィロス",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・アバター(Avatar)・兵士(Soldier)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Sephiroth, One-Winged Angel",
+          "printed_name": "片翼の天使、セフィロス",
+          "printed_type_line": "〔黒〕 伝説のクリーチャー --- 天使(Angel)・ナイトメア(Nightmare)・アバター(Avatar)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a8a7a3b7-015c-4fbd-8b90-e0ddf71663e4",
+      "name_en": "Serah Farron // Crystallized Serah",
+      "printed_name": "セラ・ファロン // クリスタルになったセラ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・市民(Citizen) // 〔緑/白〕 伝説のアーティファクト",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Serah Farron",
+          "printed_name": "セラ・ファロン",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・市民(Citizen)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Crystallized Serah",
+          "printed_name": "クリスタルになったセラ",
+          "printed_type_line": "〔緑/白〕 伝説のアーティファクト"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "709b9f76-0ea5-456c-b1db-2cf517370fde",
+      "name_en": "Shattered Wings",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "アーティファクトや、エンチャントや、飛行を持つクリーチャーである１つを対象とする。それを破壊する。諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "de52b262-418e-418c-b2aa-8d5a776e3a75",
+      "name_en": "Shrouded Shepherd // Cleave Shadows",
+      "printed_name": "覆われた羊飼い // 影の切断",
+      "printed_type_line": "クリーチャー --- スピリット(Spirit)・戦士(Warrior) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Shrouded Shepherd",
+          "printed_name": "覆われた羊飼い",
+          "printed_type_line": "クリーチャー --- スピリット(Spirit)・戦士(Warrior)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "d74f9a18-8dab-4549-be3f-9697ff68d73c",
+      "name_en": "Sidequest: Hunt the Mark // Yiazmat, Ultimate Mark",
+      "printed_name": "サブクエスト：モブハント // 究極の挑戦、ヤズマット",
+      "printed_type_line": "エンチャント // 〔黒〕 伝説のクリーチャー --- ドラゴン(Dragon)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Sidequest: Hunt the Mark",
+          "printed_name": "サブクエスト：モブハント",
+          "printed_type_line": "エンチャント"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Yiazmat, Ultimate Mark",
+          "printed_name": "究極の挑戦、ヤズマット",
+          "printed_type_line": "〔黒〕 伝説のクリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e1976b6c-7e43-4f4a-b082-f95495a1b260",
+      "name_en": "Singularity Rupture",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "望む数のプレイヤーを対象とする。すべてのクリーチャーを破壊し、その後、対象としたプレイヤーはそれぞれ、自分のライブラリーの枚数の端数を切り捨てた半分の枚数のカードを切削する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "be3038ff-b39e-4d2e-97ee-85de074ccfd3",
+      "name_en": "Sinister Cryologist",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・ウィザード(Wizard)",
+      "printed_text": "このクリーチャーが戦場に出たとき、対戦相手がコントロールしているクリーチャー１体を対象とする。ターン終了時まで、それは-3/-0の修整を受ける。\nワープ(青)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "788d3cfa-7706-4728-9c48-cf7bc963d002",
+      "name_en": "Skycoach Conductor // All Aboard",
+      "printed_name": "飛空バスの車掌 // 出発進行",
+      "printed_type_line": "クリーチャー --- 鳥(Bird)・操縦士(Pilot) // インスタント",
+      "printed_text": "瞬速\n飛行、警戒\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nあなたがコントロールしていて操縦士(Pilot)でないクリーチャー１体を対象とする。それを追放する。その後、そのカードをオーナーのコントロール下で戦場に戻す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "All Aboard",
+          "printed_name": "出発進行",
+          "printed_type_line": "インスタント",
+          "printed_text": "あなたがコントロールしていて操縦士(Pilot)でないクリーチャー１体を対象とする。それを追放する。その後、そのカードをオーナーのコントロール下で戦場に戻す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2ac2b815-2d72-48e6-b43a-18884a74bf95",
+      "name_en": "Skycoach Waypoint",
+      "printed_name": "飛空バスの中継地",
+      "printed_type_line": "土地",
+      "printed_text": "(Ｔ)：(◇)を加える。\n(３),(Ｔ)：クリーチャー１体を対象とする。それは準備済状態になる。（準備呪文を持つクリーチャーのみが準備済状態になれる。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "6bb7419b-e085-4616-8e5c-4ed08cb2b4c1",
+      "name_en": "Skystinger",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・戦士(Warrior)",
+      "printed_text": "到達\nこのクリーチャーが飛行を持つクリーチャー１体をブロックするたび、ターン終了時まで、このクリーチャーは+5/+0の修整を受ける。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7f1edf4c-46a1-426d-8ce9-757a4c27367d",
+      "name_en": "Slagdrill Scrapper",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・スカウト(Scout)",
+      "printed_text": "(２),(Ｔ),アーティファクトや土地でありこれでない１つを生け贄に捧げる：カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bcd086ce-de5c-4b34-92a1-ece22055e479",
+      "name_en": "Sledge-Class Seedship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。７個以上なら、これはアーティファクト・クリーチャーである。）\n7+｜飛行\nこの宇宙船が攻撃するたび、あなたの手札からクリーチャー・カード１枚を戦場に出してもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "760ede92-a826-4144-9de8-84ba9b8743d1",
+      "name_en": "Sothera, the Supervoid",
+      "printed_type_line": "伝説のエンチャント",
+      "printed_text": "あなたがコントロールしているクリーチャー１体が死亡するたび、各対戦相手はそれぞれ、自分がコントロールしているクリーチャー１体を選び、それを追放する。\nあなたの終了ステップの開始時に、プレイヤー１人がクリーチャーをコントロールしていない場合、これを生け贄に捧げ、その後、これにより追放されているクリーチャー・カード１枚をあなたのコントロール下で、追加の+1/+1カウンター２個が置かれた状態で戦場に出す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1b5e6560-ff2e-4475-96cb-63f64c8a86db",
+      "name_en": "Soul-Guide Lantern",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "魂標ランタンが戦場に出たとき、墓地にあるカード１枚を対象とする。それを追放する。\n(Ｔ),魂標ランタンを生け贄に捧げる：すべての対戦相手の墓地を追放する。\n(１),(Ｔ),魂標ランタンを生け贄に捧げる：カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c05d5a51-8e39-4475-9743-1adc60283c5a",
+      "name_en": "Souls of the Lost",
+      "printed_name": "迷いし者の魂",
+      "printed_type_line": "クリーチャー --- スピリット(Spirit)",
+      "printed_text": "この呪文を唱えるための追加コストとして、カード１枚を捨てるか、パーマネント１つを生け贄に捧げる。\n底なしの落魄 ― 迷いし者の魂のパワーは、あなたの墓地にあるパーマネント・カードの枚数に等しく、タフネスはそれに１を足した値に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "241117a0-8305-48bb-9cb9-9b01e86e08f7",
+      "name_en": "Space-Time Anomaly",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "プレイヤー１人を対象とする。そのプレイヤーは、あなたのライフ総量に等しい枚数のカードを切削する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fb84b94c-dc8c-4182-9b96-abd092b20981",
+      "name_en": "Specimen Freighter",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、宇宙船でないクリーチャー最大２体を対象とする。それらをオーナーの手札に戻す。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。９個以上なら、これはアーティファクト・クリーチャーである。）\n9+｜飛行\nこの宇宙船が攻撃するたび、防御プレイヤーはカード４枚を切削する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "33a4e73d-d93a-4b6f-88ff-cd53f20d178c",
+      "name_en": "Spectacle Summit",
+      "printed_name": "壮麗なる頂",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(青)か(赤)を加える。\n(２)(青)(赤),(Ｔ)：諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "df5e4100-8c83-42d6-af96-1a1ec84a9210",
+      "name_en": "Spellbook Seeker // Careful Study",
+      "printed_name": "呪文書の探究者 // 入念な研究",
+      "printed_type_line": "クリーチャー --- 鳥(Bird)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "飛行\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nカード２枚を引く。その後、カード２枚を捨てる。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Careful Study",
+          "printed_name": "入念な研究",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "カード２枚を引く。その後、カード２枚を捨てる。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9357fc7f-c9d0-4ce2-a6dd-0ff1f24bfc56",
+      "name_en": "Spellscorn Coven // Take It Back",
+      "printed_name": "呪文嘲りの集会 // お返し",
+      "printed_type_line": "クリーチャー --- フェアリー(Faerie)・邪術師(Warlock) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Spellscorn Coven",
+          "printed_name": "呪文嘲りの集会",
+          "printed_type_line": "クリーチャー --- フェアリー(Faerie)・邪術師(Warlock)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c77ddcac-ce54-4348-bde2-5d9caf3d5b04",
+      "name_en": "Spiritcall Enthusiast // Scrollboost",
+      "printed_name": "精霊喚びの愛好者 // 巻物増幅",
+      "printed_type_line": "クリーチャー --- 猫(Cat)・クレリック(Cleric) // ソーサリー",
+      "printed_text": "あなたがコントロールしている１体以上のトークンが戦場に出るたび、このクリーチャーは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nクリーチャー１体か２体を対象とする。ターン終了時まで、それらはそれぞれ+2/+2の修整を受ける。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Scrollboost",
+          "printed_name": "巻物増幅",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "クリーチャー１体か２体を対象とする。ターン終了時まで、それらはそれぞれ+2/+2の修整を受ける。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2620dcfe-8738-4f81-b23d-0c1c60cf9047",
+      "name_en": "Splatter Technique",
+      "printed_name": "飛び散り技法",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "以下から１つを選ぶ。\n・カード４枚を引く。\n・飛び散り技法は各クリーチャーと各プレインズウォーカーにそれぞれ４点のダメージを与える。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "788a4896-3414-40bf-b391-d2efea2fb5f9",
+      "name_en": "Springbloom Druid",
+      "printed_type_line": "クリーチャー --- エルフ(Elf)・ドルイド(Druid)",
+      "printed_text": "春花のドルイドが戦場に出たとき、あなたは土地１つを生け贄に捧げてもよい。そうしたなら、あなたのライブラリーから基本土地カード最大２枚を探し、それらをタップ状態で戦場に出し、その後ライブラリーを切り直す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0ea2a099-7c81-4012-8148-4d377f2d64e1",
+      "name_en": "Squire's Lightblade",
+      "printed_type_line": "アーティファクト --- 装備品(Equipment)",
+      "printed_text": "瞬速\nこの装備品(Equipment)が戦場に出たとき、あなたがコントロールしているクリーチャー１体を対象とする。これをそれにつける。ターン終了時まで、そのクリーチャーは先制攻撃を得る。\n装備しているクリーチャーは+1/+0の修整を受ける。\n装備(３)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1c45e872-3af8-47a4-9dc7-a99c293338f8",
+      "name_en": "Stadium Tidalmage",
+      "printed_name": "競技場の潮流魔道士",
+      "printed_type_line": "クリーチャー --- ジン(Djinn)・魔術師(Sorcerer)",
+      "printed_text": "このクリーチャーが戦場に出るか攻撃するたび、カード１枚を引いてもよい。そうしたなら、カード１枚を捨てる。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "fd6afb5e-d99a-44a7-9af4-9f064da95d63",
+      "name_en": "Starfighter Pilot",
+      "printed_type_line": "クリーチャー --- 人間(Human)・操縦士(Pilot)",
+      "printed_text": "このクリーチャーがタップ状態になるたび、諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "94e8791b-e72f-4aed-b761-826779337168",
+      "name_en": "Station Monitor",
+      "printed_type_line": "クリーチャー --- トカゲ(Lizard)・工匠(Artificer)",
+      "printed_text": "あなたが各ターン内のあなたの２つ目の呪文を唱えるたび、飛行と「このトークンでは飛行を持つクリーチャーしかブロックできない。」を持つ無色の1/1のドローン(Drone)・アーティファクト・クリーチャー・トークン１体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "16052b52-ade1-406f-a06b-ce7ea607fb63",
+      "name_en": "Stomping Ground",
+      "printed_type_line": "土地 --- 山(Mountain)・森(Forest)",
+      "printed_text": "（(Ｔ)：(赤)か(緑)を加える）\nこの土地が戦場に出るに際し、２点のライフを支払ってもよい。そうしないなら、これはタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8a31c49f-5b3f-4f84-a08e-58b30a6bff7c",
+      "name_en": "Stormkeld Vanguard // Bear Down",
+      "printed_name": "ストームケルドの先兵 // 熊の踏みつけ",
+      "printed_type_line": "クリーチャー --- 巨人(Giant)・戦士(Warrior) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Stormkeld Vanguard",
+          "printed_name": "ストームケルドの先兵",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)・戦士(Warrior)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e24916ff-7566-4f27-8e31-732311a4a88c",
+      "name_en": "Stormshriek Feral // Flush Out",
+      "printed_name": "嵐叫の蛮龍 // 流し出し",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Stormshriek Feral",
+          "printed_name": "嵐叫の蛮龍",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e85c6bd2-db15-4052-88c0-3ae25414f0ca",
+      "name_en": "Strife Scholar // Awaken the Ages",
+      "printed_name": "相争う学生 // 歴年の目覚め",
+      "printed_type_line": "クリーチャー --- オーク(Orc)・魔術師(Sorcerer) // ソーサリー",
+      "printed_text": "護法 ― ２点のライフを支払う。\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\n赤白の2/2のスピリット(Spirit)・クリーチャー・トークン２体を生成する。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Awaken the Ages",
+          "printed_name": "歴年の目覚め",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "赤白の2/2のスピリット(Spirit)・クリーチャー・トークン２体を生成する。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e286a191-39d4-4073-b844-11d2aba911b4",
+      "name_en": "Strixhaven Skycoach",
+      "printed_name": "ストリクスヘイヴンの飛空バス",
+      "printed_type_line": "アーティファクト --- 機体(Vehicle)",
+      "printed_text": "飛行\nこの機体(Vehicle)が戦場に出たとき、「あなたのライブラリーから基本土地カード１枚を探し、公開し、あなたの手札に加える。その後、ライブラリーを切り直す。」を選んでもよい。\n搭乗２（あなたがコントロールしている望む数のクリーチャーを、そのパワーの合計が２以上になるように選んでタップする：ターン終了時まで、この機体はアーティファクト・クリーチャーになる。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "58b0c737-0a84-4f9a-b3b7-300c5de43874",
+      "name_en": "Studious First-Year // Rampant Growth",
+      "printed_name": "篤学な一年生 // 不屈の自然",
+      "printed_type_line": "クリーチャー --- 熊(Bear)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "このクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nあなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Rampant Growth",
+          "printed_name": "不屈の自然",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7f82bae3-feaa-4967-a843-32a4f72806d5",
+      "name_en": "Subterranean Schooner",
+      "printed_name": "地底のスクーナー船",
+      "printed_type_line": "アーティファクト --- 機体(Vehicle)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "de6b26e4-8700-490f-9df2-dac430463274",
+      "name_en": "Sunstar Chaplain",
+      "printed_type_line": "クリーチャー --- 人間(Human)・クレリック(Cleric)",
+      "printed_text": "あなたの終了ステップの開始時に、あなたが２体以上のタップ状態であるクリーチャーをコントロールしている場合、あなたがコントロールしているクリーチャー１体を対象とする。それの上に+1/+1カウンター１個を置く。\n(２),あなたがコントロールしているクリーチャーの上から+1/+1カウンター１個を取り除く：アーティファクトやクリーチャーである１つを対象とする。それをタップする。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "132de6c2-4ca2-41da-9c78-caa59838b641",
+      "name_en": "Sunstar Lightsmith",
+      "printed_type_line": "クリーチャー --- 人間(Human)・工匠(Artificer)",
+      "printed_text": "あなたが各ターン内のあなたの２つ目の呪文を唱えるたび、このクリーチャーの上に+1/+1カウンター１個を置き、カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "53745903-de8f-42cf-a949-842e5831de30",
+      "name_en": "Survey Mechan",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)",
+      "printed_text": "飛行\n呪禁（このクリーチャーは対戦相手がコントロールしている呪文や能力の対象にならない。）\n(１０),このクリーチャーを生け贄に捧げる：１つを対象とし、プレイヤー１人を対象とする。これはその前者に３点のダメージを与える。その後者のプレイヤーはカード３枚を引き、３点のライフを得る。この能力を起動するためのコストは(Ｘ)少なくなる。Ｘは、あなたがコントロールしていて互いに異なる名前を持つ土地の数に等しい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4f754f11-3b6d-4a4e-86d7-7495e475ef74",
+      "name_en": "Susurian Voidborn",
+      "printed_type_line": "クリーチャー --- 吸血鬼(Vampire)・兵士(Soldier)",
+      "printed_text": "このクリーチャーか、あなたがコントロールしていてクリーチャーやアーティファクトでありこれでない１つが死亡するたび、対戦相手１人を対象とする。そのプレイヤーは１点のライフを失い、あなたは１点のライフを得る。\nワープ(黒)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "56719f6a-1a6c-4c0a-8d21-18f7d7350b68",
+      "name_en": "Swamp",
+      "printed_type_line": "基本土地 --- 沼(Swamp)",
+      "printed_text": "(黒)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a6c28bde-10d9-471b-acd0-32a1c6195805",
+      "name_en": "Swarm Culler",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・戦士(Warrior)",
+      "printed_text": "飛行\nこのクリーチャーがタップ状態になるたび、クリーチャーやアーティファクトでありこれでない１つを生け贄に捧げてもよい。そうしたなら、カード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a37314cf-bbbd-4003-b94d-0e6e60edfc15",
+      "name_en": "Synthesizer Labship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。９個以上なら、これはアーティファクト・クリーチャーである。）\n2+｜あなたのターンの戦闘の開始時に、あなたがコントロールしていてこれでないアーティファクト最大１つを対象とする。ターン終了時まで、それは基本のパワーとタフネスが2/2のアーティファクト・クリーチャーになり、飛行を得る。\n9+｜飛行、警戒",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9e597063-c077-4236-a9e4-b0721b24677f",
+      "name_en": "Syr Vondam, Sunstar Exemplar",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight)",
+      "printed_text": "警戒、威迫\nあなたがコントロールしていてこれでないクリーチャー１体が死亡するか追放領域に置かれるたび、これの上に+1/+1カウンター１個を置き、１点のライフを得る。\nパワーが４以上であるこれが死亡するか追放領域に置かれたとき、土地でないパーマネント最大１つを対象とする。それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "28225bae-2d96-4352-b256-0c2ff4ef65e9",
+      "name_en": "Syr Vondam, the Lucent",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・騎士(Knight)",
+      "printed_text": "接死、絆魂\nこれが戦場に出るか攻撃するたび、ターン終了時まで、あなたがコントロールしていてこれでないすべてのクリーチャーは+1/+0の修整を受け接死を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4c9d9d47-1eb6-4981-ba83-d5ec04906e71",
+      "name_en": "Systems Override",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "アーティファクトやクリーチャーである１つを対象とする。ターン終了時まで、それのコントロールを得る。そのパーマネントをアンタップする。ターン終了時まで、それは速攻を得る。それが宇宙船(Spacecraft)なら、それの上に蓄積(charge)カウンター１０個を置く。そうしたなら、次の終了ステップの開始時に、それの上から蓄積カウンター１０個を取り除く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "702e871d-90d8-4468-8f69-5ae42af2c9d3",
+      "name_en": "Tam, Observant Sequencer // Deep Sight",
+      "printed_name": "観察眼ある配列者、タム // 深遠なる視野",
+      "printed_type_line": "伝説のクリーチャー --- ゴルゴン(Gorgon)・ウィザード(Wizard) // ソーサリー",
+      "printed_text": "上陸 ― あなたがコントロールしている土地１つが戦場に出るたび、これは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nカード１枚を引き、１点のライフを得る。",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Tam, Observant Sequencer",
+          "printed_name": "観察眼ある配列者、タム",
+          "printed_type_line": "伝説のクリーチャー --- ゴルゴン(Gorgon)・ウィザード(Wizard)",
+          "printed_text": "上陸 ― あなたがコントロールしている土地１つが戦場に出るたび、これは準備済状態になる。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Deep Sight",
+          "printed_name": "深遠なる視野",
+          "printed_type_line": "ソーサリー",
+          "printed_text": "カード１枚を引き、１点のライフを得る。"
+        }
+      ],
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "981138d0-bf61-406a-85be-68cc5e58796c",
+      "name_en": "Tapestry Warden",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・兵士(Soldier)",
+      "printed_text": "警戒\nあなたがコントロールしていてタフネスがパワーよりも大きいすべてのクリーチャーは、パワーではなくタフネスに等しい点数の戦闘ダメージを与える。\nあなたがコントロールしていてタフネスがパワーよりも大きいすべてのクリーチャーは、パワーではなくタフネスを用いてパーマネントを配備する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "5005df36-a100-492d-89b9-e221793cfb56",
+      "name_en": "Tempest Hart // Scan the Clouds",
+      "printed_name": "大嵐の雄鹿 // 雲の走査",
+      "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・大鹿(Elk) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Tempest Hart",
+          "printed_name": "大嵐の雄鹿",
+          "printed_type_line": "クリーチャー --- エレメンタル(Elemental)・大鹿(Elk)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "cdda2f04-d59e-4ef8-a26d-964d80750940",
+      "name_en": "Terminal Velocity",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "あなたの手札にありアーティファクトやクリーチャーであるカード１枚を戦場に出してもよい。そのパーマネントは速攻と「このパーマネントが戦場を離れたとき、これは各クリーチャーにそれぞれ、これのマナ総量に等しい点数のダメージを与える。」と「あなたの終了ステップの開始時に、このパーマネントを生け贄に捧げる。」を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "54ca5904-9099-497a-9684-101656025487",
+      "name_en": "Terra, Magical Adept // Esper Terra",
+      "printed_name": "魔導戦士、ティナ // 幻獣の血を引く少女、ティナ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard)・戦士(Warrior) // 〔赤/緑〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ウィザード(Wizard)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Terra, Magical Adept",
+          "printed_name": "魔導戦士、ティナ",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard)・戦士(Warrior)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Esper Terra",
+          "printed_name": "幻獣の血を引く少女、ティナ",
+          "printed_type_line": "〔赤/緑〕 伝説のクリーチャー・エンチャント --- 英雄譚(Saga)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c08e0958-8fa2-49c7-ab17-a70dfc1ef33a",
+      "name_en": "Terrapact Intimidator",
+      "printed_type_line": "クリーチャー --- カヴー(Kavu)・スカウト(Scout)",
+      "printed_text": "このクリーチャーが戦場に出たとき、対戦相手１人を対象とする。そのプレイヤーは「あなたは着陸船(Lander)トークン２つを生成する。」を選んでもよい。そうしないなら、このクリーチャーの上に+1/+1カウンター２個を置く。（着陸船トークンは、「(２),(Ｔ),このトークンを生け贄に捧げる：あなたのライブラリーから基本土地カード１枚を探し、タップ状態で戦場に出す。その後、ライブラリーを切り直す。」を持つアーティファクトである。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4ac94586-3ac7-4ade-af31-ad0d0e3ffc4a",
+      "name_en": "Terrasymbiosis",
+      "printed_type_line": "エンチャント",
+      "printed_text": "あなたが、あなたがコントロールしているクリーチャー１体の上に１個以上の+1/+1カウンターを置くたび、あなたはその個数に等しい枚数のカードを引いてもよい。これは毎ターン１回しか行えない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0eb11b2d-a397-48da-a0f3-9f0f83f42282",
+      "name_en": "Tezzeret, Cruel Captain",
+      "printed_type_line": "伝説のプレインズウォーカー --- テゼレット(Tezzeret)",
+      "printed_text": "あなたがコントロールしているアーティファクト１つが戦場に出るたび、これの上に忠誠(loyalty)カウンター１個を置く。\n[0]：アーティファクトやクリーチャーである１つを対象とする。それをアンタップする。それがアーティファクト・クリーチャーなら、それの上に+1/+1カウンター１個を置く。\n[-3]：あなたのライブラリーからマナ総量が１以下であるアーティファクト・カード１枚を探し、公開し、あなたの手札に加える。その後、ライブラリーを切り直す。\n[-7]：「あなたのターンの戦闘の開始時に、あなたがコントロールしているアーティファクト１つを対象とする。それの上に+1/+1カウンター３個を置く。それがクリーチャーでないなら、それは0/0のロボット(Robot)・アーティファクト・クリーチャーになる。」の紋章を得る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "9f9ae015-dc59-4ecb-a2bb-668496b48a48",
+      "name_en": "Thaumaton Torpedo",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "(６),(Ｔ),このアーティファクトを生け贄に捧げる：土地でないパーマネント１つを対象とする。それを破壊する。このターンにあなたが宇宙船(Spacecraft)で攻撃していたなら、この能力を起動するためのコストは(３)少なくなる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0863c4bc-1e3e-4ff9-8877-88d4021c85e5",
+      "name_en": "Thawbringer",
+      "printed_type_line": "クリーチャー --- 昆虫(Insect)・スカウト(Scout)",
+      "printed_text": "このクリーチャーが戦場に出たか死亡したとき、諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c017f8ae-9103-4965-a07a-f259f44a157d",
+      "name_en": "The Dominion Bracelet",
+      "printed_type_line": "伝説のアーティファクト --- 装備品(Equipment)",
+      "printed_text": "装備しているクリーチャーは+1/+1の修整を受け、「(15),統制の腕輪を追放する：対戦相手１人を対象とする。次のそのプレイヤーのターンの間、あなたはそのプレイヤーをコントロールする。この能力を起動するためのコストは(Ｘ)少なくなる。Ｘは、このクリーチャーのパワーに等しい。起動はソーサリーとしてのみ行う。」を持つ。（あなたはそのプレイヤーが見ることのできるすべてのカードを見て、そのプレイヤーが行うすべての決定を行う。）\n装備(１)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "042c01ec-9f1f-432b-bea9-d64d822cd91e",
+      "name_en": "The Emperor of Palamecia // The Lord Master of Hell",
+      "printed_name": "パラメキア皇帝 // 地獄の魔物を率いる者",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・ウィザード(Wizard) // 〔青/赤〕 伝説のクリーチャー --- デーモン(Demon)・貴族(Noble)・ウィザード(Wizard)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "The Emperor of Palamecia",
+          "printed_name": "パラメキア皇帝",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "The Lord Master of Hell",
+          "printed_name": "地獄の魔物を率いる者",
+          "printed_type_line": "〔青/赤〕 伝説のクリーチャー --- デーモン(Demon)・貴族(Noble)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "57ee0730-3ac5-4f17-ac82-bd4a6673c2bb",
+      "name_en": "The Endstone",
+      "printed_type_line": "伝説のアーティファクト",
+      "printed_text": "あなたが土地１つをプレイするか呪文１つを唱えるたび、カード１枚を引く。\nあなたの終了ステップの開始時に、あなたのライフ総量は、ゲーム開始時のあなたのライフ総量の端数を切り上げた半分になる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a6bcec1f-f515-4e63-9e84-8eb04cc582ff",
+      "name_en": "The Seriema",
+      "printed_type_line": "伝説のアーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "セリーマ号が戦場に出たとき、あなたのライブラリーから伝説のクリーチャー・カード１枚を探し、公開し、あなたの手札に加える。その後、ライブラリーを切り直す。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船(Spacecraft)の上に置く。配備はソーサリーとしてのみ行う。７個以上なら、これはアーティファクト・クリーチャーである。）\n7+｜飛行\nあなたがコントロールしていてタップ状態でありこれでないすべての伝説のクリーチャーは破壊不能を持つ。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "bd575e82-99e7-44c7-ab93-d33f5678e1ad",
+      "name_en": "Threadbind Clique // Rip the Seams",
+      "printed_name": "糸縛りの徒党 // 継ぎ目破り",
+      "printed_type_line": "クリーチャー --- フェアリー(Faerie) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Threadbind Clique",
+          "printed_name": "糸縛りの徒党",
+          "printed_type_line": "クリーチャー --- フェアリー(Faerie)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "b8020a8b-557b-465d-865d-b59fecd7abc1",
+      "name_en": "Threefold Thunderhulk",
+      "printed_type_line": "アーティファクト・クリーチャー --- ノーム(Gnome)",
+      "printed_text": "三重の稲妻巨人は+1/+1カウンターが３個置かれた状態で戦場に出る。\n三重の稲妻巨人が戦場に出るか攻撃するたび、これのパワーに等しい数の無色の1/1のノーム(Gnome)・アーティファクト・クリーチャー・トークンを生成する。\n(２),これでないアーティファクト１つを生け贄に捧げる：三重の稲妻巨人の上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "04ea21b3-084b-4746-9b49-99b6ef4f0885",
+      "name_en": "Thrumming Hivepool",
+      "printed_type_line": "アーティファクト",
+      "printed_text": "親和（スリヴァー(Sliver)）（この呪文を唱えるためのコストは、あなたがコントロールしているスリヴァー１体につき(１)少なくなる。）\nあなたがコントロールしているすべてのスリヴァーは二段攻撃と速攻を持つ。\nあなたのアップキープの開始時に、無色の1/1のスリヴァー・クリーチャー・トークン２体を生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "595f0eb5-f521-4174-9c48-b89e85ea907c",
+      "name_en": "Titan's Grave",
+      "printed_name": "タイタンの墓",
+      "printed_type_line": "土地",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(黒)か(緑)を加える。\n(２)(黒)(緑),(Ｔ)：諜報１を行う。（あなたのライブラリーの一番上にあるカード１枚を見る。それをあなたの墓地に置いてもよい。）",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "ed99a0b8-d82d-4c80-af97-cabd333620df",
+      "name_en": "Tractor Beam",
+      "printed_type_line": "エンチャント --- オーラ(Aura)",
+      "printed_text": "エンチャント（クリーチャーや宇宙船(Spacecraft)）\nこのオーラ(Aura)が戦場に出たとき、エンチャントしているパーマネントをタップする。\nあなたはエンチャントしているパーマネントをコントロールする。\nエンチャントしているパーマネントは、それのコントローラーのアンタップ・ステップにアンタップしない。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0b55eac6-a745-4bf4-8926-5ce83bc38d7d",
+      "name_en": "Treasure Map // Treasure Cove",
+      "printed_name": "宝物の地図 // 宝物の入り江",
+      "printed_type_line": "アーティファクト // 土地",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Treasure Map",
+          "printed_name": "宝物の地図",
+          "printed_type_line": "アーティファクト"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Treasure Cove",
+          "printed_name": "宝物の入り江",
+          "printed_type_line": "土地"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "105aea98-8eb9-4fb2-a0cb-7c7513317c5b",
+      "name_en": "Twining Twins // Swift Spiral",
+      "printed_name": "撚り合わせる双子 // 敏捷な螺旋",
+      "printed_type_line": "クリーチャー --- フェアリー(Faerie)・ウィザード(Wizard) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Twining Twins",
+          "printed_name": "撚り合わせる双子",
+          "printed_type_line": "クリーチャー --- フェアリー(Faerie)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "ff812a78-3fe7-47bc-9984-1c2380cff5b1",
+      "name_en": "Twinmaw Stormbrood // Charring Bite",
+      "printed_name": "双つ口の嵐孵り // 黒焦げの噛みつき",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Twinmaw Stormbrood",
+          "printed_name": "双つ口の嵐孵り",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0f222f3d-f02b-42b9-aedf-fb7ed92d4889",
+      "name_en": "Two-Headed Hunter // Twice the Rage",
+      "printed_name": "双頭の狩人 // 倍増する憤怒",
+      "printed_type_line": "クリーチャー --- 巨人(Giant) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Two-Headed Hunter",
+          "printed_name": "双頭の狩人",
+          "printed_type_line": "クリーチャー --- 巨人(Giant)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "70773879-b773-4e81-99ca-8f4bba478962",
+      "name_en": "Ultimecia, Time Sorceress // Ultimecia, Omnipotent",
+      "printed_name": "未来の魔女、アルティミシア // 時間圧縮を果たす者、アルティミシア",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・邪術師(Warlock) // 〔青/黒〕 伝説のクリーチャー --- ナイトメア(Nightmare)・邪術師(Warlock)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Ultimecia, Time Sorceress",
+          "printed_name": "未来の魔女、アルティミシア",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・邪術師(Warlock)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Ultimecia, Omnipotent",
+          "printed_name": "時間圧縮を果たす者、アルティミシア",
+          "printed_type_line": "〔青/黒〕 伝説のクリーチャー --- ナイトメア(Nightmare)・邪術師(Warlock)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "1525cbc1-0d95-4f58-99fb-136e54c4d486",
+      "name_en": "Unravel",
+      "printed_type_line": "インスタント",
+      "printed_text": "呪文１つを対象とする。それを打ち消す。その呪文を唱えるために支払われたマナの点数がそれのマナ総量よりも小さいなら、あなたはカード１枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7f51aede-fb86-4b7e-9027-2ba8be62b567",
+      "name_en": "Uthros Psionicist",
+      "printed_type_line": "クリーチャー --- クラゲ(Jellyfish)・科学者(Scientist)",
+      "printed_text": "あなたが各ターン内のあなたの２つ目の呪文を唱えるためのコストは(２)少なくなる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7b4c37dc-8cb0-4870-929e-11c2a45952a2",
+      "name_en": "Uthros Scanship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、カード２枚を引き、その後、カード１枚を捨てる。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。８個以上なら、これはアーティファクト・クリーチャーである。）\n8+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "df08ac72-010f-42f8-beb3-6d645c638e1e",
+      "name_en": "Uthros, Titanic Godcore",
+      "printed_type_line": "土地 --- 惑星(Planet)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(青)を加える。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの惑星(Planet)の上に置く。配備はソーサリーとしてのみ行う。）\n12+｜(青),(Ｔ)：あなたがコントロールしているアーティファクト１つにつき(青)を加える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "577725ae-290f-4081-8352-3317521a096f",
+      "name_en": "Vanille, Cheerful l'Cie",
+      "printed_name": "陽気なルシ、ヴァニラ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・クレリック(Cleric)",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "89ae3475-9063-4700-a7bd-47d5dcd43a3b",
+      "name_en": "Vantress Transmuter // Croaking Curse",
+      "printed_name": "ヴァントレスの変成者（う゛ぁんとれすのへんせいしゃ） // カエル声の呪い",
+      "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard) // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Vantress Transmuter",
+          "printed_name": "ヴァントレスの変成者（う゛ぁんとれすのへんせいしゃ）",
+          "printed_type_line": "クリーチャー --- 人間(Human)・ウィザード(Wizard)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3a97bc8d-bd81-468e-9277-eba4fac11ee0",
+      "name_en": "Vastlands Scavenger // Bind to Life",
+      "printed_name": "大界の回収者 // 生命への束縛",
+      "printed_type_line": "クリーチャー --- 熊(Bear)・ドルイド(Druid) // インスタント",
+      "printed_text": "接死\nこのクリーチャーは準備済状態で戦場に出る。（準備済状態である間、あなたはこれの呪文のコピーを唱えてもよい。そうしたら、これを未準備状態にする。）\n\nカード７枚を切削する。その後、その中からクリーチャー・カード１枚を戦場に出す。",
+      "card_faces": [
+        {
+          "face_index": 1,
+          "name_en": "Bind to Life",
+          "printed_name": "生命への束縛",
+          "printed_type_line": "インスタント",
+          "printed_text": "カード７枚を切削する。その後、その中からクリーチャー・カード１枚を戦場に出す。"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e15c78d4-6fb1-4bd3-8219-c66b83fcaba1",
+      "name_en": "Vaultguard Trooper",
+      "printed_type_line": "クリーチャー --- カヴー(Kavu)・兵士(Soldier)",
+      "printed_text": "あなたの終了ステップの開始時に、あなたが２体以上のタップ状態であるクリーチャーをコントロールしている場合、あなたの手札を捨ててもよい。そうしたなら、カード２枚を引く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "2e5adbcf-6b5c-4ded-a339-8757040ef878",
+      "name_en": "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+      "printed_name": "星の意思、ヴェーネス // マザークリスタル、ハイデリン",
+      "printed_type_line": "伝説のクリーチャー --- エルダー(Elder)・ウィザード(Wizard) // 〔白〕 伝説のクリーチャー --- 神(God)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Venat, Heart of Hydaelyn",
+          "printed_name": "星の意思、ヴェーネス",
+          "printed_type_line": "伝説のクリーチャー --- エルダー(Elder)・ウィザード(Wizard)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Hydaelyn, the Mothercrystal",
+          "printed_name": "マザークリスタル、ハイデリン",
+          "printed_type_line": "〔白〕 伝説のクリーチャー --- 神(God)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "a0cbb1ba-73b1-4418-bbe3-5d1a02007c08",
+      "name_en": "Vibrant Outburst",
+      "printed_name": "鮮やかな迸り",
+      "printed_type_line": "インスタント",
+      "printed_text": "１つを対象とし、クリーチャー最大１体を対象とする。鮮やかな迸りはその前者に３点のダメージを与える。その後者をタップする。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "90898c76-21f9-4597-88fe-dc9179911cde",
+      "name_en": "Vicious Rivalry",
+      "printed_name": "悪意ある競争心",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "この呪文を唱えるための追加コストとして、Ｘ点のライフを支払う。\nマナ総量がＸ以下でありアーティファクトやクリーチャーであるすべてを破壊する。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "f40e6bbf-1fed-4ec5-869d-18c2dd396d14",
+      "name_en": "Vincent Valentine // Galian Beast",
+      "printed_name": "ヴィンセント・ヴァレンタイン // ガリアンビースト",
+      "printed_type_line": "伝説のクリーチャー --- 暗殺者(Assassin) // 〔黒〕 伝説のクリーチャー --- 狼男(Werewolf)・ビースト(Beast)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Vincent Valentine",
+          "printed_name": "ヴィンセント・ヴァレンタイン",
+          "printed_type_line": "伝説のクリーチャー --- 暗殺者(Assassin)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Galian Beast",
+          "printed_name": "ガリアンビースト",
+          "printed_type_line": "〔黒〕 伝説のクリーチャー --- 狼男(Werewolf)・ビースト(Beast)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "af6438b9-3fde-45c9-af69-dff686c1e0de",
+      "name_en": "Virtue of Courage // Embereth Blaze",
+      "printed_name": "勇気の徳目 // エンバレスの猛火",
+      "printed_type_line": "エンチャント // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Virtue of Courage",
+          "printed_name": "勇気の徳目",
+          "printed_type_line": "エンチャント"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f0bbcabf-29e7-4c7e-893f-86b64d3620a9",
+      "name_en": "Virtue of Knowledge // Vantress Visions",
+      "printed_name": "知識の徳目 // ヴァントレスの幻視（う゛ぁんとれすのげんし）",
+      "printed_type_line": "エンチャント // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Virtue of Knowledge",
+          "printed_name": "知識の徳目",
+          "printed_type_line": "エンチャント"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "f61f4307-4eec-476a-97e5-d4d3da2b54c3",
+      "name_en": "Virtue of Loyalty // Ardenvale Fealty",
+      "printed_name": "忠義の徳目 // アーデンベイルの忠義",
+      "printed_type_line": "エンチャント // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Virtue of Loyalty",
+          "printed_name": "忠義の徳目",
+          "printed_type_line": "エンチャント"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fae36da0-bf9c-484f-b2fe-dd8ab2effc5c",
+      "name_en": "Virtue of Persistence // Locthwain Scorn",
+      "printed_name": "執念の徳目 // ロークスワインの嘲笑",
+      "printed_type_line": "エンチャント // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Virtue of Persistence",
+          "printed_name": "執念の徳目",
+          "printed_type_line": "エンチャント"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "31af78dd-e962-4d9a-b696-f3048be03486",
+      "name_en": "Virtue of Strength // Garenbrig Growth",
+      "printed_name": "強靭の徳目 // ギャレンブリグの成長",
+      "printed_type_line": "エンチャント // ソーサリー --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Virtue of Strength",
+          "printed_name": "強靭の徳目",
+          "printed_type_line": "エンチャント"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "7d70a2f4-92cb-40c3-9e5a-f6c57d4a64c2",
+      "name_en": "Virulent Silencer",
+      "printed_type_line": "アーティファクト・クリーチャー --- ロボット(Robot)・暗殺者(Assassin)",
+      "printed_text": "あなたがコントロールしていてトークンでないアーティファクト・クリーチャー１体かプレイヤー１人に戦闘ダメージを与えるたび、そのプレイヤーは毒(poison)カウンター２個を得る。（毒カウンター１０個以上を持っているプレイヤーは、このゲームに敗北する。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e1e489f6-37e5-469e-bca3-0e9d3fc3fa95",
+      "name_en": "Virus Beetle",
+      "printed_type_line": "アーティファクト・クリーチャー --- 昆虫(Insect)",
+      "printed_text": "このクリーチャーが戦場に出たとき、各対戦相手はそれぞれカード１枚を捨てる。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c9f35490-462a-4c8f-9d8b-d8abca6596f7",
+      "name_en": "Visionary's Dance",
+      "printed_name": "幻視家の舞",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "飛行を持つ青赤の3/3のエレメンタル(Elemental)・クリーチャー・トークン２体を生成する。\n(２),このカードを捨てる：あなたのライブラリーの一番上にあるカード２枚を見る。そのうち１枚をあなたの手札に、残りをあなたの墓地に置く。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "7efe9fe5-d93c-46a6-afbd-9655a902c6bc",
+      "name_en": "Vote Out",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "召集（あなたのクリーチャーが、この呪文を唱える助けとなる。この呪文を唱える段階であなたがタップした各クリーチャーはそれぞれ(１)かそのクリーチャーの色のマナ１点を支払う。）\nクリーチャー１体を対象とする。それを破壊する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "c947171b-ed9e-4b83-af45-bd595a8d84ee",
+      "name_en": "Warmaker Gunship",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、対戦相手がコントロールしているクリーチャー１体を対象とする。これはそれに、あなたがコントロールしているアーティファクトの数に等しい点数のダメージを与える。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。６個以上なら、これはアーティファクト・クリーチャーである。）\n6+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "05d24b0c-904a-46b6-b42a-96a4d91a0dd4",
+      "name_en": "Wastes",
+      "printed_type_line": "基本土地",
+      "printed_text": "(Ｔ)：(◇)を加える。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "fc9ec820-4245-4a96-b009-5308a818ca58",
+      "name_en": "Watery Grave",
+      "printed_type_line": "土地 --- 島(Island)・沼(Swamp)",
+      "printed_text": "（(Ｔ)：(青)か(黒)を加える。）\nこの土地が戦場に出るに際し、２点のライフを支払ってもよい。そうしないなら、これはタップ状態で戦場に出る。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "e48a8160-cffe-4e00-a3e9-a59d7fc7b3a2",
+      "name_en": "Weapons Manufacturing",
+      "printed_type_line": "エンチャント",
+      "printed_text": "あなたがコントロールしていてトークンでないアーティファクト１つが戦場に出るたび、《弾薬/Munitions》という名前で「このトークンが戦場を離れたとき、１つを対象とする。これはそれに２点のダメージを与える。」を持つ無色のアーティファクト・トークン１つを生成する。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "03259ab0-caa8-4620-b070-127e2c712252",
+      "name_en": "Wedgelight Rammer",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、無色の2/2のロボット(Robot)・アーティファクト・クリーチャー・トークン１体を生成する。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。９個以上なら、これはアーティファクト・クリーチャーである。）\n9+｜飛行、先制攻撃",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "926d52a5-4db1-46ce-9567-17c28bf56ae7",
+      "name_en": "Weftstalker Ardent",
+      "printed_type_line": "クリーチャー --- ドリックス(Drix)・工匠(Artificer)",
+      "printed_text": "あなたがコントロールしていてクリーチャーやアーティファクトでありこれでない１つが戦場に出るたび、このクリーチャーは各対戦相手にそれぞれ１点のダメージを与える。\nワープ(赤)（あなたの手札にあるこのカードを、ワープ・コストで唱えてもよい。次の終了ステップの開始時に、このクリーチャーを追放し、その後、後のターンに、これを追放領域から唱えてもよい。）",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "08af6751-5848-47fb-95f5-57215e899460",
+      "name_en": "Weftwalking",
+      "printed_type_line": "エンチャント",
+      "printed_text": "このエンチャントが戦場に出たとき、これを唱えていた場合、あなたの手札とあなたの墓地をあなたのライブラリーに加えて切り直す。その後、カード７枚を引く。\n各プレイヤーは、自分の各ターン内で自分が初めて唱える呪文を、そのマナ・コストを支払うことなく唱えてもよい。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "4fbfc814-df10-4d61-ada9-c96cc8ee8d8c",
+      "name_en": "Whirlwing Stormbrood // Dynamic Soar",
+      "printed_name": "竜巻翼の嵐孵り // 力強き飛翔",
+      "printed_type_line": "クリーチャー --- ドラゴン(Dragon) // ソーサリー --- 前兆(Omen)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Whirlwing Stormbrood",
+          "printed_name": "竜巻翼の嵐孵り",
+          "printed_type_line": "クリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3bed0b60-5944-44bb-9ddd-c82f323e6d20",
+      "name_en": "Wilt in the Heat",
+      "printed_name": "暑さに萎れる",
+      "printed_type_line": "インスタント",
+      "printed_text": "このターンに１枚以上のカードがあなたの墓地を離れていたなら、この呪文を唱えるためのコストは(２)少なくなる。\nクリーチャー１体を対象とする。暑さに萎れるはそれに５点のダメージを与える。このターンにそのクリーチャーが死亡するなら、代わりにそれを追放する。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "ee1db746-f5c1-4dce-82eb-24b273cc9507",
+      "name_en": "Witherbloom Charm",
+      "printed_name": "ウィザーブルームの魔除け",
+      "printed_type_line": "インスタント",
+      "printed_text": "以下から１つを選ぶ。\n・パーマネント１つを生け贄に捧げてもよい。そうしたなら、カード２枚を引く。\n・５点のライフを得る。\n・マナ総量が２以下であり土地でないパーマネント１つを対象とする。それを破壊する。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "fbb04a21-e513-4317-aac8-fa6df91c3438",
+      "name_en": "Witherbloom, the Balancer",
+      "printed_name": "均衡を保つもの、ウィザーブルーム",
+      "printed_type_line": "伝説のクリーチャー --- エルダー(Elder)・ドラゴン(Dragon)",
+      "printed_text": "親和（クリーチャー）（この呪文を唱えるためのコストは、あなたがコントロールしているクリーチャー１体につき(１)少なくなる。）\n飛行、接死\nあなたが唱える、インスタントやソーサリーであるすべての呪文は親和（クリーチャー）を持つ。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "ba610f08-61a7-47fe-9a80-32b5ce51b118",
+      "name_en": "Woodland Acolyte // Mend the Wilds",
+      "printed_name": "森林地の侍祭 // 僻境の修繕",
+      "printed_type_line": "クリーチャー --- 人間(Human)・クレリック(Cleric) // インスタント --- 出来事(Adventure)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Woodland Acolyte",
+          "printed_name": "森林地の侍祭",
+          "printed_type_line": "クリーチャー --- 人間(Human)・クレリック(Cleric)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3b6ef144-bb98-4686-9718-204f1c3cf020",
+      "name_en": "Worldsoul's Rage",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "１つを対象とする。世界魂の憤怒はそれにＸ点のダメージを与える。あなたの手札やあなたの墓地にある土地カード最大Ｘ枚をタップ状態で戦場に出す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "320ed2ec-ef06-41fb-ac8a-72579f11544c",
+      "name_en": "Wurmwall Sweeper",
+      "printed_type_line": "アーティファクト --- 宇宙船(Spacecraft)",
+      "printed_text": "この宇宙船(Spacecraft)が戦場に出たとき、諜報２を行う。\n配備（あなたがコントロールしていてこれでないクリーチャー１体をタップする：それのパワーに等しい個数の蓄積(charge)カウンターをこの宇宙船の上に置く。配備はソーサリーとしてのみ行う。４個以上なら、これはアーティファクト・クリーチャーである。）\n4+｜飛行",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "39e32fdf-93bf-4390-8275-0d7d10ad7360",
+      "name_en": "Xu-Ifit, Osteoharmonist",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・ウィザード(Wizard)",
+      "printed_text": "(Ｔ)：あなたの墓地にあるクリーチャー・カード１枚を対象とする。それを戦場に戻す。それは他のタイプに加えてスケルトン(Skeleton)であり、能力を持たない。起動はソーサリーとしてのみ行う。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "6d37ba4b-ff56-4eec-9dc2-2d7f357dc9c9",
+      "name_en": "Youthful Valkyrie",
+      "printed_name": "若年の戦乙女",
+      "printed_type_line": "クリーチャー --- 天使(Angel)",
+      "printed_text": "飛行\n他の天使(Angel)１体があなたのコントロール下で戦場に出るたび、若年の戦乙女の上に+1/+1カウンター１個を置く。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "3f8a8650-0e38-4926-8f48-526351e6a863",
+      "name_en": "Zaffai and the Tempests",
+      "printed_name": "ザファイとザ・テンペスツ",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・バード(Bard)・魔術師(Sorcerer)",
+      "printed_text": "あなたの各ターン中に１回、あなたの手札にありインスタントやソーサリーである呪文１つを、そのマナ・コストを支払うことなく唱えてもよい。",
+      "note": "日本語名・ルール文章を補完。日本語画像は取得データに未収録のため、英語画像へフォールバック。"
+    },
+    {
+      "oracle_id": "5f2b3ea8-99ee-47a4-8a1c-4b27478d524c",
+      "name_en": "Zanarkand, Ancient Metropolis // Lasting Fayth",
+      "printed_name": "古の大都市、ザナルカンド // 継承の祈り子",
+      "printed_type_line": "土地 --- 街(Town) // ソーサリー --- 出来事(Adventure)",
+      "printed_text": "この土地はタップ状態で戦場に出る。\n(Ｔ)：(緑)を加える。\n\n無色の1/1の英雄(Hero)クリーチャー・トークン１体を生成する。それの上に、あなたがコントロールしている土地１つにつき１個の+1/+1カウンターを置く。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Zanarkand, Ancient Metropolis",
+          "printed_name": "古の大都市、ザナルカンド",
+          "printed_type_line": "土地 --- 街(Town)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Lasting Fayth",
+          "printed_name": "継承の祈り子",
+          "printed_type_line": "ソーサリー --- 出来事(Adventure)",
+          "printed_text": "無色の1/1の英雄(Hero)クリーチャー・トークン１体を生成する。それの上に、あなたがコントロールしている土地１つにつき１個の+1/+1カウンターを置く。（その後、このカードを追放する。後で追放領域にあるこの土地をプレイしてもよい。）"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "0ff3afba-7a90-4f62-a1b0-b553ad81c32b",
+      "name_en": "Zealous Display",
+      "printed_type_line": "インスタント",
+      "printed_text": "ターン終了時まで、あなたがコントロールしているすべてのクリーチャーは+2/+0の修整を受ける。あなたのターンでないなら、それらのクリーチャーをアンタップする。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "8f52fc65-a914-421a-9426-21eb520d55d5",
+      "name_en": "Zenos yae Galvus // Shinryu, Transcendent Rival",
+      "printed_name": "ゼノス・イェー・ガルヴァス // 超越せし者、神龍",
+      "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior) // 〔黒〕 伝説のクリーチャー --- ドラゴン(Dragon)",
+      "card_faces": [
+        {
+          "face_index": 0,
+          "name_en": "Zenos yae Galvus",
+          "printed_name": "ゼノス・イェー・ガルヴァス",
+          "printed_type_line": "伝説のクリーチャー --- 人間(Human)・貴族(Noble)・戦士(Warrior)"
+        },
+        {
+          "face_index": 1,
+          "name_en": "Shinryu, Transcendent Rival",
+          "printed_name": "超越せし者、神龍",
+          "printed_type_line": "〔黒〕 伝説のクリーチャー --- ドラゴン(Dragon)"
+        }
+      ],
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    },
+    {
+      "oracle_id": "835abd35-27ea-45fe-b55d-25081c57bd4a",
+      "name_en": "Zero Point Ballad",
+      "printed_type_line": "ソーサリー",
+      "printed_text": "タフネスがＸ以下であるすべてのクリーチャーを破壊する。あなたはＸ点のライフを失う。Ｘが６以上なら、これにより墓地に置かれたクリーチャー・カード１枚をあなたのコントロール下で戦場に戻す。",
+      "note": "日本語カードリストから日本語名・ルール文章を補完。"
+    }
+  ]
+}
