@@ -1795,3 +1795,93 @@ function setupRuleKernelV060(){
   const tab=document.querySelector('[data-view="rules"]');if(tab)tab.addEventListener('click',()=>{if(!pool.length)prepareDatabase(false);populateCardNames();});
 }
 setupRuleKernelV060();
+
+
+/* Rule Engine beta-1 / Event Graph Engine v0.6.1 */
+const EVENT_DICTIONARY_V061={
+  CAST_SPELL:{ja:'呪文を唱える',group:'spell'},SPELL_RESOLVED:{ja:'呪文が解決する',group:'spell'},COUNTER_SPELL:{ja:'呪文を打ち消す',group:'spell'},COPY_SPELL:{ja:'呪文をコピーする',group:'spell'},
+  ACTIVATE_ABILITY:{ja:'能力を起動する',group:'ability'},TRIGGER_ABILITY:{ja:'能力が誘発する',group:'ability'},ABILITY_RESOLVED:{ja:'能力が解決する',group:'ability'},DELAYED_TRIGGER:{ja:'遅延誘発を作る',group:'ability'},
+  ENTER_BATTLEFIELD:{ja:'戦場に出る',group:'zone'},LEAVE_BATTLEFIELD:{ja:'戦場を離れる',group:'zone'},CREATURE_DIED:{ja:'クリーチャーが死亡する',group:'zone'},PERMANENT_TO_GRAVEYARD:{ja:'パーマネント・カードが墓地へ置かれる',group:'zone'},RETURN_FROM_GRAVEYARD:{ja:'墓地から戻る',group:'zone'},RETURN_TO_HAND:{ja:'手札に戻る',group:'zone'},EXILE_PERMANENT:{ja:'追放する',group:'zone'},
+  DRAW_CARD:{ja:'カードを引く',group:'card'},DISCARD_CARD:{ja:'カードを捨てる',group:'card'},MILL_CARD:{ja:'切削する',group:'card'},SURVEIL:{ja:'諜報する',group:'card'},SEARCH_LIBRARY:{ja:'ライブラリーを探す',group:'card'},SHUFFLE_LIBRARY:{ja:'ライブラリーを切り直す',group:'card'},REVEAL_CARD:{ja:'カードを公開する',group:'card'},
+  SACRIFICE_PERMANENT:{ja:'パーマネントを生け贄に捧げる',group:'permanent'},DESTROY_PERMANENT:{ja:'パーマネントを破壊する',group:'permanent'},TAP_PERMANENT:{ja:'パーマネントをタップする',group:'permanent'},UNTAP_PERMANENT:{ja:'パーマネントをアンタップする',group:'permanent'},ATTACH_EQUIPMENT:{ja:'装備品をつける',group:'permanent'},TYPE_CHANGE:{ja:'カード・タイプを変更する',group:'permanent'},
+  ADD_COUNTER:{ja:'カウンターを置く',group:'state'},REMOVE_COUNTER:{ja:'カウンターを取り除く',group:'state'},POWER_BUFF:{ja:'パワーを上げる',group:'state'},TOUGHNESS_BUFF:{ja:'タフネスを上げる',group:'state'},POWER_GTE_4:{ja:'パワー4以上になる',group:'state'},GAIN_ABILITY:{ja:'能力を得る',group:'state'},LOSE_ABILITY:{ja:'能力を失う',group:'state'},
+  LAND_ENTERED_BATTLEFIELD:{ja:'土地が戦場に出る',group:'land'},PLAY_LAND:{ja:'土地をプレイする',group:'land'},LAND_SACRIFICED:{ja:'土地を生け贄に捧げる',group:'land'},CREATE_MANA:{ja:'マナを加える',group:'land'},LANDFALL:{ja:'上陸条件を満たす',group:'land'},
+  CREATE_TOKEN:{ja:'トークンを生成する',group:'token'},TOKEN_DIED:{ja:'トークンが死亡する',group:'token'},
+  BEGIN_COMBAT:{ja:'戦闘開始',group:'combat'},ATTACK:{ja:'攻撃する',group:'combat'},BLOCK:{ja:'ブロックする',group:'combat'},DAMAGE_DEALT:{ja:'ダメージを与える',group:'combat'},COMBAT_DAMAGE:{ja:'戦闘ダメージを与える',group:'combat'},FIGHT:{ja:'格闘する',group:'combat'},
+  LIFE_GAIN:{ja:'ライフを得る',group:'life'},LIFE_LOSS:{ja:'ライフを失う',group:'life'},PAY_LIFE:{ja:'ライフを支払う',group:'life'},
+  TRANSFORM:{ja:'変身する',group:'special'},EXPLORE:{ja:'探検する',group:'special'},DISCOVER:{ja:'発見を行う',group:'special'},PROLIFERATE:{ja:'増殖を行う',group:'special'},
+  TARGET_SELECTED:{ja:'対象を選ぶ',group:'rules'},REPLACEMENT_APPLIED:{ja:'置換効果を適用する',group:'rules'},STATE_BASED_ACTION:{ja:'状況起因処理を行う',group:'rules'},STACK_OBJECT_CREATED:{ja:'スタックに置く',group:'rules'}
+};
+const EVENT_BRIDGES_V061=[
+ {from:'DISCARD_CARD',to:'PERMANENT_TO_GRAVEYARD',w:5,label:'捨てたパーマネント・カードが墓地へ置かれる'},
+ {from:'MILL_CARD',to:'PERMANENT_TO_GRAVEYARD',w:4,label:'切削したパーマネント・カードが墓地へ置かれる'},
+ {from:'SACRIFICE_PERMANENT',to:'CREATURE_DIED',w:5,label:'クリーチャーを生け贄にすると死亡する'},
+ {from:'SACRIFICE_PERMANENT',to:'PERMANENT_TO_GRAVEYARD',w:5,label:'生け贄にしたパーマネントが墓地へ置かれる'},
+ {from:'CREATURE_DIED',to:'PERMANENT_TO_GRAVEYARD',w:5,label:'死亡は戦場から墓地への移動'},
+ {from:'REMOVE_COUNTER',to:'POWER_BUFF',w:4,label:'－1/－1カウンター除去などで実効パワーが上がる'},
+ {from:'POWER_BUFF',to:'POWER_GTE_4',w:5,label:'修整によりパワー4条件へ到達できる'},
+ {from:'ATTACH_EQUIPMENT',to:'POWER_BUFF',w:4,label:'装備品の継続的修整を適用する'},
+ {from:'RETURN_FROM_GRAVEYARD',to:'ENTER_BATTLEFIELD',w:5,label:'墓地から戦場へ戻ることで戦場入りする'},
+ {from:'ENTER_BATTLEFIELD',to:'TRIGGER_ABILITY',w:4,label:'戦場に出たとき能力が誘発する'},
+ {from:'LAND_ENTERED_BATTLEFIELD',to:'LANDFALL',w:5,label:'土地の戦場入りで上陸が誘発する'},
+ {from:'LAND_SACRIFICED',to:'SACRIFICE_PERMANENT',w:5,label:'土地の生け贄はパーマネントの生け贄でもある'},
+ {from:'TYPE_CHANGE',to:'CREATURE_DIED',w:3,label:'クリーチャー化した土地は死亡イベントを起こせる'},
+ {from:'BEGIN_COMBAT',to:'TRIGGER_ABILITY',w:4,label:'戦闘開始時能力が誘発する'},
+ {from:'DAMAGE_DEALT',to:'LIFE_LOSS',w:3,label:'プレイヤーへのダメージはライフ減少を生む'}
+];
+function eventLabelV061(id){return EVENT_DICTIONARY_V061[id]?.ja||RULE_EVENT_LABELS_V060[id]||RULE_STATE_LABELS_V060[id]||id;}
+function addEventV061(set,id,source){if(EVENT_DICTIONARY_V061[id]&&!set.has(id))set.set(id,{id,source});}
+function eventIOV061(card,base){
+ const text=ruleTextV060(card),low=text.toLowerCase(),input=new Map(),output=new Map();
+ base.events.forEach(x=>addEventV061(output,x.id,x.evidence));
+ const match=(r)=>r.test(low);
+ // Outputs that v0.6.0 did not yet expose.
+ [[/create(s)? .* token|create a .* token/,'CREATE_TOKEN'],[/gain(s)? .* life/,'LIFE_GAIN'],[/lose(s)? .* life/,'LIFE_LOSS'],[/return .* to (its|their|your) owner'?s hand/,'RETURN_TO_HAND'],[/destroy target|destroy all/,'DESTROY_PERMANENT'],[/surveil/,'SURVEIL'],[/explore/,'EXPLORE'],[/transform/,'TRANSFORM'],[/add \{[wubrgc]/,'CREATE_MANA'],[/cast .* spell|whenever you cast/,'CAST_SPELL'],[/counter target spell/,'COUNTER_SPELL'],[/proliferate/,'PROLIFERATE'],[/becomes? .* creature/,'TYPE_CHANGE'],[/gets? \+[0-9x*]+\/\+[0-9x*]+|equipped creature gets/,'POWER_BUFF']].forEach(([r,id])=>{if(match(r))addEventV061(output,id,r.source)});
+ // Events/states consumed as triggers or conditions.
+ [[/whenever .* enters|when .* enters/,'ENTER_BATTLEFIELD'],[/whenever .* dies|when .* dies/,'CREATURE_DIED'],[/whenever .* discard|if .* discarded/,'DISCARD_CARD'],[/whenever .* card.*graveyard|permanent card.*graveyard/,'PERMANENT_TO_GRAVEYARD'],[/whenever .* sacrifice|if you sacrificed/,'SACRIFICE_PERMANENT'],[/whenever .* draw|second card.*draw/,'DRAW_CARD'],[/whenever .* cast/,'CAST_SPELL'],[/whenever .* attacks|when .* attacks/,'ATTACK'],[/whenever a land enters|land enters .* under your control/,'LAND_ENTERED_BATTLEFIELD'],[/at the beginning of combat/,'BEGIN_COMBAT'],[/power 4 or greater|power of 4 or greater/,'POWER_GTE_4'],[/from your graveyard/,'PERMANENT_TO_GRAVEYARD']].forEach(([r,id])=>{if(match(r))addEventV061(input,id,r.source)});
+ // Cost events are outputs because paying them changes game state.
+ base.costs.forEach(x=>{if(x.id==='DISCARD_CARD')addEventV061(output,'DISCARD_CARD','cost');if(x.id==='SACRIFICE_SELF'){addEventV061(output,'SACRIFICE_PERMANENT','cost');if(/land/i.test(card.type_line||''))addEventV061(output,'LAND_SACRIFICED','cost');}if(x.id==='TAP_SELF')addEventV061(output,'TAP_PERMANENT','cost');});
+ // Explicit state requirements.
+ base.conditions.forEach(x=>{if(x.id==='POWER_GTE_4'||x.id==='CONTROL_POWER_GTE_4')addEventV061(input,'POWER_GTE_4','condition');if(x.id==='YOUR_BEGIN_COMBAT')addEventV061(input,'BEGIN_COMBAT','condition');});
+ if(output.has('ENTER_BATTLEFIELD')&&/land/i.test(card.type_line||''))addEventV061(output,'LAND_ENTERED_BATTLEFIELD','land ETB');
+ if(output.has('SACRIFICE_PERMANENT')&&/land/i.test(text))addEventV061(output,'LAND_SACRIFICED','land sacrifice');
+ return {input:[...input.values()],output:[...output.values()]};
+}
+function graphEdgesV061(cards,profiles,ios){
+ const edges=[];
+ for(let a=0;a<cards.length;a++)for(let b=0;b<cards.length;b++)if(a!==b){
+  for(const out of ios[a].output){
+   for(const inp of ios[b].input){
+    if(out.id===inp.id)edges.push({from:a,to:b,event:out.id,w:5,label:`${eventLabelV061(out.id)}を直接利用`});
+    for(const bridge of EVENT_BRIDGES_V061)if(bridge.from===out.id&&bridge.to===inp.id)edges.push({from:a,to:b,event:`${out.id}>${inp.id}`,w:bridge.w,label:bridge.label});
+   }
+  }
+ }
+ const seen=new Set();return edges.filter(e=>{const k=`${e.from}|${e.to}|${e.event}`;if(seen.has(k))return false;seen.add(k);return true;}).sort((a,b)=>b.w-a.w);
+}
+function eventPillV061(e,kind){return `<span class="eventPillV061 ${kind}" title="${esc(e.source||'')}" data-event="${esc(e.id)}">${esc(eventLabelV061(e.id))}<small>${esc(e.id)}</small></span>`;}
+function eventDictionaryHTMLV061(){
+ const groups={};Object.entries(EVENT_DICTIONARY_V061).forEach(([id,v])=>(groups[v.group]??=[]).push({id,...v}));
+ return `<details class="eventDictionaryV061"><summary>Event辞書 ${Object.keys(EVENT_DICTIONARY_V061).length}種類</summary><div class="eventDictionaryGridV061">${Object.entries(groups).map(([g,items])=>`<section><h4>${esc(g)}</h4>${items.map(x=>`<span title="${esc(x.id)}">${esc(x.ja)}</span>`).join('')}</section>`).join('')}</div></details>`;
+}
+function eventGraphHTMLV061(cards,ios,edges,verified){
+ const nodes=cards.map((c,i)=>`<article class="eventCardV061"><header><b>${i+1}</b><div><h3>${esc(displayName(c))}</h3>${englishSubName(c)}</div></header><div class="eventIOV061"><section><h4>INPUT</h4>${ios[i].input.length?ios[i].input.map(e=>eventPillV061(e,'input')).join(''):'<span class="tiny">明示条件なし</span>'}</section><section><h4>OUTPUT</h4>${ios[i].output.length?ios[i].output.map(e=>eventPillV061(e,'output')).join(''):'<span class="tiny">抽出なし</span>'}</section></div></article>`).join('');
+ const edgeHTML=edges.length?edges.map(e=>`<article class="eventEdgeV061 strength${e.w}"><div><b>${esc(displayName(cards[e.from]))}</b><span>→</span><b>${esc(displayName(cards[e.to]))}</b></div><p>${esc(e.label)}</p><small>${'★'.repeat(e.w)}${'☆'.repeat(5-e.w)} ・ ${verified?'Verified / Inferred':'Inferred'}</small></article>`).join(''):'<div class="empty">イベント入出力の直接接続は見つかりませんでした。これは相互作用がないという断定ではありません。</div>';
+ return `<section class="eventExplorerV061"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Event Graph Engine</div><h2>イベント入出力</h2><p class="notice">カード文章を、消費するイベント（INPUT）と発生させるイベント（OUTPUT）へ変換します。</p></div><span class="knowledgeCount">${edges.length}接続</span></div><div class="eventCardsV061">${nodes}</div><div class="eventFlowTitleV061"><h3>イベントチェーン</h3><span>強度はルール上の直接性を示します</span></div><div class="eventEdgesV061">${edgeHTML}</div>${eventDictionaryHTMLV061()}</section>`;
+}
+async function analyzeRulesV061(){
+ const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;
+ if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+ const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+ const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}
+ if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+ const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+ const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な状態接続を検出できませんでした。</div>';
+ result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">旧Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section><div class="ruleDisclaimer"><b>β-1の限界：</b>イベント辞書と入出力グラフの初版です。スタック上の全順序、対象適正、置換効果、種類別適用順、状況起因処理、最後の情報はまだ完全計算しません。Verified以外は候補として扱ってください。</div>`;
+ const direct=ios.reduce((n,x)=>n+x.input.length+x.output.length,0);statusEl.textContent=`${cards.length}枚を解析：イベント入出力${direct}項目、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
+}
+function setupEventGraphV061(){
+ if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV061;
+ ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV061();}},true);});
+}
+setupEventGraphV061();

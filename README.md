@@ -1,4 +1,4 @@
-# Lunch Forge v0.6.0
+# Lunch Forge v0.6.1
 
 ## Proposal Controls
 
@@ -32,13 +32,18 @@ CHECKLIST.md
 コミット例：
 
 ```text
-feat: add proposal controls v0.6.0
+feat: add proposal controls v0.6.1
 ```
 
 
-## v0.6.0 Rule Kernel α
+## v0.6.1 Rule Kernel α
 - 最大3枚のカード文章を条件・コスト・イベント・状態へ分解
 - 効果の供給側と要求側を接続
 - 検証済み2事例をルール手順として表示
 - Parsed / Inferred / Verified / Unsupportedを区別
 - 総合ルールの完全実装ではなく、段階的なルールエンジンの初版
+
+
+## v0.6.1 Event Graph Engine
+
+ルール検証でカード能力をINPUT/OUTPUTイベントへ変換し、最大3枚のイベントチェーンと接続強度を表示します。Event辞書初版は60種類以上を収録します。

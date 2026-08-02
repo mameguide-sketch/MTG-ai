@@ -1,3 +1,12 @@
+# v0.6.1 - Event Graph Engine beta-1
+
+- Event辞書初版を追加
+- カード文章からINPUT/OUTPUTイベントを抽出
+- 最大3枚のイベントチェーンを表示
+- 直接接続と意味的ブリッジを5段階で評価
+- VerifiedとInferredを区別
+- v0.6.0のRule Kernel表示を維持
+
 # Changelog
 
 ## v0.6.0
