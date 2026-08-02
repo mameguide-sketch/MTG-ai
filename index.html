@@ -6,8 +6,8 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.5.6</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
-<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.6.0</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="rules">ルール検証</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
 <div class="card"><h2>デッキ入力</h2><div class="controls">
@@ -30,7 +30,7 @@ Sideboard
 <div class="panelgrid"><div class="mini"><h3>診断</h3><div class="tags" id="diagnostics"><span class="tag">未分析</span></div></div><div class="mini"><h3>マナカーブ</h3><div class="mana" id="curve"></div></div></div>
 <div class="panelgrid section"><div class="mini"><h3>役割構成</h3><div id="roles"></div></div><div class="mini"><h3>解析済みデッキ</h3><div class="notice" id="resolvedDeck">—</div></div></div></div>
 <div class="card section deckIntelligenceCard"><div id="deckIntelligence"><div class="empty">デッキ分析後、供給・利用・成立接続・不足を表示します。</div></div></div>
-<div class="card section swapPlannerCard"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner v0.5.6</div><h2>入れ替え提案</h2><p class="notice">提案条件を指定し、追加候補と減らす候補を比較します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div>
+<div class="card section swapPlannerCard"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner v0.6.0</div><h2>入れ替え提案</h2><p class="notice">提案条件を指定し、追加候補と減らす候補を比較します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div>
 <div class="swapControlPanel" aria-label="入れ替え提案の条件設定">
   <div class="swapControlGrid">
     <label><span>提案方針</span><select id="swapPolicyV056"><option value="balanced">総合バランス</option><option value="aggressive">攻撃的</option><option value="stable">安定性重視</option><option value="synergy">シナジー重視</option></select></label>
@@ -174,6 +174,31 @@ Sideboard
       <div class="knowledgeHeader"><div><h3>カード知識一覧</h3><p class="notice">タグ名・カード名で絞り込み、解析結果を点検できます。</p></div><span class="knowledgeCount" id="engineCount">0件</span></div>
       <div class="dbFilters engineFilters"><input id="engineQuery" placeholder="カード名・タグを検索"><select id="engineGroup"><option value="">全グループ</option><option>生成</option><option>利用</option><option>誘発</option><option>補助</option><option>妨害</option><option>戦略</option><option>勝ち筋</option><option value="未分類">未分類のみ</option></select><select id="engineSort"><option value="confidence">信頼度順</option><option value="tags">タグ数順</option><option value="name">名前順</option></select></div>
       <div id="engineResults" class="engineResults"><div class="empty">カードデータ取得後に表示します。</div></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="view" id="rules">
+  <div class="ruleLabLayout">
+    <aside class="card ruleLabInputCard">
+      <div class="dialogEyebrow">Rule Kernel α v0.6.0</div>
+      <h2>カード相互作用をルール構造で確認</h2>
+      <p class="notice">最大3枚のカードを選び、能力を「条件・コスト・イベント・状態変化・結果」へ分解します。これは総合ルールの完全実装ではなく、ルールエンジンの第1段階です。</p>
+      <div class="controls">
+        <label><span class="tiny">カード1</span><input id="ruleCard1" list="cardNames" placeholder="日本語・英語カード名" autocomplete="off"></label>
+        <label><span class="tiny">カード2</span><input id="ruleCard2" list="cardNames" placeholder="任意" autocomplete="off"></label>
+        <label><span class="tiny">カード3</span><input id="ruleCard3" list="cardNames" placeholder="任意" autocomplete="off"></label>
+        <div class="row"><button class="btn" id="ruleAnalyzeBtn">ルール構造を解析</button><button class="btn ghost" id="ruleClearBtn">クリア</button></div>
+        <div class="status" id="ruleStatus">カードを1～3枚入力してください。</div>
+      </div>
+      <div class="ruleLegend section">
+        <span class="ruleBadge condition">条件</span><span class="ruleBadge cost">コスト</span><span class="ruleBadge event">イベント</span><span class="ruleBadge state">状態</span><span class="ruleBadge result">結果</span>
+      </div>
+      <div class="notice section"><b>判定区分</b><br>Verified：登録済み事例と一致<br>Parsed：カード文章から直接抽出<br>Inferred：複数効果を接続した推論<br>Unsupported：現在のRule Kernelでは判定外</div>
+    </aside>
+    <div class="card ruleLabResultCard">
+      <div id="ruleResult"><div class="empty">左でカードを選ぶと、ルール構造と接続候補を表示します。</div></div>
     </div>
   </div>
 </section>

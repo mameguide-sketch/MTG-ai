@@ -1703,3 +1703,95 @@ async function analyze(){
     status(`${resolved.length}/${parsed.length}種類を特定。効果接続${currentDeckKnowledgeV054.connections.length}件、不足・孤立${currentDeckKnowledgeV054.gaps.length}件、条件適用後の入れ替え提案${currentSwapRecommendationsV055.length}件。`,100);
   }catch(error){console.error(error);status('デッキ分析中にエラーが発生しました：'+(error?.message||error),0);}finally{$('analyzeBtn').disabled=false;}
 }
+
+
+// ===== Rule Kernel alpha v0.6.0 =====
+const RULE_EVENT_LABELS_V060={
+  DISCARD_CARD:'カードを捨てる',MILL_CARD:'切削する',SACRIFICE_PERMANENT:'パーマネントを生け贄に捧げる',CREATURE_DIED:'クリーチャーが死亡する',PERMANENT_TO_GRAVEYARD:'パーマネント・カードが墓地へ置かれる',ENTER_BATTLEFIELD:'戦場に出る',LAND_ENTERED_BATTLEFIELD:'土地が戦場に出る',RETURN_FROM_GRAVEYARD:'墓地から戻す',EXILE_PERMANENT:'追放する',DRAW_CARD:'カードを引く',ATTACH_EQUIPMENT:'装備する',ADD_COUNTER:'カウンターを置く',REMOVE_COUNTER:'カウンターを取り除く',BEGIN_COMBAT:'戦闘開始',ATTACK:'攻撃する',DAMAGE_DEALT:'ダメージを与える',SEARCH_LIBRARY:'ライブラリーを探す',UNTAP_PERMANENT:'アンタップする',TYPE_CHANGE:'カード・タイプを変更する'
+};
+const RULE_STATE_LABELS_V060={CARD_IN_GRAVEYARD:'カードが墓地にある',POWER_GTE_4:'パワー4以上のクリーチャーをコントロール',IS_EQUIPPED:'装備されている',IS_LAND_CREATURE:'土地・クリーチャーである',LAND_ETB_COUNT:'土地の戦場入り回数が増える',HAS_COUNTER:'カウンターが置かれている',HAS_HASTE:'速攻を持つ',CARD_ON_BATTLEFIELD:'カードが戦場にある'};
+function ruleTextV060(card){return [card.oracle_text||'',...(card.card_faces||[]).map(f=>f.oracle_text||'')].filter(Boolean).join('\n');}
+function rulePushV060(arr,id,evidence,kind='event',confidence='Parsed'){if(!arr.some(x=>x.id===id&&x.evidence===evidence))arr.push({id,evidence,kind,confidence});}
+function parseRuleCardV060(card){
+  const text=ruleTextV060(card),low=text.toLowerCase(),events=[],states=[],conditions=[],costs=[],unsupported=[];
+  const hit=(re)=>re.test(low);
+  if(hit(/discard (a|one|your) card|discard cards?/))rulePushV060(events,'DISCARD_CARD','discard');
+  if(hit(/mill\s+\d+|mills?\s+\d+/))rulePushV060(events,'MILL_CARD','mill');
+  if(hit(/sacrifice (a|an|another|this|target|one or more)/))rulePushV060(events,'SACRIFICE_PERMANENT','sacrifice');
+  if(hit(/dies|died/))rulePushV060(events,'CREATURE_DIED','dies');
+  if(hit(/permanent card.*put into your graveyard|permanent cards?.*your graveyard/))rulePushV060(events,'PERMANENT_TO_GRAVEYARD','permanent card to graveyard');
+  if(hit(/enters the battlefield|enter the battlefield/))rulePushV060(events,'ENTER_BATTLEFIELD','enters the battlefield');
+  if(hit(/land enters the battlefield|lands? entered the battlefield/))rulePushV060(events,'LAND_ENTERED_BATTLEFIELD','land enters');
+  if(hit(/return .* from your graveyard|return .* card from .*graveyard|from your graveyard to the battlefield/))rulePushV060(events,'RETURN_FROM_GRAVEYARD','return from graveyard');
+  if(hit(/exile target|exile it|exile that/))rulePushV060(events,'EXILE_PERMANENT','exile');
+  if(hit(/draw a card|draw \d+ cards?/))rulePushV060(events,'DRAW_CARD','draw');
+  if(hit(/equip|attach .* equipment/))rulePushV060(events,'ATTACH_EQUIPMENT','equip');
+  if(hit(/put .* counter|put a \+1\/\+1 counter|put .* counters/))rulePushV060(events,'ADD_COUNTER','put counter');
+  if(hit(/remove .* counter|remove a -1\/-1 counter/))rulePushV060(events,'REMOVE_COUNTER','remove counter');
+  if(hit(/beginning of combat/))rulePushV060(events,'BEGIN_COMBAT','beginning of combat');
+  if(hit(/whenever .* attacks|attacks? this turn/))rulePushV060(events,'ATTACK','attack');
+  if(hit(/deals? .* damage/))rulePushV060(events,'DAMAGE_DEALT','damage');
+  if(hit(/search your library/))rulePushV060(events,'SEARCH_LIBRARY','search library');
+  if(hit(/untap (it|that|target)/))rulePushV060(events,'UNTAP_PERMANENT','untap');
+  if(hit(/becomes? a .* creature|is a .* creature in addition/))rulePushV060(events,'TYPE_CHANGE','becomes creature');
+  if(hit(/from your graveyard/))rulePushV060(states,'CARD_IN_GRAVEYARD','from your graveyard','state');
+  if(hit(/power 4 or greater|power of 4 or greater/)){rulePushV060(states,'POWER_GTE_4','power 4 or greater','state');rulePushV060(conditions,'POWER_GTE_4','requires power 4+','condition');}
+  if(hit(/equipped creature|becomes equipped/))rulePushV060(states,'IS_EQUIPPED','equipped','state');
+  if(hit(/land creature/))rulePushV060(states,'IS_LAND_CREATURE','land creature','state');
+  if(hit(/land enters the battlefield/))rulePushV060(states,'LAND_ETB_COUNT','landfall window','state');
+  if(hit(/counter on it|counter on ~|with .* counter/))rulePushV060(states,'HAS_COUNTER','has counter','state');
+  if(hit(/haste/))rulePushV060(states,'HAS_HASTE','haste','state');
+  if(hit(/at the beginning of combat on your turn/))rulePushV060(conditions,'YOUR_BEGIN_COMBAT','自分のターンの戦闘開始時','condition');
+  if(hit(/if you control a creature with power 4 or greater/))rulePushV060(conditions,'CONTROL_POWER_GTE_4','パワー4以上をコントロール','condition');
+  if(hit(/activate only as a sorcery/))rulePushV060(conditions,'SORCERY_TIMING','ソーサリー・タイミング限定','condition');
+  if(hit(/discard a card[:;,]|discard a card\./))rulePushV060(costs,'DISCARD_CARD','カードを捨てる','cost');
+  if(hit(/sacrifice ~|sacrifice this permanent/))rulePushV060(costs,'SACRIFICE_SELF','自身を生け贄','cost');
+  if(hit(/\{t\}|tap this permanent/))rulePushV060(costs,'TAP_SELF','自身をタップ','cost');
+  if(hit(/counter target spell|copy target|replacement effect|instead/))unsupported.push('打ち消し・コピー・置換効果は現段階では完全追跡しません。');
+  return {card,text,events,states,conditions,costs,unsupported,confidence:events.length||states.length?'Parsed':'Unsupported'};
+}
+function ruleLabelV060(x){if(x.kind==='state')return RULE_STATE_LABELS_V060[x.id]||x.id;if(x.kind==='condition'){const m={YOUR_BEGIN_COMBAT:'自分のターンの戦闘開始時',CONTROL_POWER_GTE_4:'パワー4以上をコントロール',SORCERY_TIMING:'ソーサリー・タイミング限定',POWER_GTE_4:'パワー4以上'};return m[x.id]||x.id;}if(x.kind==='cost'){const m={DISCARD_CARD:'カードを捨てる',SACRIFICE_SELF:'自身を生け贄に捧げる',TAP_SELF:'自身をタップする'};return m[x.id]||x.id;}return RULE_EVENT_LABELS_V060[x.id]||x.id;}
+function ruleChipV060(x){return `<span class="ruleNode ${x.kind}" title="根拠: ${esc(x.evidence)}">${esc(ruleLabelV060(x))}</span>`;}
+function knownRuleCaseV060(cards){
+  const names=cards.flatMap(c=>cardNameVariantsV053(c).map(normalizeCardNameV053));
+  const has=(s)=>names.some(n=>n.includes(normalizeCardNameV053(s)));
+  if(has('Moonshadow')&&has('Bloodthorn Flail')&&has('Flamewake Phoenix'))return {title:'月影＋血茨のフレイル＋炎跡のフェニックス',confidence:'Verified',steps:['炎跡のフェニックスをフレイルの装備コストで捨てる','パーマネント・カードが墓地へ置かれ、月影の能力が誘発','－1/－1カウンターを1個取り除き、月影が実効2/2になる','フレイルが装備され、月影が実効4/3になる','自分の戦闘開始時にパワー4以上の条件を満たす','{R}を支払い、フェニックスを墓地から戦場へ戻す'],risks:['装備能力や月影の誘発を妨害される','戦闘開始前に月影を除去または弱体化される','墓地対策でフェニックスを移動される']};
+  if(has('Badgermole Cub')&&has('Fabled Passage'))return {title:'アナグマモグラの仔＋寓話の小道',confidence:'Verified',steps:['土の技1で寓話の小道を1/1の土地・クリーチャーにする','寓話の小道をタップし、生け贄にして能力を起動','土地・クリーチャーが死亡し、土の技の遅延誘発が発生','遅延誘発が先に解決し、寓話の小道がタップ状態で戻る','既にスタックにある寓話の小道の能力が解決し、基本土地を出す','土地の戦場入りが合計2回発生する'],risks:['墓地対策で寓話の小道を移動される','遅延誘発型能力を打ち消される','戻った寓話の小道はタップ状態']};
+  return null;
+}
+function inferredRuleLinksV060(profiles){
+  const links=[];const add=(from,to,label,reason)=>{if(!links.some(x=>x.from===from&&x.to===to&&x.label===label))links.push({from,to,label,reason,confidence:'Inferred'});};
+  profiles.forEach((a,i)=>profiles.forEach((b,j)=>{if(i===j)return;
+    const ae=new Set(a.events.map(x=>x.id)),be=new Set(b.events.map(x=>x.id)),bs=new Set(b.states.map(x=>x.id)),bc=new Set(b.conditions.map(x=>x.id));
+    if(ae.has('DISCARD_CARD')&&bs.has('CARD_IN_GRAVEYARD'))add(i,j,'墓地へ準備','捨てる処理が墓地利用カードを墓地へ置けます。');
+    if((ae.has('MILL_CARD')||ae.has('PERMANENT_TO_GRAVEYARD'))&&bs.has('CARD_IN_GRAVEYARD'))add(i,j,'墓地利用を準備','墓地へカードを置く処理が利用条件を作ります。');
+    if(ae.has('ADD_COUNTER')&&bc.has('POWER_GTE_4'))add(i,j,'パワー条件を支援','カウンターによる強化がパワー条件を満たす可能性があります。');
+    if(ae.has('ATTACH_EQUIPMENT')&&bc.has('CONTROL_POWER_GTE_4'))add(i,j,'パワー条件を支援','装備修整の具体値を確認する必要があります。');
+    if(ae.has('LAND_ENTERED_BATTLEFIELD')&&bs.has('LAND_ETB_COUNT'))add(i,j,'上陸を誘発','土地の戦場入りを利用します。');
+    if(ae.has('SACRIFICE_PERMANENT')&&be.has('CREATURE_DIED'))add(i,j,'死亡誘発を供給','生け贄対象がクリーチャーなら死亡イベントになります。');
+    if(ae.has('TYPE_CHANGE')&&ae.has('SACRIFICE_PERMANENT')&&be.has('CREATURE_DIED'))add(i,j,'タイプ変更から死亡','土地などをクリーチャー化して死亡イベントへ接続できます。');
+  }));return links.slice(0,12);
+}
+function ruleProfileHTMLV060(p,index){
+  const sections=[['conditions','条件'],['costs','コスト'],['events','イベント'],['states','状態']];
+  return `<article class="ruleCardProfile"><div class="ruleCardHead">${displayImg(p.card)?`<img src="${displayImg(p.card)}" alt="${esc(displayName(p.card))}">`:''}<div><span class="ruleIndex">${index+1}</span><h3>${esc(displayName(p.card))}</h3>${englishSubName(p.card)}<div class="meta">${esc(displayType(p.card))} ・ ${p.confidence}</div></div></div>${sections.map(([key,label])=>`<section><h4>${label}</h4><div class="ruleNodeList">${p[key].length?p[key].map(ruleChipV060).join(''):'<span class="tiny">検出なし</span>'}</div></section>`).join('')}${p.unsupported.length?`<div class="ruleWarning">${p.unsupported.map(esc).join('<br>')}</div>`:''}<details><summary>解析対象のOracle文章</summary><pre class="ruleOracle">${esc(p.text||'文章なし')}</pre></details></article>`;
+}
+function ruleSequenceHTMLV060(testCase){return `<section class="ruleVerified"><div class="knowledgeHeader"><div><div class="dialogEyebrow">${testCase.confidence}</div><h2>${esc(testCase.title)}</h2></div><span class="ruleConfidence verified">検証済み</span></div><ol class="ruleSteps">${testCase.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><details><summary>成立条件と妨害点</summary><ul class="explainList">${testCase.risks.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details></section>`;}
+async function analyzeRulesV060(){
+  const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;
+  if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+  const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}
+  if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles);
+  const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な接続を検出できませんでした。相互作用がないとは限りません。</div>';
+  result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}<section><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">Oracle文章から直接読み取れる要素です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>効果の接続候補</h2><p class="notice">イベントの出力と、別カードが要求する状態・条件を接続します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section><div class="ruleDisclaimer"><b>現在の限界：</b>対象選択、スタック上の全順序、置換効果、種類別適用順、状況起因処理、最後の情報はまだ完全には計算しません。Verified以外は候補として扱ってください。</div>`;
+  statusEl.textContent=`${cards.length}枚を解析しました。直接抽出${profiles.reduce((n,p)=>n+p.events.length+p.states.length+p.conditions.length+p.costs.length,0)}項目、接続候補${links.length}件${verified?'、検証済み事例1件':''}。`;
+}
+function setupRuleKernelV060(){
+  if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV060;
+  if($('ruleClearBtn'))$('ruleClearBtn').onclick=()=>{['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{if($(id))$(id).value='';});$('ruleResult').innerHTML='<div class="empty">左でカードを選ぶと、ルール構造と接続候補を表示します。</div>';$('ruleStatus').textContent='カードを1～3枚入力してください。';};
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{if($(id))$(id).addEventListener('keydown',e=>{if(e.key==='Enter')analyzeRulesV060();});});
+  const tab=document.querySelector('[data-view="rules"]');if(tab)tab.addEventListener('click',()=>{if(!pool.length)prepareDatabase(false);populateCardNames();});
+}
+setupRuleKernelV060();
