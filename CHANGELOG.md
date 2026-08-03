@@ -1,4 +1,14 @@
-# v0.6.1 - Event Graph Engine beta-1
+# Changelog
+
+## v0.6.2
+- Stack & Trigger Engine β-2を追加
+- 起動時のコスト支払いとスタック投入を分離
+- 誘発型能力と遅延誘発型能力をスタックへ追加
+- LIFO順の解決を時系列表示
+- 月影コンボとアナグマモグラの仔コンボのVerifiedスタック手順を実装
+- 同時誘発順の表示設定を追加
+- 不確実な一般解析をInferredとして明示
+
 
 - Event辞書初版を追加
 - カード文章からINPUT/OUTPUTイベントを抽出

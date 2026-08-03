@@ -6,7 +6,7 @@
 <title>Lunch Forge | MTG Deck Intelligence</title>
 <link href="styles.css" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.6.1</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.6.2</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="rules">ルール検証</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer"><div class="grid">
@@ -182,14 +182,19 @@ Sideboard
 <section class="view" id="rules">
   <div class="ruleLabLayout">
     <aside class="card ruleLabInputCard">
-      <div class="dialogEyebrow">Rule Engine β-1 v0.6.1</div>
+      <div class="dialogEyebrow">Rule Engine β-2 v0.6.2</div>
       <h2>カード相互作用をルール構造で確認</h2>
       <p class="notice">最大3枚のカードを選び、能力を「条件・コスト・イベント・状態変化・結果」へ分解します。これは総合ルールの完全実装ではなく、ルールエンジンの第1段階です。</p>
       <div class="controls">
         <label><span class="tiny">カード1</span><input id="ruleCard1" list="cardNames" placeholder="日本語・英語カード名" autocomplete="off"></label>
         <label><span class="tiny">カード2</span><input id="ruleCard2" list="cardNames" placeholder="任意" autocomplete="off"></label>
         <label><span class="tiny">カード3</span><input id="ruleCard3" list="cardNames" placeholder="任意" autocomplete="off"></label>
-        <div class="row"><button class="btn" id="ruleAnalyzeBtn">ルール構造を解析</button><button class="btn ghost" id="ruleClearBtn">クリア</button></div>
+        <div class="ruleStackControlsV062">
+          <label><span class="tiny">アクティブ・プレイヤー</span><select id="ruleActivePlayer"><option value="A">プレイヤーA</option><option value="B">プレイヤーB</option></select></label>
+          <label><span class="tiny">同時誘発の並べ方</span><select id="ruleTriggerOrder"><option value="input">入力順</option><option value="reverse">逆順</option></select></label>
+        </div>
+        <label class="swapCheck"><input type="checkbox" id="ruleAutoPass" checked>各処理で全員が優先権をパスしたものとして解決</label>
+        <div class="row"><button class="btn" id="ruleAnalyzeBtn">スタックまで解析</button><button class="btn ghost" id="ruleClearBtn">クリア</button></div>
         <div class="status" id="ruleStatus">カードを1～3枚入力してください。</div>
       </div>
       <div class="ruleLegend section">

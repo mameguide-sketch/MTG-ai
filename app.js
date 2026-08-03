@@ -1797,7 +1797,7 @@ function setupRuleKernelV060(){
 setupRuleKernelV060();
 
 
-/* Rule Engine beta-1 / Event Graph Engine v0.6.1 */
+/* Rule Engine beta-1 / Event Graph Engine v0.6.2 */
 const EVENT_DICTIONARY_V061={
   CAST_SPELL:{ja:'呪文を唱える',group:'spell'},SPELL_RESOLVED:{ja:'呪文が解決する',group:'spell'},COUNTER_SPELL:{ja:'呪文を打ち消す',group:'spell'},COPY_SPELL:{ja:'呪文をコピーする',group:'spell'},
   ACTIVATE_ABILITY:{ja:'能力を起動する',group:'ability'},TRIGGER_ABILITY:{ja:'能力が誘発する',group:'ability'},ABILITY_RESOLVED:{ja:'能力が解決する',group:'ability'},DELAYED_TRIGGER:{ja:'遅延誘発を作る',group:'ability'},
@@ -1880,8 +1880,100 @@ async function analyzeRulesV061(){
  result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">旧Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section><div class="ruleDisclaimer"><b>β-1の限界：</b>イベント辞書と入出力グラフの初版です。スタック上の全順序、対象適正、置換効果、種類別適用順、状況起因処理、最後の情報はまだ完全計算しません。Verified以外は候補として扱ってください。</div>`;
  const direct=ios.reduce((n,x)=>n+x.input.length+x.output.length,0);statusEl.textContent=`${cards.length}枚を解析：イベント入出力${direct}項目、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
 }
+
+
+/* Stack & Trigger Engine beta-2 v0.6.2 */
+const STACK_KIND_LABELS_V062={activated:'起動型能力',triggered:'誘発型能力',spell:'呪文',delayed:'遅延誘発型能力'};
+function abilityLinesV062(card){
+  const text=ruleTextV060(card)||'';
+  return text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+}
+function classifyAbilitiesV062(card){
+  const abilities=[];
+  for(const line of abilityLinesV062(card)){
+    const low=line.toLowerCase();
+    if(/^(when|whenever|at the beginning|at the end|if .* would)/.test(low))abilities.push({kind:'triggered',text:line,source:card});
+    else if(line.includes(':'))abilities.push({kind:'activated',text:line,source:card,cost:line.split(':')[0].trim(),effect:line.split(':').slice(1).join(':').trim()});
+    else if(/you may cast|counter target spell|destroy target|return target|draw \d|create .* token/i.test(line))abilities.push({kind:'spell',text:line,source:card});
+  }
+  return abilities;
+}
+function stackItemV062(kind,source,label,controller='A',extra={}){return {id:`stk-${Math.random().toString(36).slice(2)}`,kind,source:displayName(source),label,controller,...extra};}
+function snapshotV062(stack){return stack.slice().reverse().map((x,i)=>({...x,position:i+1}));}
+function traceStepV062(trace,type,title,detail,stack,state=''){
+  trace.push({n:trace.length+1,type,title,detail,stack:snapshotV062(stack),state});
+}
+function verifiedStackTraceV062(cards,known){
+  if(!known)return null;
+  const names=cards.flatMap(c=>cardNameVariantsV053(c).map(normalizeCardNameV053));
+  const has=s=>names.some(n=>n.includes(normalizeCardNameV053(s)));
+  const trace=[],stack=[];
+  if(has('Moonshadow')&&has('Bloodthorn Flail')&&has('Flamewake Phoenix')){
+    traceStepV062(trace,'state','初期状態','月影は7/7に－1/－1カウンター6個が置かれ、実効1/1。炎跡のフェニックスは手札。血茨のフレイルは戦場。',stack,'月影 1/1');
+    stack.push(stackItemV062('activated',cards.find(c=>cardNameVariantsV053(c).some(n=>/Bloodthorn Flail/i.test(n))),'月影を対象にした装備能力'));
+    traceStepV062(trace,'activate','装備能力を起動','対象を月影に決め、代替コストとして炎跡のフェニックスを捨てます。コストの支払いはスタックを使いません。',stack,'フェニックス：手札→墓地');
+    stack.push(stackItemV062('triggered',cards.find(c=>cardNameVariantsV053(c).some(n=>/Moonshadow/i.test(n))),'パーマネント・カードが墓地へ置かれた誘発'));
+    traceStepV062(trace,'trigger','月影の能力が誘発','装備能力の起動完了後、誘発型能力をスタックの一番上に置きます。',stack);
+    stack.pop();traceStepV062(trace,'resolve','月影の誘発を解決','－1/－1カウンターを1個取り除きます。',stack,'月影 2/2');
+    stack.pop();traceStepV062(trace,'resolve','装備能力を解決','血茨のフレイルを月影につけ、継続的修整＋2/＋1を適用します。',stack,'月影 4/3');
+    traceStepV062(trace,'event','戦闘開始ステップ','パワー4以上のクリーチャーをコントロールしているため、墓地のフェニックスの能力が誘発します。',stack);
+    stack.push(stackItemV062('triggered',cards.find(c=>cardNameVariantsV053(c).some(n=>/Flamewake Phoenix/i.test(n))),'炎跡のフェニックスを戻す誘発'));
+    traceStepV062(trace,'trigger','フェニックスの能力をスタックへ','誘発型能力がスタックへ置かれます。',stack);
+    stack.pop();traceStepV062(trace,'resolve','フェニックスの誘発を解決','{R}を支払うことを選び、墓地から戦場へ戻します。',stack,'フェニックス：墓地→戦場');
+    return {confidence:'Verified',trace,notes:['装備コストとして捨てる処理は能力解決前に完了します。','誘発型能力は元の装備能力より上に置かれるため、先に解決します。']};
+  }
+  if(has('Badgermole Cub')&&has('Fabled Passage')){
+    traceStepV062(trace,'event','アナグマモグラの仔が戦場に出る','戦場に出たときの土の技1が誘発します。',stack);
+    stack.push(stackItemV062('triggered',cards.find(c=>cardNameVariantsV053(c).some(n=>/Badgermole Cub/i.test(n))),'土の技1'));
+    traceStepV062(trace,'trigger','土の技1をスタックへ','寓話の小道を対象として選びます。',stack);
+    stack.pop();traceStepV062(trace,'resolve','土の技1を解決','寓話の小道を速攻を持つ0/0の土地・クリーチャーにし、＋1/＋1カウンターを置き、死亡・追放時の遅延誘発を作ります。',stack,'寓話の小道 1/1・土地クリーチャー');
+    stack.push(stackItemV062('activated',cards.find(c=>cardNameVariantsV053(c).some(n=>/Fabled Passage/i.test(n))),'基本土地を探す起動型能力'));
+    traceStepV062(trace,'activate','寓話の小道の能力を起動','タップして自身を生け贄に捧げます。コストは即座に支払われ、小道はクリーチャーとして死亡します。',stack,'寓話の小道：戦場→墓地');
+    stack.push(stackItemV062('delayed',cards.find(c=>cardNameVariantsV053(c).some(n=>/Badgermole Cub/i.test(n))),'土の技が作った帰還の遅延誘発'));
+    traceStepV062(trace,'trigger','遅延誘発をスタックへ','すでにある寓話の小道の起動型能力より上に置かれます。',stack);
+    stack.pop();traceStepV062(trace,'resolve','遅延誘発を解決','寓話の小道を墓地からタップ状態で戦場へ戻します。',stack,'土地の戦場入り：1回目');
+    stack.pop();traceStepV062(trace,'resolve','寓話の小道の能力を解決','ライブラリーから基本土地を探し、タップ状態で戦場へ出します。',stack,'土地の戦場入り：2回目');
+    return {confidence:'Verified',trace,notes:['スタック上の能力は、その発生源が領域を移動しても独立して存在します。','遅延誘発は起動型能力より後にスタックへ置かれるため先に解決します。']};
+  }
+  return null;
+}
+function genericStackTraceV062(cards,profiles,order='input'){
+  const trace=[],stack=[],all=[];
+  cards.forEach((card,i)=>classifyAbilitiesV062(card).forEach((a,j)=>all.push({...a,cardIndex:i,abilityIndex:j})));
+  const activated=all.filter(a=>a.kind==='activated'),triggered=all.filter(a=>a.kind==='triggered');
+  if(activated.length){
+    const a=activated[0];stack.push(stackItemV062('activated',a.source,a.effect||a.text,'A',{raw:a.text}));
+    traceStepV062(trace,'activate',`${displayName(a.source)}の能力を起動`,a.cost?`コスト「${a.cost}」を支払い、能力をスタックへ置きます。`:'能力をスタックへ置きます。',stack);
+  }else{
+    const spell=all.find(a=>a.kind==='spell');if(spell){stack.push(stackItemV062('spell',spell.source,spell.text));traceStepV062(trace,'cast',`${displayName(spell.source)}を唱える`,'コストを支払い、呪文をスタックへ置きます。',stack);}
+  }
+  let ordered=triggered.slice();if(order==='reverse')ordered.reverse();
+  ordered.slice(0,5).forEach(a=>{stack.push(stackItemV062('triggered',a.source,a.text));traceStepV062(trace,'trigger',`${displayName(a.source)}の誘発を検出`,'誘発条件が満たされたと仮定し、次に優先権が発生する前にスタックへ置きます。',stack);});
+  while(stack.length){const top=stack.pop();traceStepV062(trace,'resolve',`${top.source} — ${STACK_KIND_LABELS_V062[top.kind]||top.kind}を解決`,top.label,stack);}
+  if(!trace.length)traceStepV062(trace,'unsupported','スタック対象を抽出できませんでした','現在の簡易パーサーで起動型・誘発型・呪文能力を特定できませんでした。',stack);
+  return {confidence:'Inferred',trace,notes:['選択対象、支払えるコスト、介在するif節、対戦相手の応答は完全には検証していません。','同時誘発の順番は選択設定に従う仮置きです。']};
+}
+function stackSnapshotHTMLV062(items){
+  if(!items.length)return '<div class="stackEmptyV062">スタックは空です</div>';
+  return `<div class="stackColumnV062">${items.map(x=>`<div class="stackItemV062 kind-${esc(x.kind)}"><span>${x.position}</span><div><b>${esc(x.source)}</b><small>${esc(STACK_KIND_LABELS_V062[x.kind]||x.kind)} ・ ${esc(x.controller||'A')}</small><p>${esc(x.label)}</p></div></div>`).join('')}</div>`;
+}
+function stackTraceHTMLV062(sim){
+  return `<section class="stackEngineV062"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Stack & Trigger Engine β-2</div><h2>スタック処理シミュレーション</h2><p class="notice">コスト支払い、誘発検出、スタック投入、上からの解決を時系列で表示します。</p></div><span class="ruleConfidence ${sim.confidence==='Verified'?'verified':'inferred'}">${esc(sim.confidence)}</span></div><div class="stackTimelineV062">${sim.trace.map(step=>`<article class="stackStepV062 type-${esc(step.type)}"><div class="stackStepHeadV062"><b>${step.n}</b><div><h3>${esc(step.title)}</h3><p>${esc(step.detail)}</p>${step.state?`<strong>${esc(step.state)}</strong>`:''}</div></div><div class="stackSnapshotV062"><h4>この時点のスタック（上が先に解決）</h4>${stackSnapshotHTMLV062(step.stack)}</div></article>`).join('')}</div><details class="stackNotesV062"><summary>判定上の注意</summary><ul>${sim.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details></section>`;
+}
+async function analyzeRulesV062(){
+ const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;
+ if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+ const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+ const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}
+ if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+ const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+ const order=$('ruleTriggerOrder')?.value||'input';const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,order);
+ const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な状態接続を検出できませんでした。</div>';
+ result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${stackTraceHTMLV062(stackSim)}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">旧Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section><div class="ruleDisclaimer"><b>β-2の限界：</b>スタック投入とLIFO解決の初版です。対象適正、対戦相手の応答、介在するif節、置換効果、種類別適用順、状況起因処理、最後の情報は完全計算していません。Verified以外は仮説として扱ってください。</div>`;
+ const direct=ios.reduce((n,x)=>n+x.input.length+x.output.length,0);statusEl.textContent=`${cards.length}枚を解析：スタック処理${stackSim.trace.length}段階、イベント入出力${direct}項目、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
+}
 function setupEventGraphV061(){
- if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV061;
- ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV061();}},true);});
+ if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV062;
+ ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV062();}},true);});
 }
 setupEventGraphV061();
