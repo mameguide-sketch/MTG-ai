@@ -2192,3 +2192,115 @@ function bindUnifiedRuleEngineV064a(){
   }
 }
 bindUnifiedRuleEngineV064a();
+
+/* Rule Path Synergy Engine beta-5 v0.6.5 */
+function verifiedPairCaseV065(seed,candidate){
+  try{return (verifiedSynergyCasesV053||[]).find(tc=>caseContainsCardV053(tc,seed)&&caseContainsCardV053(tc,candidate))||null}catch{return null}
+}
+function ruleInterruptionHintsV065(cards){
+  const joined=cards.map(c=>ruleTextV060(c)||'').join('\n').toLowerCase(),out=[];
+  if(/return .* from .*graveyard|return .* graveyard .* battlefield|墓地.*戦場/.test(joined))out.push('墓地から戻る処理の解決前に墓地へ干渉されると、経路が途切れる可能性があります。');
+  if(/target|対象/.test(joined))out.push('対象を取る処理は、解決時に対象が不適正になると結果が変わる可能性があります。');
+  if(/whenever|when |at the beginning|誘発/.test(joined))out.push('誘発型能力がスタックに置かれた後は、相手に応答の優先権が発生します。');
+  if(/:/.test(joined))out.push('起動型能力は、コスト支払い後・解決前に相手が応答できる場合があります。');
+  if(/sacrifice|生け贄/.test(joined))out.push('生け贄がコストなら、応答してそのコスト支払い自体を取り消すことはできません。');
+  return unique(out).slice(0,4);
+}
+function rulePairEvaluationV065(seed,candidate){
+  const cards=[seed,candidate],profiles=cards.map(parseRuleCardV060),ios=cards.map((c,i)=>eventIOV061(c,profiles[i]));
+  const edges=graphEdgesV061(cards,profiles,ios),links=inferredRuleLinksV060(profiles),verified=verifiedPairCaseV065(seed,candidate);
+  const weights=edges.map(e=>+e.w||0),maxW=weights.length?Math.max(...weights):0,sumW=weights.reduce((a,b)=>a+b,0);
+  let score=verified?100:Math.min(92,Math.round(maxW*13+Math.min(20,(sumW-maxW)*5)+Math.min(18,links.length*6)));
+  if(!verified&&!edges.length&&links.length)score=Math.min(42,18+links.length*7);
+  const steps=[];
+  if(verified&&Array.isArray(verified.steps))steps.push(...verified.steps.slice(0,4));
+  else{
+    edges.sort((a,b)=>b.w-a.w).slice(0,4).forEach(e=>steps.push(`${displayName(cards[e.from])} → ${displayName(cards[e.to])}：${e.label}`));
+    if(!steps.length)links.slice(0,3).forEach(x=>steps.push(`${displayName(cards[x.from])} → ${displayName(cards[x.to])}：${x.label}`));
+  }
+  const requirements=unique(profiles.flatMap(p=>[...(p.conditions||[]),...(p.costs||[])])).slice(0,5);
+  const confidence=verified?'Verified':score>=65?'Rule-connected':score>=35?'Inferred':'Weak';
+  return {score,confidence,verified:!!verified,steps,requirements,interruptions:ruleInterruptionHintsV065(cards),edges,links};
+}
+function enhanceCandidateV065(seed,x){
+  const rp=rulePairEvaluationV065(seed,x.card); let bonus=0;
+  if(rp.verified)bonus=30;else if(rp.score>=70)bonus=20;else if(rp.score>=50)bonus=12;else if(rp.score>=30)bonus=5;
+  const structural=(x.relations||[]).some(r=>['SYNERGY','ENABLE','ENGINE'].includes(r));
+  const supportOnly=(x.relations||[]).some(r=>['SUPPORT','COVERAGE'].includes(r))&&!structural;
+  if(structural&&!supportOnly&&rp.score<20)bonus-=10;
+  return {...x,baseScore:x.score,score:Math.max(0,Math.min(100,Math.round(x.score+bonus))),rulePath:rp};
+}
+function rulePathBadgeHTMLV065(rp){
+  if(!rp)return '';
+  const cls=rp.verified?'verified':rp.score>=65?'good':rp.score>=35?'warn':'weak';
+  return `<div class="rulePathBadgeV065 ${cls}"><b>Rule Path ${rp.score}/100</b><span>${esc(rp.confidence)}</span></div>`;
+}
+function rulePathMiniHTMLV065(rp){
+  if(!rp)return '';
+  const steps=rp.steps?.length?`<ol class="rulePathMiniStepsV065">${rp.steps.slice(0,3).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:'<div class="tiny">明確なイベント経路は未確認です。</div>';
+  const req=rp.requirements?.length?`<div class="tiny caution">成立条件候補：${rp.requirements.slice(0,3).map(esc).join('／')}</div>`:'';
+  return `<div class="rulePathMiniV065">${rulePathBadgeHTMLV065(rp)}${steps}${req}</div>`;
+}
+function candidateResultHTMLV053(x){
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}<div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">統合適合点</div></div></article>`;
+}
+function advisorCandidateHTML(x){
+  const c=x.card,cat=advisorCategory(null,x),reason=x.why.slice(0,4);
+  return `<article class="advisorCandidate"><button class="imageButton" data-detail="${esc(c.name)}">${displayImg(c)?`<img loading="lazy" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</button><div><div class="advisorCategory">${esc(cat)}</div><h3><button class="textButton" data-detail="${esc(c.name)}">${esc(displayName(c))}</button></h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}<div class="advisorStars" aria-label="推奨度">${advisorStars(x.score)}</div><ul class="explainList">${reason.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">条件：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="smallBtn" data-inspect="${esc(c.name)}">このカードも解析</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div></article>`;
+}
+async function singleAnalyze(){
+  if(!pool.length){$('singleStatus').textContent='先にカードデータを取得します。';await fetchPool();if(!pool.length)return;}
+  const name=$('singleName').value.trim();if(!name)return;const c=findPoolCard(name)||await named(name);if(!c){$('singleStatus').textContent='カードを特定できませんでした。';return;}
+  $('singleName').value=displayName(c);await loadVerifiedSynergiesV053(false);const p=knowledgeProfile(c),verified=verifiedCasesForCardV053(c);
+  let base=pool.filter(x=>x.name!==c.name).map(x=>compatibility(c,x)).filter(x=>x.score>=14&&x.why.length).sort((a,b)=>b.score-a.score).slice(0,260);
+  singleRecs=base.map(x=>enhanceCandidateV065(c,x)).filter(x=>x.score>=18).sort((a,b)=>b.score-a.score||b.rulePath.score-a.rulePath.score||displayName(a.card).localeCompare(displayName(b.card),'ja')).slice(0,40);
+  $('singleSeed').innerHTML=`<div class="mini"><h3>${esc(displayName(c))}</h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0}</div><div class="profileGrid">${profileBoxes(p)}</div>${p.needs.length?`<div class="notice">相性探索の重点：${p.needs.map(esc).join('／')}</div>`:''}</div>`;
+  const auto=`<section class="automaticSection"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Rule Path Synergy Engine β-5</div><h2>ルール経路付き自動探索候補</h2><p class="notice">タグ一致だけでなく、Event Graph・状態接続・検証済み事例から実際のルール経路を加点します。</p></div><span class="knowledgeCount">${singleRecs.length}件</span></div>${singleRecs.length?singleRecs.map(candidateResultHTMLV053).join(''):'<div class="empty">明確な効果接続を検出できませんでした。</div>'}</section>`;
+  $('singleResults').innerHTML=verifiedSectionHTMLV053(c)+auto;$('singleStatus').textContent=`${pool.length.toLocaleString()}種類から候補を絞り、Rule Pathを再評価しました。検証済み事例：${verified.length}件。`;
+}
+async function renderAdvisor(name){
+  const statusEl=$('advisorStatus');try{
+    if(!pool.length){statusEl.textContent='カードデータを取得しています。';await fetchPool(false);if(!pool.length)return;}
+    const raw=String(name||$('advisorName').value||'').trim();if(!raw){statusEl.textContent='カード名を入力してください。';return;}
+    const c=findPoolCard(raw)||await named(raw);if(!c){statusEl.textContent='カードを特定できませんでした。';return;}
+    $('advisorName').value=displayName(c);await loadVerifiedSynergiesV053(false);const p=knowledgeProfile(c),mode=$('advisorMode').value;
+    let base=pool.filter(x=>x.name!==c.name).map(x=>compatibility(c,x));
+    base.forEach(x=>{if(mode==='support'&&(x.relations.includes('SUPPORT')||x.relations.includes('COVERAGE')))x.score+=10;if(mode==='engine'&&(x.relations.includes('SYNERGY')||x.relations.includes('ENABLE')||x.relations.includes('ENGINE')))x.score+=10;if(mode==='curve'&&Math.abs((+c.cmc||0)-(+x.card.cmc||0))<=1)x.score+=7;});
+    base=base.filter(x=>x.score>=20&&x.why.length).sort((a,b)=>b.score-a.score).slice(0,220);
+    let related=base.map(x=>enhanceCandidateV065(c,x)).filter(x=>x.score>=28).sort((a,b)=>b.score-a.score||b.rulePath.score-a.rulePath.score).slice(0,12);
+    const roles=advisorRoleSummary(c,p),needs=advisorNeeds(c,p),weak=cardWeaknesses(c,p),verified=verifiedCasesForCardV053(c);
+    $('advisorResult').innerHTML=`<div class="advisorHero"><div>${displayImg(c)?`<img class="advisorSeedImage" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</div><div><div class="dialogEyebrow">構築の中心カード</div><h2>${esc(displayName(c))}</h2>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])} ・ ${p.pace}</div><div class="advisorSummaryGrid"><section><h3>主な役割</h3>${roles.map(x=>`<div class="advisorPoint goodPoint">✓ ${esc(x)}</div>`).join('')}</section><section><h3>得意なこと</h3>${(p.strengths.length?p.strengths:['カード本文から明確な強みを追加解析中']).map(x=>`<div class="advisorPoint">${esc(x)}</div>`).join('')}</section><section><h3>必要な支援</h3>${needs.map(x=>`<div class="advisorPoint needPoint">□ ${esc(x)}</div>`).join('')}</section></div>${weak.length?`<div class="advisorWarning"><b>構築時の注意</b><ul class="explainList">${weak.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:''}</div></div>${verifiedSectionHTMLV053(c)}<section class="section"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Rule Path Synergy Engine β-5</div><h2>理由付きおすすめカード</h2><p class="notice">効果タグに加えて、ルール上のイベント経路・状態接続・Verified事例を推薦順位へ反映します。</p></div><span class="knowledgeCount">${related.length}候補</span></div><div class="advisorCandidates">${related.length?related.map(advisorCandidateHTML).join(''):'<div class="empty">明確な効果接続を検出できませんでした。</div>'}</div></section>`;
+    statusEl.textContent=`${pool.length.toLocaleString()}種類から「${displayName(c)}」をRule Path込みで解析しました。検証済み事例：${verified.length}件。`;
+  }catch(error){console.error(error);statusEl.textContent='相談結果の作成中にエラーが発生しました：'+(error?.message||error);}
+}
+function rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel){
+  const edgeScore=edges.reduce((n,e)=>n+(+e.w||0),0),maxW=edges.length?Math.max(...edges.map(e=>+e.w||0)):0;
+  const needed=Math.max(0,cards.length-1),connectedPairs=new Set(edges.map(e=>[e.from,e.to].sort().join('-'))).size;
+  let score=verified?100:Math.min(94,Math.round(maxW*12+Math.min(28,edgeScore*4)+Math.min(18,links.length*5)));
+  if(cards.length===1)score=Math.min(score,45);if(cards.length>1&&connectedPairs<needed&&!verified)score=Math.min(score,64);
+  const status=verified?'Verified':cards.length>1&&connectedPairs>=needed&&score>=65?'Connected':edges.length||links.length?'Partial':'Unconfirmed';
+  const steps=verified?.steps?.slice(0,8)||edges.sort((a,b)=>b.w-a.w).slice(0,8).map(e=>`${displayName(cards[e.from])} → ${displayName(cards[e.to])}：${e.label}`);
+  const requirements=unique(profiles.flatMap(p=>[...(p.conditions||[]),...(p.costs||[])])).slice(0,8);
+  const interruption=ruleInterruptionHintsV065(cards);if(priorityModel.windows.length)interruption.unshift(`優先権窓を${priorityModel.windows.length}箇所検出。相手が応答できる区間を個別確認してください。`);
+  return {score,status,steps,requirements,interruption:unique(interruption).slice(0,6),connectedPairs,needed};
+}
+function rulePathPanelHTMLV065(model){
+  const cls=model.status==='Verified'?'verified':model.status==='Connected'?'good':model.status==='Partial'?'warn':'weak';
+  return `<section class="rulePathEngineV065"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Rule Path Synergy Engine β-5</div><h2>シナジー成立経路</h2><p class="notice">Event Graph、状態接続、スタック、優先権をまとめ、カード間の「実際につながる経路」を評価します。</p></div><span class="rulePathScoreV065 ${cls}">${model.score}<small>/100</small></span></div><div class="rulePathStatusV065"><b>${esc(model.status)}</b><span>接続ペア ${model.connectedPairs}/${model.needed}</span></div><div class="rulePathColumnsV065"><section><h3>検出した経路</h3>${model.steps.length?`<ol>${model.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:'<div class="empty">現在の辞書では連続するルール経路を確認できませんでした。</div>'}</section><section><h3>成立条件・コスト</h3>${model.requirements.length?`<ul>${model.requirements.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`:'<div class="empty">追加条件を抽出できませんでした。</div>'}</section><section><h3>妨害・中断ポイント</h3>${model.interruption.length?`<ul>${model.interruption.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`:'<div class="empty">明確な中断ポイントを抽出できませんでした。</div>'}</section></div><div class="ruleDisclaimer"><b>β-5の意味：</b>この点数は勝率ではありません。ルール上の接続がどれだけ明示的かを示す「経路信頼度」です。実戦価値・必要枚数・引ける確率・マナ効率は今後のStrategy Engineで別評価します。</div></section>`;
+}
+async function analyzeRulesV065(){
+  const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+  const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+  const order=$('ruleTriggerOrder')?.value||'input',stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,order),stateModel=verifiedStateModelV063(cards,verified)||genericStateModelV063(cards,profiles),priorityModel=priorityWindowsV064(cards,stackSim),pathModel=rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel);
+  const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な状態接続を検出できませんでした。</div>';
+  result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${rulePathPanelHTMLV065(pathModel)}${stackTraceHTMLV062(stackSim)}${priorityHTMLV064(cards,priorityModel)}${stateEngineHTMLV063(stateModel)}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section>`;
+  statusEl.textContent=`${cards.length}枚を解析：Rule Path ${pathModel.score}/100（${pathModel.status}）、優先権窓${priorityModel.windows.length}件、スタック${stackSim.trace.length}段階、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
+}
+function bindRuleEngineV065(){
+  const btn=$('ruleAnalyzeBtn');if(btn){const fresh=btn.cloneNode(true);btn.replaceWith(fresh);fresh.onclick=analyzeRulesV065;}
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(!el)return;const fresh=el.cloneNode(true);fresh.value=el.value;el.replaceWith(fresh);fresh.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();analyzeRulesV065();}});});
+  const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-5：カードを1～3枚入力してください。';
+}
+bindRuleEngineV065();

@@ -1,66 +1,30 @@
-# Lunch Forge v0.6.4a
+# Lunch Forge v0.6.5
 
-## Proposal Controls
+MTGスタンダード向け、日本語優先のカード・デッキ解析ツールです。
 
-Swap Plannerへ条件設定を追加した版です。
+## v0.6.5 Rule Path Synergy Engine β-5
 
-- 絶対に抜かないカードをチェックで固定
-- 1提案あたりの最大変更枚数を1・2・4・8枚から選択
-- 土地枚数を固定
-- 所有カードだけから追加候補を選択
-- 追加カードの最高レアリティを制限
-- 総合・攻撃的・安定性・シナジー重視の方針切替
-- 上位3案を比較表示
-- 入れ替え操作を最大10回まで元に戻す
-- サイドボードは常に維持
+Rule Engineで作ってきた Event Graph / Stack / Zone / Priority を、シナジー推薦へ接続しました。
 
-## 更新方法
+- ルール検証に「シナジー成立経路」を追加
+- Rule Path score（経路信頼度）を0～100で表示
+- Verified / Connected / Partial / Unconfirmedを区別
+- 成立条件・コスト・妨害ポイントを分離表示
+- 単体カード探索と構築相談の推薦順位へRule Pathを反映
+- タグだけ一致し、明確なルール経路がない候補を抑制
+- 検証済みシナジーを最優先
 
-リポジトリ最上位で次の6ファイルを上書きします。
+### 注意
+Rule Path scoreは勝率ではありません。カード間のルール上の経路がどれだけ明示的かを表す指標です。実戦価値、必要枚数、引ける確率、マナ効率、相手とのマッチアップは今後のStrategy Engineで別評価します。
 
-```text
-app.js
-index.html
-styles.css
-README.md
-CHANGELOG.md
-CHECKLIST.md
-```
+## 更新
+リポジトリ最上位の6ファイルを上書きします。
 
-`data`、`docs`、`tests`は変更しません。
+- app.js
+- index.html
+- styles.css
+- README.md
+- CHANGELOG.md
+- CHECKLIST.md
 
-コミット例：
-
-```text
-feat: add State Zone and Replacement Engine v0.6.4a
-```
-
-
-## v0.6.2 Rule Kernel α
-- 最大3枚のカード文章を条件・コスト・イベント・状態へ分解
-- 効果の供給側と要求側を接続
-- 検証済み2事例をルール手順として表示
-- Parsed / Inferred / Verified / Unsupportedを区別
-- 総合ルールの完全実装ではなく、段階的なルールエンジンの初版
-
-
-## v0.6.2 Event Graph Engine
-
-ルール検証でカード能力をINPUT/OUTPUTイベントへ変換し、最大3枚のイベントチェーンと接続強度を表示します。Event辞書初版は60種類以上を収録します。
-
-
-## v0.6.2 Rule Engine β-2
-「ルール検証」で、コスト支払い、誘発検出、スタックへの投入、上からの解決を時系列表示します。Verified事例以外は簡易パーサーによるInferred判定です。
-
-
-## v0.6.4a State, Zone & Replacement Engine β-3
-- 領域移動を履歴として表示
-- 置換効果候補を検出し、イベント確定前の監視点として表示
-- 遅延誘発型能力のレジストリを追加
-- 死亡・戦場離脱で必要になる最後の情報（LKI）候補を表示
-- 主要な状況起因処理（SBA）の検査パネルを追加
-- 検証済み2事例では領域移動・遅延誘発・LKI・SBAを具体的に追跡
-
-## v0.6.4a Priority & Response Engine β-4
-
-ルール検証にAP/NAPの優先権窓、連続パス、インスタント速度の応答候補、ソーサリー・タイミング制約の表示を追加しました。β-4は2人対戦向けの初版で、実際の合法性はマナ・対象・個別制限などを追加確認します。
+`data/` `docs/` `tests/` は変更しません。
