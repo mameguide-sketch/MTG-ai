@@ -1,3 +1,14 @@
+# CHANGELOG
+
+## v0.6.3
+- State, Zone & Replacement Engine β-3を追加
+- 領域移動履歴（Zone Ledger）を追加
+- 置換効果候補の抽出を追加
+- 遅延誘発レジストリを追加
+- 最後の情報（LKI）候補を追加
+- 状況起因処理（SBA）の監視パネルを追加
+- 月影3枚・アナグマモグラの仔＋寓話の小道のVerified状態追跡を追加
+
 # Changelog
 
 ## v0.6.2

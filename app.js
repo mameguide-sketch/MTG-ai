@@ -1977,3 +1977,126 @@ function setupEventGraphV061(){
  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV062();}},true);});
 }
 setupEventGraphV061();
+
+/* State, Zone & Replacement Engine beta-3 v0.6.3 */
+const ZONE_LABELS_V063={library:'ライブラリー',hand:'手札',battlefield:'戦場',graveyard:'墓地',exile:'追放',stack:'スタック',command:'統率領域',unknown:'不明'};
+const SBA_CATALOG_V063=[
+ {id:'TOUGHNESS_ZERO',label:'タフネス0以下',detail:'タフネスが0以下のクリーチャーをオーナーの墓地へ置く。'},
+ {id:'LETHAL_DAMAGE',label:'致死ダメージ',detail:'致死ダメージを負ったクリーチャーを破壊する（破壊不能などは別途考慮）。'},
+ {id:'ZERO_LOYALTY',label:'忠誠度0',detail:'忠誠カウンターが0のプレインズウォーカーを墓地へ置く。'},
+ {id:'LEGEND_RULE',label:'レジェンド・ルール',detail:'同名の伝説のパーマネントを複数コントロールしている場合に1つを残す。'},
+ {id:'TOKEN_ZONE',label:'トークンの領域',detail:'戦場以外の領域にあるトークンは存在しなくなる。'},
+ {id:'AURA_ILLEGAL',label:'不正なオーラ',detail:'適正なオブジェクトやプレイヤーにつけられていないオーラを墓地へ置く。'}
+];
+function ruleTextJoinedV063(card){return (ruleTextV060(card)||'').replace(/\s+/g,' ').trim();}
+function replacementEffectsV063(card){
+ const out=[];for(const line of abilityLinesV062(card)){
+  const l=line.toLowerCase();let kind='';
+  if(/\binstead\b/.test(l))kind='REPLACE_INSTEAD';
+  else if(/^if .* would /.test(l)||/if .* would .* instead/.test(l))kind='WOULD_REPLACE';
+  else if(/\bas .* enters( the battlefield)?\b/.test(l))kind='ENTER_REPLACEMENT';
+  else if(/enters? .* with .* counter/.test(l))kind='ENTER_WITH_COUNTERS';
+  else if(/skip .* (step|phase|turn)/.test(l))kind='SKIP_EVENT';
+  if(kind)out.push({kind,text:line,source:displayName(card)});
+ }
+ return out;
+}
+function delayedTriggersV063(card){
+ const out=[];for(const line of abilityLinesV062(card)){
+  const l=line.toLowerCase();
+  if(/at the beginning of (the )?(next|your next|end step)/.test(l)||/when (it|that|this|the .*?) (dies|is exiled|leaves the battlefield)/.test(l)||/until .*\. when /.test(l))out.push({kind:'DELAYED_TRIGGER',text:line,source:displayName(card)});
+ }
+ return out;
+}
+function lkiNeedsV063(card){
+ const out=[];for(const line of abilityLinesV062(card)){
+  const l=line.toLowerCase();
+  if(/\bdies\b|put into a graveyard from the battlefield|leaves the battlefield|last known/.test(l))out.push({event:/dies|graveyard from the battlefield/.test(l)?'DIES':'LEAVES_BATTLEFIELD',text:line,source:displayName(card),reason:'発生源が戦場を離れた後の特性を参照する可能性があるため、最後の情報（LKI）候補として保持します。'});
+ }
+ return out;
+}
+function parseZoneMovesFromTextV063(card){
+ const t=ruleTextJoinedV063(card).toLowerCase(),moves=[];const src=displayName(card);
+ const add=(from,to,event,reason)=>moves.push({from,to,event,reason,source:src});
+ if(/discard/.test(t))add('hand','graveyard','DISCARD','カードを捨てる処理');
+ if(/mill/.test(t))add('library','graveyard','MILL','切削による領域移動');
+ if(/return .* from (your |a )?graveyard to the battlefield|return .* card from .* graveyard to the battlefield/.test(t))add('graveyard','battlefield','RETURN_TO_BATTLEFIELD','墓地から戦場へ戻す');
+ if(/return .* to (its owner's |their )?hand/.test(t))add('battlefield','hand','RETURN_TO_HAND','戦場から手札へ戻す');
+ if(/exile target|exile .* card|exile it|exile that/.test(t))add('unknown','exile','EXILE','追放効果');
+ if(/destroy target|destroy .* creature|destroy .* permanent/.test(t))add('battlefield','graveyard','DESTROY','破壊による戦場→墓地の候補');
+ if(/sacrifice/.test(t))add('battlefield','graveyard','SACRIFICE','生け贄による戦場→墓地');
+ if(/put .* from .* hand onto the battlefield/.test(t))add('hand','battlefield','PUT_ONTO_BATTLEFIELD','手札から戦場へ置く');
+ return moves;
+}
+function verifiedStateModelV063(cards,known){
+ if(!known)return null;const names=cards.flatMap(c=>cardNameVariantsV053(c).map(normalizeCardNameV053));const has=s=>names.some(n=>n.includes(normalizeCardNameV053(s)));
+ if(has('Moonshadow')&&has('Bloodthorn Flail')&&has('Flamewake Phoenix'))return {
+  confidence:'Verified',
+  zones:[
+   {n:1,object:'炎跡のフェニックス',from:'hand',to:'graveyard',event:'DISCARD',reason:'血茨のフレイルの代替装備コストを支払う'},
+   {n:2,object:'炎跡のフェニックス',from:'graveyard',to:'battlefield',event:'RETURN_TO_BATTLEFIELD',reason:'戦闘開始時の誘発型能力を解決し{R}を支払う'}
+  ],
+  delayed:[],replacements:[],lki:[],sba:[{id:'TOUGHNESS_ZERO',status:'pass',detail:'月影は各段階でタフネスが0以下にならないため該当しません。'}],
+  notes:['領域を移動したカードは原則として新しいオブジェクトとして扱う前提で履歴を分離します。']
+ };
+ if(has('Badgermole Cub')&&has('Fabled Passage'))return {
+  confidence:'Verified',
+  zones:[
+   {n:1,object:'寓話の小道',from:'battlefield',to:'graveyard',event:'SACRIFICE',reason:'自身の起動型能力のコストとして生け贄に捧げる'},
+   {n:2,object:'寓話の小道',from:'graveyard',to:'battlefield',event:'RETURN_TO_BATTLEFIELD',reason:'土の技が作った遅延誘発型能力を解決'},
+   {n:3,object:'基本土地',from:'library',to:'battlefield',event:'SEARCH_LIBRARY',reason:'寓話の小道の起動型能力を解決'}
+  ],
+  delayed:[{source:'アナグマモグラの仔',kind:'DELAYED_TRIGGER',text:'対象の土地がこのターンに死亡するか追放されたとき、それをあなたのコントロール下でタップ状態で戦場に戻す。',status:'created_then_fired'}],
+  replacements:[],
+  lki:[{source:'寓話の小道',event:'DIES',text:'土地・クリーチャーとして戦場から墓地へ移動した事実を、誘発条件判定に使用。',reason:'死亡直前の戦場でクリーチャーだったという最後の情報を保持します。'}],
+  sba:[{id:'TOUGHNESS_ZERO',status:'pass',detail:'＋1/＋1カウンターにより1/1のため、0/0化直後のSBAでは墓地へ置かれません。'}],
+  notes:['遅延誘発は土の技の解決時に作成され、その後の死亡イベントを監視します。','寓話の小道は墓地へ移動した後は新しいオブジェクトですが、誘発条件は必要に応じて直前の情報を参照します。']
+ };
+ return null;
+}
+function genericStateModelV063(cards,profiles){
+ const zones=cards.flatMap(parseZoneMovesFromTextV063).map((x,i)=>({n:i+1,object:x.source,...x}));
+ const replacements=cards.flatMap(replacementEffectsV063),delayed=cards.flatMap(delayedTriggersV063),lki=cards.flatMap(lkiNeedsV063);
+ const sba=[];
+ const allText=cards.map(ruleTextJoinedV063).join(' ').toLowerCase();
+ if(/-\d+\/-\d+|gets? -\d+\/-\d+|damage/.test(allText))sba.push({id:'TOUGHNESS_ZERO',status:'candidate',detail:'タフネス減少またはダメージがあるため、解決後にタフネス0以下・致死ダメージを再検査する必要があります。'});
+ if(/legendary/.test(cards.map(c=>c.type_line||'').join(' ').toLowerCase()))sba.push({id:'LEGEND_RULE',status:'candidate',detail:'伝説のパーマネントが含まれます。同名が複数同時に戦場に存在する盤面ではレジェンド・ルールを検査します。'});
+ return {confidence:'Inferred',zones,delayed,replacements,lki,sba,notes:['β-3の一般解析はカード文章から必要なルール監視点を抽出する段階です。盤面全体の数値状態まではまだ完全計算しません。']};
+}
+function zoneLedgerHTMLV063(zones){
+ if(!zones.length)return '<div class="empty">明示的な領域移動を抽出できませんでした。</div>';
+ return `<div class="zoneLedgerV063">${zones.map(z=>`<article class="zoneMoveV063"><span class="zoneMoveNumV063">${z.n}</span><div><b>${esc(z.object||z.source||'カード')}</b><div class="zoneFlowV063"><span>${esc(ZONE_LABELS_V063[z.from]||z.from)}</span><strong>→</strong><span>${esc(ZONE_LABELS_V063[z.to]||z.to)}</span></div><small>${esc(z.event||'ZONE_CHANGE')}</small><p>${esc(z.reason||'')}</p></div></article>`).join('')}</div>`;
+}
+function replacementHTMLV063(items){
+ if(!items.length)return '<div class="empty">この組み合わせから置換効果候補は検出されませんでした。</div>';
+ return `<div class="replacementListV063">${items.map(x=>`<article><span class="ruleBadge result">${esc(x.kind)}</span><b>${esc(x.source)}</b><p>${esc(x.text)}</p><small>イベントを実行する前に適用可否を判定します。</small></article>`).join('')}</div>`;
+}
+function delayedHTMLV063(items){
+ if(!items.length)return '<div class="empty">遅延誘発の登録候補はありません。</div>';
+ return `<div class="replacementListV063">${items.map(x=>`<article><span class="ruleBadge event">DELAYED</span><b>${esc(x.source)}</b><p>${esc(x.text)}</p>${x.status?`<small>${esc(x.status)}</small>`:''}</article>`).join('')}</div>`;
+}
+function lkiHTMLV063(items){
+ if(!items.length)return '<div class="empty">LKI保持が必要な候補はありません。</div>';
+ return `<div class="replacementListV063">${items.map(x=>`<article><span class="ruleBadge state">LKI</span><b>${esc(x.source)}</b><p>${esc(x.text)}</p><small>${esc(x.reason||'')}</small></article>`).join('')}</div>`;
+}
+function sbaHTMLV063(items){
+ const map=new Map(items.map(x=>[x.id,x]));return `<div class="sbaGridV063">${SBA_CATALOG_V063.map(s=>{const hit=map.get(s.id),status=hit?.status||'idle';return `<article class="sbaItemV063 ${esc(status)}"><div><b>${esc(s.label)}</b><span>${status==='candidate'?'要検査':status==='pass'?'確認済み':'待機'}</span></div><p>${esc(hit?.detail||s.detail)}</p></article>`}).join('')}</div>`;
+}
+function stateEngineHTMLV063(model){
+ return `<section class="stateEngineV063"><div class="knowledgeHeader"><div><div class="dialogEyebrow">State, Zone & Replacement Engine β-3</div><h2>領域・置換・状況起因処理</h2><p class="notice">イベントを即座に確定せず、置換効果→領域移動→LKI保持→誘発登録→状況起因処理の順で監視します。</p></div><span class="ruleConfidence ${model.confidence==='Verified'?'verified':'inferred'}">${esc(model.confidence)}</span></div><div class="stateGridV063"><section class="mini"><h3>領域移動履歴</h3>${zoneLedgerHTMLV063(model.zones)}</section><section class="mini"><h3>置換効果候補</h3>${replacementHTMLV063(model.replacements)}</section><section class="mini"><h3>遅延誘発レジストリ</h3>${delayedHTMLV063(model.delayed)}</section><section class="mini"><h3>最後の情報（LKI）</h3>${lkiHTMLV063(model.lki)}</section></div><section class="mini section"><h3>状況起因処理チェック</h3>${sbaHTMLV063(model.sba)}</section><details class="stackNotesV062"><summary>β-3の判定上の注意</summary><ul>${model.notes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details></section>`;
+}
+async function analyzeRulesV063(){
+ const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;
+ if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+ const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+ const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}
+ if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+ const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+ const order=$('ruleTriggerOrder')?.value||'input';const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,order);
+ const stateModel=verifiedStateModelV063(cards,verified)||genericStateModelV063(cards,profiles);
+ const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な状態接続を検出できませんでした。</div>';
+ result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${stackTraceHTMLV062(stackSim)}${stateEngineHTMLV063(stateModel)}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section><div class="ruleDisclaimer"><b>β-3の限界：</b>領域履歴、置換効果候補、遅延誘発レジストリ、LKI、主要な状況起因処理の監視点を追加しました。複数の置換効果の選択順、全パーマネントの数値状態、優先権応答、依存関係を含む継続的効果の種類別適用はまだ完全計算しません。Verified以外は仮説として扱ってください。</div>`;
+ const direct=ios.reduce((n,x)=>n+x.input.length+x.output.length,0);statusEl.textContent=`${cards.length}枚を解析：スタック${stackSim.trace.length}段階、領域移動${stateModel.zones.length}件、置換候補${stateModel.replacements.length}件、遅延誘発${stateModel.delayed.length}件、LKI候補${stateModel.lki.length}件、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
+}
+if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV063;
+['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV063();}},true);});
