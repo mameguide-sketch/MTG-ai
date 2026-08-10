@@ -2101,7 +2101,7 @@ async function analyzeRulesV063(){
 if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV063;
 ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV063();}},true);});
 
-/* Priority & Response Engine beta-4 v0.6.4 */
+/* Priority & Response Engine beta-4 v0.6.4a */
 const PRIORITY_PHASES_V064=[
  {id:'MAIN',label:'メイン・フェイズ',sorcery:true},
  {id:'BEGIN_COMBAT',label:'戦闘開始',sorcery:false},
@@ -2152,3 +2152,43 @@ async function analyzeRulesV064(){
 }
 if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV064;
 ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV064();}},true);});
+
+
+/* v0.6.4aa hotfix: unify Rule Engine bindings and remove legacy listener competition */
+function bindUnifiedRuleEngineV064a(){
+  const btn=$('ruleAnalyzeBtn');
+  if(btn){
+    const fresh=btn.cloneNode(true);
+    btn.replaceWith(fresh);
+    fresh.onclick=analyzeRulesV064;
+  }
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{
+    const el=$(id); if(!el)return;
+    const fresh=el.cloneNode(true);
+    fresh.value=el.value;
+    el.replaceWith(fresh);
+    fresh.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        e.stopPropagation();
+        analyzeRulesV064();
+      }
+    });
+  });
+  const clear=$('ruleClearBtn');
+  if(clear){
+    const fresh=clear.cloneNode(true);
+    clear.replaceWith(fresh);
+    fresh.onclick=()=>{
+      ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.value='';});
+      const r=$('ruleResult'); if(r)r.innerHTML='<div class="empty">左でカードを選ぶと、Rule Engine β-4aでルール構造・スタック・優先権・状態遷移を統合表示します。</div>';
+      const st=$('ruleStatus'); if(st)st.textContent='カードを1～3枚入力してください。';
+    };
+  }
+  const status=$('ruleStatus');
+  if(status && !status.dataset.v064a){
+    status.dataset.v064a='1';
+    status.textContent='Rule Engine β-4a：カードを1～3枚入力してください。';
+  }
+}
+bindUnifiedRuleEngineV064a();
