@@ -1,4 +1,4 @@
-# Lunch Forge v0.6.3
+# Lunch Forge v0.6.4
 
 ## Proposal Controls
 
@@ -32,7 +32,7 @@ CHECKLIST.md
 コミット例：
 
 ```text
-feat: add State Zone and Replacement Engine v0.6.3
+feat: add State Zone and Replacement Engine v0.6.4
 ```
 
 
@@ -53,10 +53,14 @@ feat: add State Zone and Replacement Engine v0.6.3
 「ルール検証」で、コスト支払い、誘発検出、スタックへの投入、上からの解決を時系列表示します。Verified事例以外は簡易パーサーによるInferred判定です。
 
 
-## v0.6.3 State, Zone & Replacement Engine β-3
+## v0.6.4 State, Zone & Replacement Engine β-3
 - 領域移動を履歴として表示
 - 置換効果候補を検出し、イベント確定前の監視点として表示
 - 遅延誘発型能力のレジストリを追加
 - 死亡・戦場離脱で必要になる最後の情報（LKI）候補を表示
 - 主要な状況起因処理（SBA）の検査パネルを追加
 - 検証済み2事例では領域移動・遅延誘発・LKI・SBAを具体的に追跡
+
+## v0.6.4 Priority & Response Engine β-4
+
+ルール検証にAP/NAPの優先権窓、連続パス、インスタント速度の応答候補、ソーサリー・タイミング制約の表示を追加しました。β-4は2人対戦向けの初版で、実際の合法性はマナ・対象・個別制限などを追加確認します。

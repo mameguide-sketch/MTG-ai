@@ -2100,3 +2100,55 @@ async function analyzeRulesV063(){
 }
 if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV063;
 ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV063();}},true);});
+
+/* Priority & Response Engine beta-4 v0.6.4 */
+const PRIORITY_PHASES_V064=[
+ {id:'MAIN',label:'メイン・フェイズ',sorcery:true},
+ {id:'BEGIN_COMBAT',label:'戦闘開始',sorcery:false},
+ {id:'DECLARE_ATTACKERS',label:'攻撃クリーチャー指定後',sorcery:false},
+ {id:'DECLARE_BLOCKERS',label:'ブロック・クリーチャー指定後',sorcery:false},
+ {id:'END_STEP',label:'終了ステップ',sorcery:false}
+];
+function responseCapabilitiesV064(card){
+ const text=ruleTextV060(card)||'', low=text.toLowerCase(), out=[];
+ if((card.type_line||'').toLowerCase().includes('instant'))out.push({kind:'INSTANT',label:'インスタント',canRespond:true,reason:'通常、優先権があるときに唱えられます。'});
+ if(/flash/.test(low))out.push({kind:'FLASH',label:'瞬速',canRespond:true,reason:'瞬速によりインスタントを唱えられるタイミングで唱えられます。'});
+ const acts=abilityLinesV062(card).filter(x=>x.includes(':'));
+ if(acts.length)out.push({kind:'ACTIVATED',label:'起動型能力',canRespond:true,reason:'マナ能力などの例外を除き、通常は優先権があるときに起動できます。'});
+ if(/activate only as a sorcery/i.test(text))out.push({kind:'SORCERY_ONLY',label:'ソーサリー・タイミング限定',canRespond:false,reason:'自分のメイン・フェイズ、スタックが空で優先権がある場合に限られます。'});
+ if(!out.length)out.push({kind:'NO_FAST_ACTION',label:'即時応答を抽出せず',canRespond:false,reason:'カード文章・タイプから一般的な応答手段を抽出できませんでした。'});
+ return out;
+}
+function priorityWindowsV064(cards,stackSim){
+ const active=$('ruleActivePlayer')?.value||'A', nonactive=active==='A'?'B':'A', auto=$('ruleAutoPass')?.checked!==false;
+ const windows=[]; let n=1;
+ const add=(cause,stack,detail)=>windows.push({n:n++,cause,holder:active,order:[active,nonactive],stack:(stack||[]).map(x=>({...x})),auto,detail});
+ for(const step of (stackSim.trace||[])){
+   if(['activate','cast','trigger'].includes(step.type)) add(step.title,step.stack,'スタックへオブジェクトを置いた後、状況起因処理と待機中の誘発を処理してからアクティブ・プレイヤーが優先権を得る想定です。');
+   if(step.type==='resolve') add(step.title,step.stack,'スタック最上段の解決後、状況起因処理と誘発を処理した後にアクティブ・プレイヤーが優先権を得ます。');
+ }
+ if(!windows.length)add('現在のゲーム状態',[],'処理を開始できる優先権窓として表示します。');
+ return {active,nonactive,auto,windows};
+}
+function priorityHTMLV064(cards,model){
+ const caps=cards.map(c=>({card:c,items:responseCapabilitiesV064(c)}));
+ return `<section class="priorityEngineV064"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Priority & Response Engine β-4</div><h2>優先権・応答タイミング</h2><p class="notice">スタックの各節目で、誰が先に優先権を得るか、どの種類の応答が可能かを分離して表示します。</p></div><span class="ruleConfidence inferred">Inferred</span></div>
+ <div class="prioritySummaryV064"><article><b>AP</b><strong>プレイヤー${esc(model.active)}</strong><small>アクティブ・プレイヤー</small></article><article><b>NAP</b><strong>プレイヤー${esc(model.nonactive)}</strong><small>非アクティブ・プレイヤー</small></article><article><b>PASS</b><strong>${model.auto?'自動パス':'手動想定'}</strong><small>${model.auto?'全員連続パスで最上段を解決':'応答候補を確認してから解決'}</small></article></div>
+ <div class="priorityTimelineV064">${model.windows.map(w=>`<article class="priorityWindowV064"><div class="priorityNumV064">${w.n}</div><div><h3>${esc(w.cause)}</h3><p>${esc(w.detail)}</p><div class="priorityFlowV064"><span>プレイヤー${esc(w.order[0])}</span><strong>→</strong><span>プレイヤー${esc(w.order[1])}</span><strong>→</strong><span>${w.auto?'両者パス：解決/次のステップ':'応答またはパス'}</span></div>${stackSnapshotHTMLV062(w.stack)}</div></article>`).join('')}</div>
+ <section class="mini section"><h3>選択カードの応答能力</h3><div class="responseGridV064">${caps.map(x=>`<article><b>${esc(displayName(x.card))}</b>${x.items.map(i=>`<div class="responseItemV064 ${i.canRespond?'yes':'no'}"><span>${esc(i.label)}</span><p>${esc(i.reason)}</p></div>`).join('')}</article>`).join('')}</div></section>
+ <section class="mini section"><h3>タイミング窓の基準</h3><div class="timingGridV064">${PRIORITY_PHASES_V064.map(p=>`<article><b>${esc(p.label)}</b><span>${p.sorcery?'ソーサリー・タイミング成立候補':'インスタント速度の応答窓'}</span></article>`).join('')}</div></section>
+ <div class="ruleDisclaimer"><b>β-4の限界：</b>2人対戦を前提とした優先権窓の初版です。実際に唱えられるか・起動できるかは、マナ、対象、個別のタイミング制限、特別な処理、マナ能力、フェイズ/ステップの詳細なゲーム状態を追加確認する必要があります。</div></section>`;
+}
+async function analyzeRulesV064(){
+ const statusEl=$('ruleStatus'),result=$('ruleResult');if(!statusEl||!result)return;
+ if(!pool.length){statusEl.textContent='カードデータを取得しています。';await prepareDatabase(false);if(!pool.length){statusEl.textContent='カードデータを取得できませんでした。';return;}}
+ const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length){statusEl.textContent='カードを1枚以上入力してください。';return;}
+ const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);} if(!cards.length){statusEl.textContent='カードを特定できませんでした。';return;}
+ const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+ const order=$('ruleTriggerOrder')?.value||'input', stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,order), stateModel=verifiedStateModelV063(cards,verified)||genericStateModelV063(cards,profiles), priorityModel=priorityWindowsV064(cards,stackSim);
+ const linksHTML=links.length?links.map(x=>`<article class="ruleLink"><div><b>${esc(displayName(cards[x.from]))}</b><span>→</span><b>${esc(displayName(cards[x.to]))}</b></div><strong>${esc(x.label)}</strong><p>${esc(x.reason)}</p><span class="ruleConfidence inferred">${x.confidence}</span></article>`).join(''):'<div class="empty">現在の辞書では明確な状態接続を検出できませんでした。</div>';
+ result.innerHTML=`${verified?ruleSequenceHTMLV060(verified):''}${stackTraceHTMLV062(stackSim)}${priorityHTMLV064(cards,priorityModel)}${stateEngineHTMLV063(stateModel)}${eventGraphHTMLV061(cards,ios,edges,!!verified)}<section class="section"><div class="knowledgeHeader"><div><h2>カード文章の構造化</h2><p class="notice">条件・コスト・イベント・状態の直接抽出結果です。</p></div><span class="knowledgeCount">${cards.length}枚</span></div><div class="ruleProfiles">${profiles.map(ruleProfileHTMLV060).join('')}</div></section><section class="section"><div class="knowledgeHeader"><div><h2>状態接続候補</h2><p class="notice">Rule Kernelの状態・条件接続も併記します。</p></div><span class="knowledgeCount">${links.length}件</span></div><div class="ruleLinks">${linksHTML}</div></section>`;
+ statusEl.textContent=`${cards.length}枚を解析：優先権窓${priorityModel.windows.length}件、スタック${stackSim.trace.length}段階、領域移動${stateModel.zones.length}件、イベント接続${edges.length}件${verified?'、検証済み事例1件':''}。`;
+}
+if($('ruleAnalyzeBtn'))$('ruleAnalyzeBtn').onclick=analyzeRulesV064;
+['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopImmediatePropagation();analyzeRulesV064();}},true);});
