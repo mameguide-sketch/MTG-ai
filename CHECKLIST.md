@@ -1,3 +1,12 @@
+# v0.6.7a timing hotfix
+- [ ] Header shows v0.6.7a
+- [ ] Rule Engine shows β-7a
+- [ ] Moonshadow + Bloodthorn Flail + Flamewake Phoenix shows theoretical fastest 2T
+- [ ] The Moonshadow plan shows T1 Moonshadow, T2 Flail, discard equip cost, then {R} Phoenix return
+- [ ] Badgermole Cub + Fabled Passage shows theoretical fastest 3T without acceleration
+- [ ] Unverified combinations are labeled 印刷MVベース（暫定）
+- [ ] Existing Rule Path / Strategy / Priority / Stack functions still render
+
 # v0.6.7 確認項目
 
 - [ ] 画面上部が v0.6.7

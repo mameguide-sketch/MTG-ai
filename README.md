@@ -1,4 +1,4 @@
-# Lunch Forge v0.6.7
+# Lunch Forge v0.6.7a
 
 ## Consistency & Timing Engine β-7
 
@@ -32,3 +32,10 @@ Rule Path / Strategy Value に続き、現在のデッキリストを使って�
 - CHECKLIST.md
 
 `data/` `docs/` `tests/` は変更しません。
+
+
+## v0.6.7a timing hotfix
+- 「マナ上の理論最速」を印刷MVの単純合計だけで決めないよう修正。
+- Verified Rule Pathでは実際に唱えるカード、代替コスト、墓地から戻すための支払い、必要な土地配置を時系列で評価。
+- 月影＋血茨のフレイル＋炎跡のフェニックスは2T、アナグマモグラの仔＋寓話の小道は通常土地展開のみなら3Tを最速経路として扱う。
+- 未検証の組み合わせは従来の印刷MVベース計算を暫定フォールバックとして明示。

@@ -2352,7 +2352,7 @@ function bindRuleEngineV066(){
 }
 bindRuleEngineV066();
 
-/* Consistency & Timing Engine beta-7 v0.6.7 */
+/* Consistency & Timing Engine beta-7a v0.6.7a */
 function logChooseV067(n,k){
   if(k<0||k>n)return -Infinity;
   k=Math.min(k,n-k);let s=0;
@@ -2472,16 +2472,45 @@ function standaloneRiskV067(cards){
   const avg=cards.length?points/cards.length:0,level=avg>=2?'高':avg>=1?'中':'低';
   return {level,penalty:level==='高'?10:level==='中'?5:0,names};
 }
+/* v0.6.7a: timing must follow the actual Rule Path, not simply sum printed mana values. */
+function knownManaPlanV067a(cards){
+  const names=cards.flatMap(c=>cardNameVariantsV053(c).map(normalizeCardNameV053));
+  const has=s=>names.some(n=>n.includes(normalizeCardNameV053(s)));
+  const printedTotal=cards.reduce((n,c)=>n+Math.max(0,Math.ceil(+c.cmc||0)),0);
+  const maxCost=Math.max(0,...cards.map(c=>Math.max(0,Math.ceil(+c.cmc||0))));
+  if(has('Moonshadow')&&has('Bloodthorn Flail')&&has('Flamewake Phoenix'))return {
+    turn:2,total:3,printedTotal,maxCost,landNeed:2,source:'verified_rule_path',
+    label:'Verified Rule Path',
+    plan:[
+      '1T：月影を{B}で唱える。',
+      '2T：血茨のフレイルを{B}で唱える。',
+      '装備はマナではなく炎跡のフェニックスを捨てる代替コストを選ぶ。',
+      '戦闘開始時、パワー4以上を満たしたフェニックスの誘発で{R}を支払う。'
+    ]
+  };
+  if(has('Badgermole Cub')&&has('Fabled Passage'))return {
+    turn:3,total:2,printedTotal,maxCost,landNeed:3,source:'verified_rule_path',
+    label:'Verified Rule Path',
+    plan:[
+      '1T：マナを出せる土地を置く。',
+      '2T：寓話の小道を置いて戦場に残す。',
+      '3T：別のマナ源を置き、{1}{G}でアナグマモグラの仔を唱える。',
+      '土の技1の解決後、寓話の小道を生け贄にして既知のRule Pathへ入る。'
+    ]
+  };
+  return null;
+}
 function theoreticalManaTurnV067(cards){
-  const costs=cards.map(c=>Math.max(0,Math.ceil(+c.cmc||0))),total=costs.reduce((a,b)=>a+b,0),maxCost=Math.max(0,...costs);
-  for(let t=1;t<=10;t++)if(t>=maxCost&&t*(t+1)/2>=total)return {turn:t,total,maxCost};
-  return {turn:10,total,maxCost};
+  const known=knownManaPlanV067a(cards);if(known)return known;
+  const costs=cards.map(c=>Math.max(0,Math.ceil(+c.cmc||0))),printedTotal=costs.reduce((a,b)=>a+b,0),maxCost=Math.max(0,...costs);
+  for(let t=1;t<=10;t++)if(t>=maxCost&&t*(t+1)/2>=printedTotal)return {turn:t,total:printedTotal,printedTotal,maxCost,landNeed:t,source:'printed_mv_fallback',label:'印刷MVベース（暫定）',plan:[]};
+  return {turn:10,total:printedTotal,printedTotal,maxCost,landNeed:10,source:'printed_mv_fallback',label:'印刷MVベース（暫定）',plan:[]};
 }
 function reachLabelV067(p){const n=p*100;return n>=55?'高':n>=30?'中':n>=15?'低～中':'低';}
 function consistencyModelV067(cards,strategy){
   const ctx=rawDeckContextV067(cards),onDraw=($('rulePlayDraw')?.value||'play')==='draw';
   const probs={};for(const t of [3,4,5,6])probs[t]=allPiecesProbabilityV067(ctx.deckSize,ctx.copies,cardsSeenByTurnV067(t,onDraw));
-  const mana=theoreticalManaTurnV067(cards),manaSeen=cardsSeenByTurnV067(mana.turn,onDraw),landNeed=mana.total>0?mana.turn:0,landReady=ctx.hasDeck?hypergeomAtLeastV067(ctx.deckSize,ctx.lands,manaSeen,landNeed):null;
+  const mana=theoreticalManaTurnV067(cards),manaSeen=cardsSeenByTurnV067(mana.turn,onDraw),landNeed=mana.total>0?(mana.landNeed??mana.turn):0,landReady=ctx.hasDeck?hypergeomAtLeastV067(ctx.deckSize,ctx.lands,manaSeen,landNeed):null;
   const color=colorDifficultyV067(cards,ctx),access=accessSupportV067(ctx,cards),standalone=standaloneRiskV067(cards);
   const p4=probs[4]*100,p5=probs[5]*100;
   let score=25+p4*.22+p5*.58+access.bonus-color.penalty-standalone.penalty-Math.max(0,mana.turn-4)*5;
@@ -2500,7 +2529,7 @@ function consistencyPanelHTMLV067(m){
   const missing=m.ctx.missing.length?`<div class="consistencyWarningV067"><b>未採用パーツ：</b>${m.ctx.missing.map(esc).join('／')}</div>`:'';
   const landText=m.landReady==null?'未評価':pctV067(m.landReady);
   const accessBits=[];if(m.access.draw)accessBits.push(`ドロー${m.access.draw}枚`);if(m.access.tutor)accessBits.push(`サーチ${m.access.tutor}枚`);if(m.access.impulse)accessBits.push(`衝動的ドロー${m.access.impulse}枚`);if(m.access.graveRelevant&&m.access.mill)accessBits.push(`切削${m.access.mill}枚`);
-  return `<section class="consistencyEngineV067"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Consistency & Timing Engine β-7</div><h2>再現性・成立ターン評価</h2><p class="notice">現在のデッキ採用枚数から自然ドロー確率を計算し、マナ・色拘束・アクセス補助・単体依存度を別々に評価します。</p></div><span class="consistencyScoreV067">${m.score}<small>/100</small><b>${m.grade}</b></span></div>${missing}<div class="consistencyContextV067"><b>${esc(m.ctx.source)}</b><span>${m.ctx.deckSize}枚デッキ</span><span>${m.onDraw?'後攻':'先攻'}</span><span>${esc(m.timing)}</span></div><div class="consistencyMetricsV067"><div><b>${pctV067(m.probs[3])}</b><span>3T自然到達</span></div><div><b>${pctV067(m.probs[4])}</b><span>4T自然到達</span></div><div><b>${pctV067(m.probs[5])}</b><span>5T自然到達</span></div><div><b>${m.mana.turn}T</b><span>マナ上の理論最速</span></div><div><b>${landText}</b><span>最速時の土地到達</span></div><div><b>${esc(m.color.level)}</b><span>色マナ難度</span></div></div><div class="rulePathColumnsV065"><section><h3>必要パーツ採用枚数</h3><ul class="consistencyCopiesV067">${copyRows}</ul><p class="tiny">4Tまでの自然到達性：${esc(m.reach4)}</p></section><section><h3>アクセス補助</h3>${accessBits.length?`<ul>${accessBits.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確なドロー・サーチ補助を集計できませんでした。</div>'}<p class="tiny">補助手段はConsistency点への定性的補正のみ。上の自然到達率には加算していません。</p></section><section><h3>マナ・単体依存</h3><ul><li>必要カードの合計MV：${m.mana.total}</li><li>色源：${esc(m.color.detail)}</li><li>単体依存度：${esc(m.standalone.level)}${m.standalone.names.length?`（${m.standalone.names.map(esc).join('／')}）`:''}</li></ul></section></div><div class="ruleDisclaimer"><b>β-7の注意：</b>自然到達率は初手7枚からの通常ドローだけを用いた超幾何分布ベースの値で、マリガン、追加ドロー、サーチ、切削、占術、相手の妨害は含みません。「マナ上の理論最速」は各ターンに土地を置ける前提の楽観的な下限です。勝率ではありません。</div></section>`;
+  return `<section class="consistencyEngineV067"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Consistency & Timing Engine β-7</div><h2>再現性・成立ターン評価</h2><p class="notice">現在のデッキ採用枚数から自然ドロー確率を計算し、マナ・色拘束・アクセス補助・単体依存度を別々に評価します。</p></div><span class="consistencyScoreV067">${m.score}<small>/100</small><b>${m.grade}</b></span></div>${missing}<div class="consistencyContextV067"><b>${esc(m.ctx.source)}</b><span>${m.ctx.deckSize}枚デッキ</span><span>${m.onDraw?'後攻':'先攻'}</span><span>${esc(m.timing)}</span></div><div class="consistencyMetricsV067"><div><b>${pctV067(m.probs[3])}</b><span>3T自然到達</span></div><div><b>${pctV067(m.probs[4])}</b><span>4T自然到達</span></div><div><b>${pctV067(m.probs[5])}</b><span>5T自然到達</span></div><div><b>${m.mana.turn}T</b><span>マナ上の理論最速</span></div><div><b>${landText}</b><span>最速時の土地到達</span></div><div><b>${esc(m.color.level)}</b><span>色マナ難度</span></div></div><div class="rulePathColumnsV065"><section><h3>必要パーツ採用枚数</h3><ul class="consistencyCopiesV067">${copyRows}</ul><p class="tiny">4Tまでの自然到達性：${esc(m.reach4)}</p></section><section><h3>アクセス補助</h3>${accessBits.length?`<ul>${accessBits.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確なドロー・サーチ補助を集計できませんでした。</div>'}<p class="tiny">補助手段はConsistency点への定性的補正のみ。上の自然到達率には加算していません。</p></section><section><h3>マナ・単体依存</h3><ul><li>印刷MV合計：${m.mana.printedTotal??m.mana.total}</li><li>経路上の実支払い目安：${m.mana.total}</li><li>最速判定：${esc(m.mana.label||'暫定')}</li><li>色源：${esc(m.color.detail)}</li><li>単体依存度：${esc(m.standalone.level)}${m.standalone.names.length?`（${m.standalone.names.map(esc).join('／')}）`:''}</li></ul>${m.mana.plan?.length?`<div class="manaPlanV067a"><b>最速経路</b><ol>${m.mana.plan.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`:''}</section></div><div class="ruleDisclaimer"><b>β-7の注意：</b>自然到達率は初手7枚からの通常ドローだけを用いた超幾何分布ベースの値で、マリガン、追加ドロー、サーチ、切削、占術、相手の妨害は含みません。「マナ上の理論最速」は各ターンに土地を置ける前提の楽観的な下限です。勝率ではありません。</div></section>`;
 }
 const analyzeRulesV066Base=analyzeRulesV065;
 analyzeRulesV065=async function(){

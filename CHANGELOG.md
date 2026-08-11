@@ -1,3 +1,9 @@
+# v0.6.7a
+- Fix theoretical earliest-turn calculation to follow Verified Rule Paths.
+- Moonshadow / Bloodthorn Flail / Flamewake Phoenix now evaluates to turn 2.
+- Badgermole Cub / Fabled Passage now accounts for the non-mana-producing Passage setup and evaluates to turn 3 without acceleration.
+- Show printed MV separately from actual path mana payments and display the fastest action plan.
+
 ## v0.6.7 - Consistency & Timing Engine β-7
 
 - 現在のデッキリストをRule Engineの再現性評価へ接続
