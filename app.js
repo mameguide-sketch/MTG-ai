@@ -2304,3 +2304,50 @@ function bindRuleEngineV065(){
   const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-5：カードを1～3枚入力してください。';
 }
 bindRuleEngineV065();
+
+/* Strategy Value Engine beta-6 v0.6.6 */
+function strategyModelV066(cards,pathModel,priorityModel,profiles,verified){
+  const pieces=cards.length;
+  const mana=cards.reduce((n,c)=>n+(Number(c.cmc)||0),0);
+  const reqCount=unique(profiles.flatMap(p=>[...(p.conditions||[]),...(p.costs||[])])).length;
+  const windows=priorityModel?.windows?.length||0;
+  const setupPenalty=Math.max(0,(pieces-2)*10)+Math.min(18,reqCount*3);
+  const manaPenalty=Math.min(24,Math.max(0,mana-4)*3);
+  const interactionPenalty=Math.min(18,windows*3);
+  let score=Math.round((pathModel?.score||0)*0.62+38-setupPenalty-manaPenalty-interactionPenalty);
+  if(verified)score+=12;
+  score=Math.max(0,Math.min(100,score));
+  const grade=score>=80?'A':score>=65?'B':score>=50?'C':score>=35?'D':'E';
+  const positives=[]; const risks=[];
+  if((pathModel?.score||0)>=80)positives.push('ルール経路が明確');
+  if(pieces<=2)positives.push('必要カード枚数が少ない');
+  if(mana<=4)positives.push('カードの合計マナ総量が比較的軽い');
+  if(verified)positives.push('検証済みシナジー事例');
+  if(pieces>=3)risks.push(`${pieces}枚のカードを揃える必要があります。`);
+  if(reqCount>=3)risks.push(`成立条件・コスト候補を${reqCount}件検出しています。`);
+  if(mana>=7)risks.push(`カードの合計マナ総量が${mana}で、展開速度に負荷がかかる可能性があります。`);
+  if(windows>=3)risks.push(`相手が応答できる優先権窓を${windows}箇所検出しています。`);
+  if((pathModel?.status||'')==='Partial')risks.push('Rule Pathが部分接続のため、実際の成立条件を追加確認する必要があります。');
+  return {score,grade,pieces,mana,reqCount,windows,positives:unique(positives),risks:unique(risks)};
+}
+function strategyPanelHTMLV066(m){
+  return `<section class="strategyEngineV066"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Strategy Value Engine β-6</div><h2>実戦成立性の一次評価</h2><p class="notice">Rule Pathとは別に、必要枚数・マナ負荷・条件数・相手の応答窓から「使いやすさ」を暫定評価します。</p></div><span class="strategyScoreV066">${m.score}<small>/100</small><b>${m.grade}</b></span></div><div class="strategyMetricsV066"><div><b>${m.pieces}</b><span>必要カード</span></div><div><b>${m.mana}</b><span>合計MV</span></div><div><b>${m.reqCount}</b><span>条件・コスト</span></div><div><b>${m.windows}</b><span>応答窓</span></div></div><div class="rulePathColumnsV065"><section><h3>プラス要因</h3>${m.positives.length?`<ul>${m.positives.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確な加点要因は未検出です。</div>'}</section><section><h3>実戦上の負荷</h3>${m.risks.length?`<ul>${m.risks.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">大きな負荷候補は未検出です。</div>'}</section></div><div class="ruleDisclaimer"><b>β-6の注意：</b>これは勝率予測ではありません。カードを引く確率、デッキ内枚数、実際のマナ基盤、メタゲーム、対戦データはまだ評価していません。</div></section>`;
+}
+const analyzeRulesV065Base=analyzeRulesV065;
+analyzeRulesV065=async function(){
+  await analyzeRulesV065Base();
+  const result=$('ruleResult'); if(!result||!result.innerHTML||result.querySelector('.strategyEngineV066'))return;
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean); if(!raw.length)return;
+  const cards=[]; for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);} if(!cards.length)return;
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+  const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,$('ruleTriggerOrder')?.value||'input');
+  const priorityModel=priorityWindowsV064(cards,stackSim),pathModel=rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel),strategy=strategyModelV066(cards,pathModel,priorityModel,profiles,verified);
+  const path=result.querySelector('.rulePathEngineV065'); if(path)path.insertAdjacentHTML('afterend',strategyPanelHTMLV066(strategy)); else result.insertAdjacentHTML('afterbegin',strategyPanelHTMLV066(strategy));
+  const st=$('ruleStatus'); if(st)st.textContent+=` Strategy ${strategy.score}/100（${strategy.grade}）。`;
+};
+function bindRuleEngineV066(){
+ const btn=$('ruleAnalyzeBtn');if(btn){const fresh=btn.cloneNode(true);btn.replaceWith(fresh);fresh.onclick=analyzeRulesV065;}
+ ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(!el)return;const fresh=el.cloneNode(true);fresh.value=el.value;el.replaceWith(fresh);fresh.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();analyzeRulesV065();}});});
+ const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-6：カードを1～3枚入力してください。';
+}
+bindRuleEngineV066();

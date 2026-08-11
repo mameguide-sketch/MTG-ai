@@ -1,8 +1,12 @@
-# Lunch Forge v0.6.5
+# Lunch Forge v0.6.6
+
+## v0.6.6 Strategy Value Engine β-6
+Rule Pathの成立可否に加えて、必要枚数・マナ負荷・条件数・応答窓から実戦成立性を一次評価します。現段階のStrategy scoreは勝率ではありません。
+
 
 MTGスタンダード向け、日本語優先のカード・デッキ解析ツールです。
 
-## v0.6.5 Rule Path Synergy Engine β-5
+## v0.6.6 Rule Path Synergy Engine β-5
 
 Rule Engineで作ってきた Event Graph / Stack / Zone / Priority を、シナジー推薦へ接続しました。
 

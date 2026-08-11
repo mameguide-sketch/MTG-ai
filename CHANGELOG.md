@@ -1,4 +1,9 @@
-## v0.6.5 - Rule Path Synergy Engine β-5
+## v0.6.6 - Strategy Value Engine β-6
+- Rule Pathとは別に実戦成立性の一次評価を追加
+- 必要カード枚数、合計MV、成立条件・コスト数、優先権窓を可視化
+- Strategy scoreは勝率ではなく構築上の扱いやすさの暫定指標
+
+## v0.6.6 - Rule Path Synergy Engine β-5
 
 - Rule Engineのイベント経路をシナジー評価へ接続
 - Rule Path scoreを追加
