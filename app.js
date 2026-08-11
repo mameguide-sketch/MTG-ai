@@ -2351,3 +2351,173 @@ function bindRuleEngineV066(){
  const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-6：カードを1～3枚入力してください。';
 }
 bindRuleEngineV066();
+
+/* Consistency & Timing Engine beta-7 v0.6.7 */
+function logChooseV067(n,k){
+  if(k<0||k>n)return -Infinity;
+  k=Math.min(k,n-k);let s=0;
+  for(let i=1;i<=k;i++)s+=Math.log(n-k+i)-Math.log(i);
+  return s;
+}
+function combinationRatioV067(n,k,N){
+  if(k<0||k>N||n<k)return 0;
+  if(n===N)return 1;
+  return Math.exp(logChooseV067(n,k)-logChooseV067(N,k));
+}
+function allPiecesProbabilityV067(deckSize,copies,seen){
+  const N=Math.max(0,Math.floor(deckSize)),n=Math.max(0,Math.min(N,Math.floor(seen)));
+  if(!N||!copies.length||copies.some(x=>x<=0))return 0;
+  let p=0,limit=1<<copies.length;
+  for(let mask=0;mask<limit;mask++){
+    let removed=0,bits=0;
+    for(let i=0;i<copies.length;i++)if(mask&(1<<i)){removed+=copies[i];bits++;}
+    const ratio=combinationRatioV067(N-removed,n,N);
+    p+=(bits%2?-1:1)*ratio;
+  }
+  return Math.max(0,Math.min(1,p));
+}
+function hypergeomAtLeastV067(N,K,n,minK){
+  N=Math.floor(N);K=Math.max(0,Math.min(N,Math.floor(K)));n=Math.max(0,Math.min(N,Math.floor(n)));minK=Math.max(0,Math.floor(minK));
+  if(minK<=0)return 1;if(K<minK||n<minK)return 0;
+  const den=logChooseV067(N,n);let p=0,maxK=Math.min(K,n);
+  for(let k=minK;k<=maxK;k++){
+    const other=n-k;if(other<0||other>N-K)continue;
+    p+=Math.exp(logChooseV067(K,k)+logChooseV067(N-K,other)-den);
+  }
+  return Math.max(0,Math.min(1,p));
+}
+function cardsSeenByTurnV067(turn,onDraw){return Math.max(0,7+Math.max(0,turn-(onDraw?0:1)));}
+function rawDeckContextV067(cards){
+  const useDeck=$('ruleUseDeckContext')?.checked!==false;
+  const sourceText=useDeck?String($('deckInput')?.value||''):'';
+  const parsed=useDeck?parseDeck(sourceText).filter(x=>!x.side):[];
+  const hasDeck=parsed.length>0;
+  const deckSize=hasDeck?parsed.reduce((s,x)=>s+(+x.qty||0),0):60;
+  const entries=parsed.map(x=>({...x,card:findPoolCard(x.name)||null}));
+  const copies=cards.map(card=>{
+    if(!hasDeck)return 4;
+    return entries.reduce((sum,e)=>sum+(entryMatchesCardV055(e,card)?(+e.qty||0):0),0);
+  });
+  const missing=cards.filter((c,i)=>copies[i]===0).map(displayName);
+  const lands=hasDeck?entries.filter(e=>e.card&&/\bLand\b/i.test(type(e.card))).reduce((s,e)=>s+e.qty,0):24;
+  return {useDeck,hasDeck,source:hasDeck?'現在のデッキ入力':'60枚・各4枚の仮定',deckSize,copies,entries,missing,lands};
+}
+function manaCostForCardV067(card){
+  if(card?.mana_cost)return String(card.mana_cost);
+  const faces=typeof cardFaces==='function'?cardFaces(card):[];
+  return String(faces?.find(f=>f?.mana_cost)?.mana_cost||'');
+}
+function coloredPipsV067(cards){
+  const req={W:0,U:0,B:0,R:0,G:0};let hybrid=0;
+  for(const c of cards){
+    const cost=manaCostForCardV067(c);
+    for(const m of cost.matchAll(/\{([^}]+)\}/g)){
+      const sym=m[1].toUpperCase();
+      if(/^[WUBRG]$/.test(sym))req[sym]++;
+      else if(/[WUBRG].*\//.test(sym)||/\/[WUBRG]/.test(sym))hybrid++;
+    }
+  }
+  return {req,hybrid};
+}
+function producedColorsV067(card){
+  let a=Array.isArray(card?.produced_mana)?card.produced_mana.filter(x=>'WUBRG'.includes(x)):[];
+  if(a.length)return unique(a);
+  const tl=type(card||{});
+  if(/\bPlains\b/i.test(tl))a.push('W');if(/\bIsland\b/i.test(tl))a.push('U');if(/\bSwamp\b/i.test(tl))a.push('B');if(/\bMountain\b/i.test(tl))a.push('R');if(/\bForest\b/i.test(tl))a.push('G');
+  if(!a.length&&/\bLand\b/i.test(tl))a.push(...(card?.color_identity||[]).filter(x=>'WUBRG'.includes(x)));
+  return unique(a);
+}
+function colorDifficultyV067(cards,ctx){
+  const {req,hybrid}=coloredPipsV067(cards),sources={W:0,U:0,B:0,R:0,G:0};
+  if(ctx.hasDeck){
+    for(const e of ctx.entries){
+      if(!e.card)continue;
+      const p=knowledgeProfile(e.card),isMana=/\bLand\b/i.test(type(e.card))||p.tags.includes('mana_add');
+      if(!isMana)continue;
+      for(const col of producedColorsV067(e.card))sources[col]+=e.qty;
+    }
+  }
+  const active=Object.entries(req).filter(([,n])=>n>0);
+  if(!active.length)return {level:'低',penalty:0,req,sources,hybrid,detail:'固定色シンボルなし'};
+  if(!ctx.hasDeck)return {level:'未評価',penalty:0,req,sources,hybrid,detail:'デッキ入力がないため色源数は未評価'};
+  let worst=0,details=[];
+  for(const [col,pips] of active){
+    const src=sources[col]||0,scale=Math.max(.5,ctx.deckSize/60),need=(pips>=3?15:pips===2?12:8)*scale;
+    let severity=src<=0?3:src<need*.7?3:src<need?2:src<need+3*scale?1:0;
+    worst=Math.max(worst,severity);details.push(`${col}:${src}源/${pips}シンボル`);
+  }
+  const levels=['低','低～中','中','高'];
+  return {level:levels[worst],penalty:[0,3,8,16][worst],req,sources,hybrid,detail:details.join('・')};
+}
+function accessSupportV067(ctx,cards){
+  if(!ctx.hasDeck)return {draw:0,tutor:0,impulse:0,mill:0,bonus:0,total:0,graveRelevant:false};
+  let draw=0,tutor=0,impulse=0,mill=0;
+  for(const e of ctx.entries){
+    if(!e.card)continue;const tags=knowledgeProfile(e.card).tags;
+    if(tags.includes('draw_cards'))draw+=e.qty;if(tags.includes('tutor'))tutor+=e.qty;if(tags.includes('impulse'))impulse+=e.qty;if(tags.includes('mill'))mill+=e.qty;
+  }
+  const graveRelevant=cards.some(c=>/graveyard|墓地/i.test(ruleTextV060(c)||''));
+  const bonus=Math.min(12,draw*.35+tutor*1.2+impulse*.35+(graveRelevant?mill*.25:0));
+  return {draw,tutor,impulse,mill,bonus,total:draw+tutor+impulse+(graveRelevant?mill:0),graveRelevant};
+}
+function standaloneRiskV067(cards){
+  const payoff=new Set(['token_buff','artifact_sac','creature_sac','death_trigger','counter_use','grave_cast','reanimate','grave_value','life_payoff','spell_payoff','artifact_payoff','enchant_payoff','landfall']);
+  const enabling=new Set(['treasure_make','creature_token_make','counter_plus','counter_any','mill','discard','draw_cards','impulse','tutor','mana_add','single_removal','protection','evasion','direct_damage']);
+  let points=0,names=[];
+  for(const c of cards){
+    const p=knowledgeProfile(c),pay=p.tags.filter(t=>payoff.has(t)).length,en=p.tags.filter(t=>enabling.has(t)).length;
+    let r=0;if(pay>0&&en===0)r+=2;if((p.needs||[]).length>=2)r++;if((+c.cmc||0)>=5&&pay>0)r++;
+    if(r>=2)names.push(displayName(c));points+=r;
+  }
+  const avg=cards.length?points/cards.length:0,level=avg>=2?'高':avg>=1?'中':'低';
+  return {level,penalty:level==='高'?10:level==='中'?5:0,names};
+}
+function theoreticalManaTurnV067(cards){
+  const costs=cards.map(c=>Math.max(0,Math.ceil(+c.cmc||0))),total=costs.reduce((a,b)=>a+b,0),maxCost=Math.max(0,...costs);
+  for(let t=1;t<=10;t++)if(t>=maxCost&&t*(t+1)/2>=total)return {turn:t,total,maxCost};
+  return {turn:10,total,maxCost};
+}
+function reachLabelV067(p){const n=p*100;return n>=55?'高':n>=30?'中':n>=15?'低～中':'低';}
+function consistencyModelV067(cards,strategy){
+  const ctx=rawDeckContextV067(cards),onDraw=($('rulePlayDraw')?.value||'play')==='draw';
+  const probs={};for(const t of [3,4,5,6])probs[t]=allPiecesProbabilityV067(ctx.deckSize,ctx.copies,cardsSeenByTurnV067(t,onDraw));
+  const mana=theoreticalManaTurnV067(cards),manaSeen=cardsSeenByTurnV067(mana.turn,onDraw),landNeed=mana.total>0?mana.turn:0,landReady=ctx.hasDeck?hypergeomAtLeastV067(ctx.deckSize,ctx.lands,manaSeen,landNeed):null;
+  const color=colorDifficultyV067(cards,ctx),access=accessSupportV067(ctx,cards),standalone=standaloneRiskV067(cards);
+  const p4=probs[4]*100,p5=probs[5]*100;
+  let score=25+p4*.22+p5*.58+access.bonus-color.penalty-standalone.penalty-Math.max(0,mana.turn-4)*5;
+  if(ctx.hasDeck&&ctx.missing.length)score=Math.min(score,12);
+  if(strategy?.score>=75)score+=4;else if(strategy?.score<40)score-=4;
+  if(landReady!=null)score+=(landReady*100-65)*.08;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  const grade=score>=80?'A':score>=65?'B':score>=50?'C':score>=35?'D':'E';
+  let turn25=null;for(let t=Math.max(1,mana.turn);t<=8;t++){const p=allPiecesProbabilityV067(ctx.deckSize,ctx.copies,cardsSeenByTurnV067(t,onDraw));if(p>=.25){turn25=t;break;}}
+  const timing=ctx.hasDeck&&ctx.missing.length?'成立不可（未採用パーツあり）':turn25?`${turn25}T前後から現実的`:`${mana.turn}T以降・低再現性`;
+  return {score,grade,ctx,onDraw,probs,mana,landReady,color,access,standalone,timing,reach4:reachLabelV067(probs[4])};
+}
+function pctV067(p){return `${(Math.max(0,Math.min(1,p))*100).toFixed(1)}%`;}
+function consistencyPanelHTMLV067(m){
+  const copyRows=m.ctx.copies.map((n,i)=>`<li><b>${esc(String(i+1))}</b> ${esc(n+'枚採用')}</li>`).join('');
+  const missing=m.ctx.missing.length?`<div class="consistencyWarningV067"><b>未採用パーツ：</b>${m.ctx.missing.map(esc).join('／')}</div>`:'';
+  const landText=m.landReady==null?'未評価':pctV067(m.landReady);
+  const accessBits=[];if(m.access.draw)accessBits.push(`ドロー${m.access.draw}枚`);if(m.access.tutor)accessBits.push(`サーチ${m.access.tutor}枚`);if(m.access.impulse)accessBits.push(`衝動的ドロー${m.access.impulse}枚`);if(m.access.graveRelevant&&m.access.mill)accessBits.push(`切削${m.access.mill}枚`);
+  return `<section class="consistencyEngineV067"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Consistency & Timing Engine β-7</div><h2>再現性・成立ターン評価</h2><p class="notice">現在のデッキ採用枚数から自然ドロー確率を計算し、マナ・色拘束・アクセス補助・単体依存度を別々に評価します。</p></div><span class="consistencyScoreV067">${m.score}<small>/100</small><b>${m.grade}</b></span></div>${missing}<div class="consistencyContextV067"><b>${esc(m.ctx.source)}</b><span>${m.ctx.deckSize}枚デッキ</span><span>${m.onDraw?'後攻':'先攻'}</span><span>${esc(m.timing)}</span></div><div class="consistencyMetricsV067"><div><b>${pctV067(m.probs[3])}</b><span>3T自然到達</span></div><div><b>${pctV067(m.probs[4])}</b><span>4T自然到達</span></div><div><b>${pctV067(m.probs[5])}</b><span>5T自然到達</span></div><div><b>${m.mana.turn}T</b><span>マナ上の理論最速</span></div><div><b>${landText}</b><span>最速時の土地到達</span></div><div><b>${esc(m.color.level)}</b><span>色マナ難度</span></div></div><div class="rulePathColumnsV065"><section><h3>必要パーツ採用枚数</h3><ul class="consistencyCopiesV067">${copyRows}</ul><p class="tiny">4Tまでの自然到達性：${esc(m.reach4)}</p></section><section><h3>アクセス補助</h3>${accessBits.length?`<ul>${accessBits.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確なドロー・サーチ補助を集計できませんでした。</div>'}<p class="tiny">補助手段はConsistency点への定性的補正のみ。上の自然到達率には加算していません。</p></section><section><h3>マナ・単体依存</h3><ul><li>必要カードの合計MV：${m.mana.total}</li><li>色源：${esc(m.color.detail)}</li><li>単体依存度：${esc(m.standalone.level)}${m.standalone.names.length?`（${m.standalone.names.map(esc).join('／')}）`:''}</li></ul></section></div><div class="ruleDisclaimer"><b>β-7の注意：</b>自然到達率は初手7枚からの通常ドローだけを用いた超幾何分布ベースの値で、マリガン、追加ドロー、サーチ、切削、占術、相手の妨害は含みません。「マナ上の理論最速」は各ターンに土地を置ける前提の楽観的な下限です。勝率ではありません。</div></section>`;
+}
+const analyzeRulesV066Base=analyzeRulesV065;
+analyzeRulesV065=async function(){
+  await analyzeRulesV066Base();
+  const result=$('ruleResult');if(!result||!result.innerHTML||result.querySelector('.consistencyEngineV067'))return;
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length)return;
+  const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}if(!cards.length)return;
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+  const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,$('ruleTriggerOrder')?.value||'input'),priorityModel=priorityWindowsV064(cards,stackSim),pathModel=rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel),strategy=strategyModelV066(cards,pathModel,priorityModel,profiles,verified),consistency=consistencyModelV067(cards,strategy);
+  const strategyEl=result.querySelector('.strategyEngineV066'),pathEl=result.querySelector('.rulePathEngineV065');
+  if(strategyEl)strategyEl.insertAdjacentHTML('afterend',consistencyPanelHTMLV067(consistency));else if(pathEl)pathEl.insertAdjacentHTML('afterend',consistencyPanelHTMLV067(consistency));else result.insertAdjacentHTML('afterbegin',consistencyPanelHTMLV067(consistency));
+  const st=$('ruleStatus');if(st)st.textContent+=` Consistency ${consistency.score}/100（${consistency.grade}）、4T自然到達${pctV067(consistency.probs[4])}。`;
+};
+function bindRuleEngineV067(){
+  const btn=$('ruleAnalyzeBtn');if(btn){const fresh=btn.cloneNode(true);btn.replaceWith(fresh);fresh.onclick=analyzeRulesV065;}
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(!el)return;const fresh=el.cloneNode(true);fresh.value=el.value;el.replaceWith(fresh);fresh.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();analyzeRulesV065();}});});
+  const clear=$('ruleClearBtn');if(clear){const freshClear=clear.cloneNode(true);clear.replaceWith(freshClear);freshClear.onclick=()=>{['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.value='';});const r=$('ruleResult');if(r)r.innerHTML='<div class="empty">左でカードを選ぶと、Rule Engine β-7でRule Path・Strategy・Consistencyまで統合表示します。</div>';const st=$('ruleStatus');if(st)st.textContent='Rule Engine β-7：カードを1～3枚入力してください。';};}
+  const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-7：カードを1～3枚入力してください。';
+}
+bindRuleEngineV067();
