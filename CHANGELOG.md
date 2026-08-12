@@ -1,3 +1,17 @@
+# v0.7.2 - Adoption Evidence Engine
+- Magic.ggの2026-08-03 Traditional Standard Ranked Decklistsを公式Environment seedとして追加
+- 8個の成功StandardデッキをMain / Side分離で収録
+- 観測デッキ数、平均Main採用枚数、Side採用、現在デッキとの文脈適合度を算出
+- 現在デッキに近い環境デッキと、共採用から見つけた候補を表示
+- Adoption EvidenceをIN候補の順位へ補助的に反映
+- 類似成功デッキで採用されるOUTカードへ保護補正を追加
+- Card ValueへAdoption Evidenceを小さく反映
+- 強い環境Evidenceがある場合のみ、デッキ外1色を「色追加候補」として残す
+- Arena形式の環境デッキを手動追加し、ローカルEvidenceとして保存可能
+- 観測デッキ率をメタシェア / 勝率とは明確に分離
+- User Evidence / Rule Evidence / Adoption Evidenceを別系統で維持
+- app.js / styles.css cache busterをv0.7.2へ更新
+
 # v0.7.1 - Evidence & Learning Foundation
 
 - 最適化案 / Swap提案へGood / Badフィードバックを追加

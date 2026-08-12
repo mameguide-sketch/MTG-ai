@@ -1,4 +1,34 @@
-# Lunch Forge v0.7.1
+# Lunch Forge v0.7.2
+
+## Adoption Evidence Engine
+
+v0.7.2では、Rule / User Evidenceとは別に、実際に公開されたStandard成功デッキの採用・共採用を **Adoption Evidence** として追加します。採用実績は「強さ」そのものではなく、カード本文だけでは見落としやすい実戦文脈を補う観測Evidenceとして扱います。
+
+### 公式Seed snapshot
+- Source: Magic.gg `Traditional Standard Ranked Decklists: August 3, 2026`
+- Platinum / Mythicで6連勝以上を記録した公開デッキから、8個のStandardデッキを初期Evidence seedとして収録
+- Main / Sideboardを分離して保持
+- `観測デッキ率` はこの8デッキ内のサンプル統計であり、メタシェアや勝率ではない
+
+### 追加機能
+- 現在のデッキと環境デッキの類似度を計算
+- 現在採用カードについて `観測デッキ数 / 平均Main枚数 / Side採用 / 文脈適合度` を表示
+- 類似する成功デッキで一緒に使われているカードを **共採用候補** として表示
+- Adoption EvidenceをDeck OptimizerのIN候補順位へ補助的に加点
+- 類似成功デッキで使われているOUTカードには保護補正を追加
+- Card ValueへAdoption Evidenceを小さく加算し、役割ラベルだけで重要カードを切りにくくする
+- デッキ外1色でも、類似成功デッキで強いEvidenceがある場合は「色追加候補」として残し、マナ基盤調整を注意表示
+- Arena形式の環境デッキを手動追加し、ローカルEvidenceを育てられる
+- 手動追加EvidenceはlocalStorageへ保存し、公式Seedとは区別して表示
+
+### Evidenceの扱い
+- **User-confirmed**: ユーザーのGood / Bad、Core指定
+- **Rule / Parsed**: カード本文・Rule Engineによる構造理解
+- **Adoption**: 実際の公開成功デッキにおける採用・共採用
+- **Inferred**: Lunch Forgeの推論
+
+Adoption Evidenceだけでカードを高評価にはしません。Rule Path、Game Plan、Card Value、User Evidenceと別軸のまま保持し、候補順位・OUT保護へ限定的に反映します。
+
 
 ## Evidence & Learning Foundation
 

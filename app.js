@@ -3837,7 +3837,7 @@ function renderLearningEvidenceV071(){
   const valueTop=main.map(e=>({entry:e,value:cardValueV071(e.card,e,currentDeckOptimizationV070?.before||null)})).sort((a,b)=>b.value.score-a.value.score).slice(0,5);
   const valueHTML=valueTop.length?valueTop.map(x=>`<div class="learningValueRowV071"><div><b>${esc(displayName(x.entry.card))}</b><small>${esc(x.value.reasons.slice(0,2).join('／')||'カード本文から一次評価')}</small></div><span>${x.value.score}<small>/100</small></span></div>`).join(''):'<div class="tiny">デッキ分析後にCard Valueを表示します。</div>';
   const recent=events.slice(0,6).map(e=>{if(e.type==='proposal_feedback')return `<li><b>${e.verdict==='good'?'👍':'👎'}</b> ${esc(e.cutName||'OUT')} → ${esc(e.addName||'IN')} <small>${e.verdict==='bad'?esc(LF_LEARNING_REASONS_V071[e.reason]||e.reason):'良い提案'}</small></li>`;return `<li><b>Core</b> ${esc(e.name||'カード')} <small>${e.type==='core_on'?'指定':'解除'}</small></li>`;}).join('')||'<li>まだフィードバックはありません。</li>';
-  root.innerHTML=`<div class="learningMetricsV071"><div><span>Core</span><b>${cores.length}</b></div><div><span>良い提案</span><b>${good}</b></div><div><span>的外れ</span><b>${bad}</b></div><div><span>保存イベント</span><b>${events.length}</b></div></div><div class="learningGridV071"><section><h3>ユーザー確認済みCore</h3><p class="tiny">Core指定したカードはOptimizerのOUT候補から外します。「OUTカードが重要」「シナジーを壊す」のフィードバックでも自動Core化します。</p><div class="learningCoreAddV071"><select id="learningCoreSelectV071">${main.length?main.map(e=>`<option value="${esc(learningCardKeyV071(e.card))}">${esc(displayName(e.card))} ×${e.qty}</option>`).join(''):'<option value="">デッキ分析後に選択</option>'}</select><button class="smallBtn" data-learning-manual-core-add="1">Core指定</button></div><div class="learningCoreListV071">${coreHTML}</div><h3 class="learningSubheadV071">Card Value 上位（Parsed）</h3><div class="learningValueListV071">${valueHTML}</div></section><section><h3>最近の学習</h3><ul class="learningRecentV071">${recent}</ul><p class="tiny">保存先：このブラウザのIndexedDB + localStorage。公開データや他ユーザーへは送信しません。</p><button class="smallBtn" data-learning-clear="1">学習データを消去</button></section></div><div class="ruleDisclaimer"><b>Evidence区分：</b> User-confirmed はユーザーの明示フィードバック、Parsed はカード本文から抽出、Inferred はLunch Forgeの推論です。v0.7.1では採用実績・大会結果はまだ学習していません。</div>`;
+  root.innerHTML=`<div class="learningMetricsV071"><div><span>Core</span><b>${cores.length}</b></div><div><span>良い提案</span><b>${good}</b></div><div><span>的外れ</span><b>${bad}</b></div><div><span>保存イベント</span><b>${events.length}</b></div></div><div class="learningGridV071"><section><h3>ユーザー確認済みCore</h3><p class="tiny">Core指定したカードはOptimizerのOUT候補から外します。「OUTカードが重要」「シナジーを壊す」のフィードバックでも自動Core化します。</p><div class="learningCoreAddV071"><select id="learningCoreSelectV071">${main.length?main.map(e=>`<option value="${esc(learningCardKeyV071(e.card))}">${esc(displayName(e.card))} ×${e.qty}</option>`).join(''):'<option value="">デッキ分析後に選択</option>'}</select><button class="smallBtn" data-learning-manual-core-add="1">Core指定</button></div><div class="learningCoreListV071">${coreHTML}</div><h3 class="learningSubheadV071">Card Value 上位（Parsed）</h3><div class="learningValueListV071">${valueHTML}</div></section><section><h3>最近の学習</h3><ul class="learningRecentV071">${recent}</ul><p class="tiny">保存先：このブラウザのIndexedDB + localStorage。公開データや他ユーザーへは送信しません。</p><button class="smallBtn" data-learning-clear="1">学習データを消去</button></section></div><div class="ruleDisclaimer"><b>Evidence区分：</b> User-confirmed はユーザーの明示フィードバック、Parsed はカード本文から抽出、Inferred はLunch Forgeの推論です。公開採用実績は下のAdoption Evidenceで別管理し、User Evidenceと混ぜません。</div>`;
   bindLearningFeedbackV071();
 }
 
@@ -3849,3 +3849,368 @@ if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
 bindLearningFeedbackV071();renderLearningEvidenceV071();hydrateLearningEvidenceV071();
 document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(()=>{renderLearningEvidenceV071();bindLearningFeedbackV071();},0)));
 if($('status'))$('status').textContent='v0.7.1：Evidence & Learning Foundation。提案フィードバックとCore指定をローカル保存し、OUT保護・候補順位へ反映します。';
+
+
+/* Adoption Evidence Engine v0.7.2
+   Environment evidence is intentionally separate from Rule/User evidence.
+   Seed snapshot: official Magic.gg Traditional Standard Ranked Decklists (2026-08-03).
+   The observed-deck rate is a sample statistic, NOT metagame share or win rate. */
+const APP_VERSION_V072='0.7.2';
+const ADOPTION_IMPORT_KEY_V072='lunchForgeAdoptionImportsV072';
+const ADOPTION_SOURCE_V072={
+  label:'Magic.gg Traditional Standard Ranked Decklists',
+  date:'2026-08-03',
+  url:'https://magic.gg/decklists/traditional-standard-ranked-decklists-august-3-2026',
+  note:'Platinum / Mythicで6連勝以上を記録した公開デッキの一部をEvidence seedとして使用'
+};
+const ADOPTION_SEED_DECKS_V072=[
+  {name:'Official Snapshot · Mardu Cool/Rude',colors:['W','B','R'],main:`
+4 Starting Town
+4 Blood Crypt
+3 Sacred Foundry
+3 Concealed Courtyard
+3 Inspiring Vantage
+2 Godless Shrine
+2 Blazemire Verge
+1 Mountain
+1 Swamp
+4 Practiced Offense
+4 Bloodghast
+4 Moonshadow
+4 Cool but Rude
+4 Iron-Shield Elf
+4 Marauding Mako
+4 Hardened Academic
+2 Requiting Hex
+2 Erode
+2 Monument to Endurance
+1 Qarsi Revenant
+1 Carnage, Crimson Chaos
+1 Tersa Lightshatter`,side:`
+2 Bitter Triumph
+2 Pest Control
+2 The Ooze
+2 Inevitable Defeat
+2 Voice of Victory
+2 Strategic Betrayal
+2 Doorkeeper Thrull
+1 Qarsi Revenant`},
+  {name:'Official Snapshot · Golgari Midrange',colors:['B','G'],main:`
+4 Overgrown Tomb
+4 Blooming Marsh
+4 Wastewood Verge
+3 Multiversal Passage
+3 Swamp
+2 Fabled Passage
+2 Restless Cottage
+2 Forest
+4 Beseech the Mirror
+4 Gene Pollinator
+4 Obsessive Pursuit
+4 Badgermole Cub
+3 Mutagen Man, Living Ooze
+3 Tragic Trajectory
+3 Sentinel of the Nameless City
+2 Llanowar Elves
+1 Bitter Triumph
+1 Bullseye, Death Dealer
+1 Nowhere to Run
+1 Killmonger, Scourge of Wakanda
+1 Elegy Acolyte
+1 Leatherhead, Swamp Stalker
+1 The Ooze
+1 Phoenix Fleet Airship
+1 Witherbloom Charm`,side:`
+3 Duress
+2 Qarsi Revenant
+2 Day of Black Sun
+2 Strategic Betrayal
+1 Intimidation Tactics
+1 Urgent Necropsy
+1 Ancient Vendetta
+1 Leatherhead, Swamp Stalker
+1 Day of Judgment
+1 Professor Dellian Fel`},
+  {name:'Official Snapshot · Dimir Midrange',colors:['U','B'],main:`
+5 Island
+4 Gloomlake Verge
+4 Watery Grave
+4 Swamp
+2 Starting Town
+2 Multiversal Passage
+2 Realm of Koh
+1 Soulstone Sanctuary
+1 Restless Reef
+4 Quantum Riddler
+3 Cecil, Dark Knight
+3 Floodpits Drowner
+3 Kaito, Bane of Nightmares
+3 Spyglass Siren
+2 Requiting Hex
+2 Preacher of the Schism
+2 Hide on the Ceiling
+2 Disdainful Stroke
+2 Deep-Cavern Bat
+2 End of the Hunt
+1 Strategic Betrayal
+1 Tragic Trajectory
+1 Oildeep Gearhulk
+1 Shoot the Sheriff
+1 Spell Snare
+1 The Wondrous Wasp
+1 Spell Pierce`,side:`
+4 Day of Black Sun
+3 Duress
+2 Ancient Vendetta
+2 Spider-Sense
+1 Kaito, Bane of Nightmares
+1 Hide on the Ceiling
+1 Oildeep Gearhulk
+1 Disdainful Stroke`},
+  {name:'Official Snapshot · Mardu Control',colors:['W','B','R'],main:`
+4 Sacred Foundry
+4 Godless Shrine
+4 Blood Crypt
+2 Great Hall of the Biblioplex
+2 Mountain
+2 Sundown Pass
+2 Blazemire Verge
+1 Plains
+1 Cori Mountain Monastery
+1 Swamp
+1 Bleachbone Verge
+4 Inevitable Defeat
+4 Lightning Helix
+4 Tablet of Discovery
+3 Death to Our Enemies
+3 Improvisation Capstone
+3 Thor, God of Thunder
+2 Deadly Cover-Up
+2 Erode
+2 Duress
+2 Decorum Dissertation
+2 Ugin, Eye of the Storms
+2 Avengers Disassembled
+1 The Mind Stone
+1 The Soul Stone
+1 Outrageous Robbery`,side:`
+2 Requiting Hex
+2 Ancient Vendetta
+2 Duress
+2 Pyrrhic Strike
+2 Strategic Betrayal
+2 Return the Favor
+1 Ghost Vacuum
+1 Day of Black Sun
+1 Day of Judgment`},
+  {name:'Official Snapshot · Sultai Control',colors:['U','B','G'],main:`
+6 Swamp
+5 Forest
+4 Gloomlake Verge
+3 Island
+2 Willowrush Verge
+2 Restless Reef
+1 Mistrise Village
+1 Wastewood Verge
+4 Deadly Cover-Up
+4 Riverchurn Monument
+4 Shared Roots
+4 Singularity Rupture
+3 Stock Up
+3 Consult the Star Charts
+3 Overlord of the Hauntwoods
+3 Sami's Curiosity
+3 Duress
+3 The End
+2 Outrageous Robbery`,side:`
+3 Intimidation Tactics
+3 Unsummon
+2 Negate
+2 Season of Gathering
+2 Day of Black Sun
+2 Deceit
+1 Duress`},
+  {name:'Official Snapshot · Izzet Spells',colors:['U','R'],main:`
+6 Island
+4 Riverpyre Verge
+4 Steam Vents
+3 Spirebluff Canal
+2 Stormcarved Coast
+1 Thundering Falls
+4 Hearth Elemental
+4 Prismari Charm
+4 Burst Lightning
+4 Eddymurk Crab
+4 Sunderflock
+4 Opt
+4 Sleight of Hand
+2 Impractical Joke
+2 Winternight Stories
+2 Spell Snare
+2 Get Out
+2 Flow State
+1 Improvisation Capstone
+1 Traumatic Critique`,side:`
+1 Cavern of Souls
+4 Colorstorm Stallion
+2 Ghost Vacuum
+2 Annul
+2 Broadside Barrage
+1 Ill-Timed Explosion
+1 Hydro-Man, Fluid Felon
+1 Ral, Crackling Wit
+1 Disdainful Stroke`},
+  {name:'Official Snapshot · Bant Engine',colors:['W','U','G'],main:`
+4 Starting Town
+4 Hallowed Fountain
+4 Temple Garden
+3 Botanical Sanctum
+3 Breeding Pool
+2 Floodfarm Verge
+1 Plains
+1 Willowrush Verge
+1 Hushwood Verge
+4 Bloom Tender
+4 Stormchaser's Talent
+4 Sewer-veillance Cam
+4 Boomerang Basics
+4 Brightglass Gearhulk
+4 Badgermole Cub
+4 Nature's Rhythm
+3 Seam Rip
+2 Bruce Banner
+2 Nurturing Pixie
+1 Mockingbird
+1 The Jolly Balloon Man`,side:`
+4 Spell Pierce
+3 Erode
+2 Crystal Barricade
+2 Spider-Sense
+1 Seam Rip
+1 Jennifer Walters
+1 Soul-Guide Lantern
+1 Disdainful Stroke`},
+  {name:'Official Snapshot · Gruul Midrange',colors:['R','G'],main:`
+5 Mountain
+4 Starting Town
+4 Thornspire Verge
+4 Forest
+4 Stomping Ground
+2 Fountainport
+1 Petrified Hamlet
+4 Rocketeer Boostbuggy
+4 Biotech Specialist
+4 Reckless Lackey
+3 Noggle Robber
+2 Magda, the Hoardmaster
+2 Chandra, Spark Hunter
+2 Involuntary Employment
+2 Generous Plunderer
+2 Ancient Adamantoise
+2 Goldvein Hydra
+2 Charming Scoundrel
+2 Gold Rush
+2 Bonehoard Dracosaur
+1 Boommobile
+1 Improvisation Capstone
+1 The Ooze`,side:`
+3 Pyroclasm
+2 Pick Your Poison
+2 Abrade
+2 Defend the Rider
+2 Soul-Guide Lantern
+1 Sunspine Lynx
+1 Leatherhead, Swamp Stalker
+1 Hexing Squelcher
+1 Frenzied Baloth`}
+];
+function adoptionNameKeyV072(x){return String(x?.name||x||'').trim().replace(/\s+/g,' ').toLowerCase();}
+function parseAdoptionLinesV072(textValue){
+  const out=[];for(const raw of String(textValue||'').split(/\r?\n/)){
+    const line=raw.trim();if(!line||/^(deck|sideboard|companion)$/i.test(line))continue;
+    const m=line.match(/^(\d+)\s+(.+)$/);if(!m)continue;out.push({qty:+m[1]||1,name:m[2].trim(),key:adoptionNameKeyV072(m[2])});
+  }return out;
+}
+function parseImportedEvidenceDeckV072(textValue,label='Imported Environment Deck'){
+  let mode='main',main=[],side=[];for(const raw of String(textValue||'').split(/\r?\n/)){
+    const line=raw.trim();if(!line)continue;if(/^deck$/i.test(line)){mode='main';continue}if(/^sideboard$/i.test(line)){mode='side';continue}
+    const m=line.match(/^(\d+)\s+(.+)$/);if(!m)continue;(mode==='side'?side:main).push({qty:+m[1]||1,name:m[2].trim(),key:adoptionNameKeyV072(m[2])});
+  }
+  const mainCount=main.reduce((s,x)=>s+x.qty,0),sideCount=side.reduce((s,x)=>s+x.qty,0);return {name:label||'Imported Environment Deck',mainParsed:main,sideParsed:side,mainCount,sideCount,source:'User import',date:new Date().toISOString().slice(0,10),imported:true};
+}
+function loadAdoptionImportsV072(){try{const x=JSON.parse(localStorage.getItem(ADOPTION_IMPORT_KEY_V072)||'[]');return Array.isArray(x)?x.slice(0,60):[]}catch{return []}}
+let adoptionImportsV072=loadAdoptionImportsV072();
+let adoptionIndexCacheV072=null;
+function invalidateAdoptionIndexV072(){adoptionIndexCacheV072=null;}
+function saveAdoptionImportsV072(){try{localStorage.setItem(ADOPTION_IMPORT_KEY_V072,JSON.stringify(adoptionImportsV072.slice(0,60)))}catch{}}
+function normalizedAdoptionDeckV072(d){
+  const main=d.mainParsed||parseAdoptionLinesV072(d.main),side=d.sideParsed||parseAdoptionLinesV072(d.side);return {...d,mainParsed:main,sideParsed:side,mainCount:d.mainCount||main.reduce((s,x)=>s+x.qty,0),sideCount:d.sideCount||side.reduce((s,x)=>s+x.qty,0),source:d.source||ADOPTION_SOURCE_V072.label,date:d.date||ADOPTION_SOURCE_V072.date};
+}
+function allAdoptionDecksV072(){return [...ADOPTION_SEED_DECKS_V072.map(normalizedAdoptionDeckV072),...adoptionImportsV072.map(normalizedAdoptionDeckV072)];}
+function currentMainNonlandKeysV072(){return new Set(mainResolvedEntriesV070().filter(e=>!isLandCardV0610(e.card)).map(e=>adoptionNameKeyV072(e.card?.name)).filter(Boolean));}
+function adoptionDeckSimilarityV072(d,currentKeys=currentMainNonlandKeysV072()){
+  if(!currentKeys.size)return 0;const set=new Set((d.mainParsed||[]).map(x=>x.key));let hit=0;for(const k of currentKeys)if(set.has(k))hit++;return Math.min(1,hit/Math.max(5,Math.min(20,currentKeys.size)));
+}
+function adoptionIndexV072(){
+  if(adoptionIndexCacheV072)return adoptionIndexCacheV072;
+  const decks=allAdoptionDecksV072(),cards=new Map();
+  decks.forEach((d,di)=>{
+    for(const [zone,list] of [['main',d.mainParsed],['side',d.sideParsed]])for(const x of list||[]){let s=cards.get(x.key);if(!s){s={key:x.key,name:x.name,mainDecks:new Set(),sideDecks:new Set(),mainCopies:0,sideCopies:0};cards.set(x.key,s)}if(zone==='main'){s.mainDecks.add(di);s.mainCopies+=x.qty}else{s.sideDecks.add(di);s.sideCopies+=x.qty}}
+  });adoptionIndexCacheV072={decks,cards,total:decks.length};return adoptionIndexCacheV072;
+}
+function adoptionEvidenceForCardV072(card){
+  const idx=adoptionIndexV072(),key=adoptionNameKeyV072(card?.name||card),s=idx.cards.get(key),current=currentMainNonlandKeysV072();if(!s)return {score:0,key,name:card?.name||String(card||''),observed:0,total:idx.total,avgMain:0,sideObserved:0,contextScore:0,maxSimilarity:0,coHits:0,confidence:'No evidence'};
+  let weighted=0,maxSimilarity=0,coHits=0;for(const di of s.mainDecks){const d=idx.decks[di],sim=adoptionDeckSimilarityV072(d,current);weighted+=sim;maxSimilarity=Math.max(maxSimilarity,sim);const set=new Set(d.mainParsed.map(x=>x.key));for(const k of current)if(set.has(k)&&k!==key)coHits++;}
+  const observed=s.mainDecks.size,avgMain=observed?s.mainCopies/observed:0,rate=idx.total?observed/idx.total:0;
+  const contextScore=Math.max(0,Math.min(100,Math.round(rate*35+Math.min(.5,weighted)*80+Math.min(25,coHits*2.2)+Math.min(12,avgMain*3))));
+  return {score:contextScore,key,name:s.name,observed,total:idx.total,rate,avgMain,sideObserved:s.sideDecks.size,sideCopies:s.sideCopies,contextScore,maxSimilarity,coHits,confidence:maxSimilarity>=.2?'Contextual':observed>=2?'Observed':'Sparse'};
+}
+function adoptionCandidateAdjustmentV072(card){const e=adoptionEvidenceForCardV072(card);if(!e.observed)return 0;return Math.round(Math.min(26,e.contextScore*.26));}
+function adoptionCutProtectionV072(card){const e=adoptionEvidenceForCardV072(card);if(!e.observed)return 0;return Math.round(Math.min(24,e.contextScore*.24));}
+function offColorFallbackScoreV072(rec,before,issues,ev){
+  const card=rec?.card,stats=before?.stats||{},outside=(features(card).colors||[]).filter(x=>!(stats.cols||[]).includes(x));if(outside.length!==1||ev.contextScore<55)return -999;
+  const land=isLandCardV0610(card),landIssue=(issues||[]).find(x=>x.kind==='structure'&&x.key==='lands');if(land&&!landIssue)return -120;
+  let score=Math.max(0,+rec.score||0)*.45;(issues||[]).slice(0,5).forEach((issue,i)=>{const m=issueMatchV070a(card,issue,before);if(m)score+=m*Math.max(.45,1-i*.14)});
+  score+=Math.min(36,connectionPotentialV070a(card,before)*7);const rd=rec.recommendationDecision?.score;if(Number.isFinite(rd))score+=(rd-50)*.35;if((rec.relations||[]).includes('ENGINE'))score+=10;if((rec.relations||[]).includes('SYNERGY'))score+=7;if((rec.relations||[]).includes('COVERAGE'))score+=8;
+  score+=learningCandidateAdjustmentV071(card,before,issues);score-=28;rec.splashCandidateV072={colors:outside,reason:'環境Evidenceが強いため1色タッチ候補として残す'};return score;
+}
+const directedCandidateScoreBaseV072=directedCandidateScoreV070a;
+directedCandidateScoreV070a=function(rec,before,issues){
+  const ev=adoptionEvidenceForCardV072(rec?.card),adj=adoptionCandidateAdjustmentV072(rec?.card);let base=directedCandidateScoreBaseV072(rec,before,issues);
+  if(base<=-900)base=offColorFallbackScoreV072(rec,before,issues,ev);if(base<=-900)return base;
+  if(rec){rec.adoptionEvidenceV072=ev;rec.adoptionAdjustmentV072=adj;if(adj>0)rec.why=unique([...(rec.why||[]),`環境Evidence：観測${ev.observed}/${ev.total}デッキ・文脈適合${ev.contextScore}/100`]).slice(0,7);if(rec.splashCandidateV072)rec.cautions=unique([...(rec.cautions||[]),`色追加候補：${rec.splashCandidateV072.colors.join('/')}のマナ源調整が必要`]);}
+  return base+adj;
+};
+const cardValueBaseV072=cardValueV071;
+cardValueV071=function(card,entry=null,before=null){
+  const x=cardValueBaseV072(card,entry,before),ev=adoptionEvidenceForCardV072(card),bonus=Math.round(Math.min(15,ev.contextScore*.15));if(bonus>0){x.score=Math.min(100,x.score+bonus);x.reasons=unique([...x.reasons,ev.maxSimilarity>=.2?'類似する成功デッキで採用Evidenceあり':'公開成功デッキで採用Evidenceあり']).slice(0,5);x.adoptionEvidenceV072=ev;x.confidence=x.confidence==='User-confirmed'?x.confidence:'Parsed + Adoption';}return x;
+};
+const buildDirectedSwapsBaseV072=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const raw=buildDirectedSwapsBaseV072(stats,before,mainResolved,recommendations);for(const item of raw){const addEv=adoptionEvidenceForCardV072(item.add.card),cutEv=adoptionEvidenceForCardV072(item.cut.card),addBoost=adoptionCandidateAdjustmentV072(item.add.card),cutGuard=adoptionCutProtectionV072(item.cut.card);item.addAdoptionV072=addEv;item.cutAdoptionV072=cutEv;item.adoptionPairAdjustmentV072=addBoost-cutGuard;item.pairScore=(+item.pairScore||0)+addBoost-cutGuard;if(addEv.observed)item.balanceNotes=unique([...(item.balanceNotes||[]),`環境Evidence：INは観測${addEv.observed}/${addEv.total}デッキ、文脈適合${addEv.contextScore}/100`]);if(cutGuard>=10)item.balanceNotes=unique([...(item.balanceNotes||[]),`注意：OUTは類似成功デッキで採用Evidenceあり`]);}
+  return raw.sort((a,b)=>b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation);
+};
+function adoptionSimilarDecksV072(){const idx=adoptionIndexV072(),cur=currentMainNonlandKeysV072();return idx.decks.map(d=>({deck:d,sim:adoptionDeckSimilarityV072(d,cur),hits:[...cur].filter(k=>new Set(d.mainParsed.map(x=>x.key)).has(k)).length})).filter(x=>x.hits>0).sort((a,b)=>b.sim-a.sim||b.hits-a.hits).slice(0,4);}
+function adoptionSuggestionsV072(limit=8){
+  const idx=adoptionIndexV072(),present=new Set(mainResolvedEntriesV070().map(e=>adoptionNameKeyV072(e.card?.name))),poolMap=new Map(pool.map(c=>[adoptionNameKeyV072(c.name),c])),cur=currentMainNonlandKeysV072(),rows=[];
+  for(const [key,s] of idx.cards){if(present.has(key))continue;const card=poolMap.get(key);if(!card||!recommendationAllowedV056(card)||isLandCardV0610(card))continue;const ev=adoptionEvidenceForCardV072(card);if(!ev.observed)continue;let co=0;for(const di of s.mainDecks){const set=new Set(idx.decks[di].mainParsed.map(x=>x.key));for(const k of cur)if(set.has(k))co++;}const score=ev.contextScore+Math.min(30,co*2.5);if(score<15)continue;rows.push({card,ev,co,score});}
+  return rows.sort((a,b)=>b.score-a.score||b.ev.observed-a.ev.observed).slice(0,limit);
+}
+function renderAdoptionEvidenceV072(){
+  const root=$('adoptionEvidenceV072');if(!root)return;const idx=adoptionIndexV072(),similar=adoptionSimilarDecksV072(),main=mainResolvedEntriesV070(),known=main.map(e=>({entry:e,ev:adoptionEvidenceForCardV072(e.card)})).filter(x=>x.ev.observed).sort((a,b)=>b.ev.contextScore-a.ev.contextScore).slice(0,6),suggest=adoptionSuggestionsV072(8),seedCount=ADOPTION_SEED_DECKS_V072.length,importCount=adoptionImportsV072.length;
+  const simHTML=similar.length?similar.map(x=>`<div class="adoptionRowV072"><div><b>${esc(x.deck.name)}</b><small>${x.hits}枚一致・${x.deck.imported?'User import':'Official seed'}</small></div><span>${Math.round(x.sim*100)}<small>%類似</small></span></div>`).join(''):'<div class="tiny">現在のデッキと一致する環境デッキはまだありません。</div>';
+  const knownHTML=known.length?known.map(x=>`<div class="adoptionRowV072"><div><b>${esc(displayName(x.entry.card))}</b><small>観測 ${x.ev.observed}/${x.ev.total}・平均${x.ev.avgMain.toFixed(1)}枚${x.ev.sideObserved?`・Side ${x.ev.sideObserved}件`:''}</small></div><span>${x.ev.contextScore}<small>/100</small></span></div>`).join(''):'<div class="tiny">現在のメインデッキで採用Evidenceが一致したカードはありません。</div>';
+  const sugHTML=suggest.length?suggest.map(x=>`<div class="adoptionSuggestionV072"><div><b>${esc(displayName(x.card))}</b><small>観測 ${x.ev.observed}/${x.ev.total}・平均${x.ev.avgMain.toFixed(1)}枚・共採用接点${x.co}</small></div><span>${x.ev.contextScore}<small>/100</small></span></div>`).join(''):'<div class="tiny">類似デッキから追加候補を抽出できませんでした。</div>';
+  root.innerHTML=`<div class="adoptionMetricsV072"><div><span>公式Seed</span><b>${seedCount}</b></div><div><span>追加Evidence</span><b>${importCount}</b></div><div><span>観測デッキ</span><b>${idx.total}</b></div><div><span>カード種</span><b>${idx.cards.size}</b></div></div><div class="adoptionSourceV072"><div><b>${esc(ADOPTION_SOURCE_V072.label)}</b><small>${esc(ADOPTION_SOURCE_V072.date)} snapshot</small></div><a class="smallBtn" href="${ADOPTION_SOURCE_V072.url}" target="_blank" rel="noopener">公式ソース</a></div><div class="adoptionGridV072"><section><h3>現在デッキに近い環境デッキ</h3>${simHTML}</section><section><h3>現在カードの採用Evidence</h3>${knownHTML}</section><section><h3>共採用から見つけた候補</h3>${sugHTML}</section></div><details class="adoptionImportV072"><summary>環境デッキを追加してEvidenceを育てる</summary><p class="tiny">Arena形式のMain / Sideboardを貼り付けてください。公開大会・Ranked decklistなどを追加すると、このブラウザのEvidenceへ合流します。</p><div class="adoptionImportControlsV072"><input id="adoptionImportLabelV072" placeholder="例：RC Top8 Rakdos"><textarea id="adoptionImportTextV072" rows="8" placeholder="Deck\n4 Card Name...\n\nSideboard\n2 Card Name..."></textarea><div><button class="smallBtn primary" data-adoption-import="1">環境デッキとして追加</button>${importCount?'<button class="smallBtn" data-adoption-clear="1">追加Evidenceを消去</button>':''}</div></div></details><div class="ruleDisclaimer"><b>Adoption Evidenceの意味：</b> これは観測サンプル内での採用・共採用Evidenceです。${esc(ADOPTION_SOURCE_V072.note)}。表示する「観測デッキ率」はメタシェアや勝率ではありません。Rule / User / Adoption Evidenceは別軸のまま保持します。</div>`;
+}
+function bindAdoptionEvidenceV072(){if(document.body.dataset.adoptionBoundV072)return;document.body.dataset.adoptionBoundV072='1';document.addEventListener('click',event=>{const add=event.target.closest('[data-adoption-import]'),clear=event.target.closest('[data-adoption-clear]');if(add){const textValue=$('adoptionImportTextV072')?.value||'',label=$('adoptionImportLabelV072')?.value.trim()||`Imported ${new Date().toLocaleDateString('ja-JP')}`,d=parseImportedEvidenceDeckV072(textValue,label);if(d.mainCount<40)return toast(`Mainが${d.mainCount}枚しか読み取れません。Arena形式を確認してください`);adoptionImportsV072.unshift(d);adoptionImportsV072=adoptionImportsV072.slice(0,60);invalidateAdoptionIndexV072();saveAdoptionImportsV072();renderAdoptionEvidenceV072();if(deck?.length)refreshSwapPlannerV056(false);toast(`${label}を環境Evidenceへ追加しました`);return}if(clear){if(!confirm('手動追加した環境Evidenceをすべて消去しますか？'))return;adoptionImportsV072=[];invalidateAdoptionIndexV072();saveAdoptionImportsV072();renderAdoptionEvidenceV072();if(deck?.length)refreshSwapPlannerV056(false);toast('追加Evidenceを消去しました');}})}
+const renderLearningEvidenceBaseV072=renderLearningEvidenceV071;
+renderLearningEvidenceV071=function(){renderLearningEvidenceBaseV072();renderAdoptionEvidenceV072();};
+const renderDeckOptimizerBaseV072=renderDeckOptimizerV070;
+renderDeckOptimizerV070=function(){renderDeckOptimizerBaseV072();renderAdoptionEvidenceV072();};
+const analyzeBaseV072=analyze;
+analyze=async function(){await analyzeBaseV072();renderAdoptionEvidenceV072();};
+if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+bindAdoptionEvidenceV072();renderAdoptionEvidenceV072();
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(renderAdoptionEvidenceV072,0)));
+if($('status'))$('status').textContent='v0.7.2：Adoption Evidence Engine。公式Standard成功デッキの採用・共採用Evidenceを、User/Rule Evidenceと分離して候補順位とOUT保護へ反映します。';
