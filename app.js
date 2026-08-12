@@ -3331,3 +3331,167 @@ refreshSwapPlannerV056=function(showMessage=false){refreshSwapPlannerBaseV070(sh
 bindDeckOptimizerV070();
 document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(bindDeckOptimizerV070,0)));
 if($('status'))$('status').textContent='v0.7.0：Deck Optimization Engine α。優先課題からOUT→INを選び、交換後のデッキ全体を再評価します。';
+
+/* Deck Optimization Candidate Search hotfix v0.7.0a
+   v0.7.0 combined the already-generated Swap Planner candidates, so the visible
+   OUT→IN pairs could remain unchanged. v0.7.0a searches candidates from the
+   diagnosed deck issues first, then evaluates the resulting deck state. */
+function issueGapV070a(issue,before){
+  return (before?.profile?.gaps||[]).find(g=>String(g.code||g.tag||'')===String(issue?.key||''))||null;
+}
+function issueMatchV070a(card,issue,before){
+  if(!card||!issue)return 0;
+  const p=knowledgeProfile(card),tags=p.tags||[],roles=cardRoleKeysV070(card),land=isLandCardV0610(card),cmc=+card.cmc||0;
+  if(issue.kind==='deficit')return roles.includes(issue.key)?56:0;
+  if(issue.kind==='gap'){
+    const g=issueGapV070a(issue,before);if(!g)return 0;
+    if(g.kind==='coverage')return (g.tags||[]).some(t=>tags.includes(t))?48:0;
+    if(g.kind==='consumer'){
+      const wanted=TAG_CONNECTIONS.filter(x=>x[0]===g.tag).map(x=>x[1]);
+      return wanted.some(t=>tags.includes(t))?50:0;
+    }
+    if(g.kind==='supplier'){
+      const wanted=TAG_CONNECTIONS.filter(x=>x[1]===g.tag).map(x=>x[0]);
+      return wanted.some(t=>tags.includes(t))?50:0;
+    }
+  }
+  if(issue.kind==='structure'&&issue.key==='lands'){
+    const tooFew=(before?.stats?.lands||0)<22;return tooFew?(land?60:0):(land?0:26);
+  }
+  if(issue.kind==='curve'&&issue.key==='early')return !land&&cmc>=1&&cmc<=3?36:0;
+  if(issue.kind==='excess')return roles.includes(issue.key)?0:14;
+  return 0;
+}
+function connectionPotentialV070a(card,before){
+  const tags=new Set(knowledgeProfile(card).tags||[]),deckTags=before?.profile?.tagCounts||{};let n=0;
+  for(const [from,to] of TAG_CONNECTIONS){
+    if(tags.has(from)&&(deckTags[to]||0)>0)n++;
+    if(tags.has(to)&&(deckTags[from]||0)>0)n++;
+  }
+  return n;
+}
+function directedCandidateScoreV070a(rec,before,issues){
+  const card=rec.card,stats=before.stats||{},f=features(card),outside=(f.colors||[]).filter(x=>!(stats.cols||[]).includes(x));
+  if(outside.length)return -999;
+  const land=isLandCardV0610(card),landIssue=(issues||[]).find(x=>x.kind==='structure'&&x.key==='lands');
+  if(land&&!landIssue)return -120; // utility-land swaps are deferred; avoid noisy land proposals.
+  let score=Math.max(0,+rec.score||0)*.45;
+  (issues||[]).slice(0,5).forEach((issue,i)=>{const m=issueMatchV070a(card,issue,before);if(m)score+=m*Math.max(.45,1-i*.14);});
+  const cp=connectionPotentialV070a(card,before);score+=Math.min(36,cp*7);
+  const rd=rec.recommendationDecision?.score;if(Number.isFinite(rd))score+=(rd-50)*.35;
+  if((rec.relations||[]).includes('ENGINE'))score+=10;
+  if((rec.relations||[]).includes('SYNERGY'))score+=7;
+  if((rec.relations||[]).includes('COVERAGE'))score+=8;
+  return score;
+}
+function directedCandidatePoolV070a(stats,before,mainResolved,recommendations){
+  const issues=optimizationIssuesV070(before),present=new Set((mainResolved||[]).map(e=>e.card?.oracle_id||e.card?.name)),map=new Map();
+  function addRec(rec){
+    if(!rec?.card||!recommendationAllowedV056(rec.card))return;
+    const key=rec.card.oracle_id||rec.card.name;if(present.has(key))return;
+    const s=directedCandidateScoreV070a(rec,before,issues);if(s<=0)return;
+    const old=map.get(key);if(!old||s>old.directedScoreV070a)map.set(key,{...rec,directedScoreV070a:s});
+  }
+  // Existing recommendation list remains useful, but it no longer defines the search space.
+  (recommendations||[]).slice(0,260).forEach(addRec);
+  // Explicitly search the whole legal pool for cards that directly answer a diagnosed issue.
+  for(const card of pool){
+    const key=card.oracle_id||card.name;if(present.has(key)||map.has(key)||!recommendationAllowedV056(card))continue;
+    let direct=0;for(const issue of issues.slice(0,5))direct=Math.max(direct,issueMatchV070a(card,issue,before));
+    if(direct<=0)continue;
+    const rec=scoreCard(card,stats,$('strategy')?.value||'balanced',mainResolved||[]);
+    if(!(rec.why||[]).length)rec.why=[`デッキ診断の「${issues.find(x=>issueMatchV070a(card,x,before)>0)?.label||'優先課題'}」に直接対応`];
+    addRec(rec);
+  }
+  return [...map.values()].sort((a,b)=>b.directedScoreV070a-a.directedScoreV070a||(+b.score||0)-(+a.score||0)).slice(0,64);
+}
+function cutPriorityV070a(cut,before,issues,dep){
+  let score=+cut.score||0;
+  if(dep?.verified)return -999;
+  if(dep?.level==='high')score-=42;else if(dep?.level==='medium')score-=16;else score+=8;
+  const roles=cardRoleKeysV070(cut.card),land=isLandCardV0610(cut.card),cmc=+cut.card.cmc||0;
+  for(const issue of (issues||[]).slice(0,5)){
+    if(issue.kind==='excess'&&roles.includes(issue.key))score+=30;
+    if(issue.kind==='structure'&&issue.key==='lands'&&land&&(before.stats?.lands||0)>26)score+=38;
+    if(issue.kind==='curve'&&issue.key==='early'&&!land&&cmc>=4)score+=10;
+  }
+  return score;
+}
+function buildDirectedSwapsV070a(stats,before,mainResolved,recommendations){
+  const issues=optimizationIssuesV070(before),candidatePool=directedCandidatePoolV070a(stats,before,mainResolved,recommendations),cuts=[];
+  for(const entry of mainResolved||[]){
+    const cut=cutCandidateV055(entry,stats,before.profile);if(!cut)continue;
+    const dep=cardDependencyV070(entry,before,deck),priority=cutPriorityV070a(cut,before,issues,dep);if(priority<=-100)continue;
+    cut.cutDependencyV070=dep;cut.directedCutScoreV070a=priority;cuts.push(cut);
+  }
+  cuts.sort((a,b)=>b.directedCutScoreV070a-a.directedCutScoreV070a);
+  const proposals=[],maxSetting=Math.max(1,+swapSettingsV056.maxChanges||2);
+  for(const rec of candidatePool.slice(0,48)){
+    let best=null;
+    for(const cut of cuts.slice(0,26)){
+      const candidateLand=isLandCardV0610(rec.card);if(swapSettingsV056.keepLands&&candidateLand!==cut.isLand)continue;
+      const existing=countCardInDeckV056(rec.card),legalMax=isBasicLandV055(rec.card)?maxSetting:Math.max(0,4-existing);if(legalMax<1)continue;
+      let qty=1;
+      const fills=candidateFillsDeficitV0610(rec,before),needed=fills.reduce((m,d)=>Math.max(m,(+d.target||0)-(+d.count||0)),0);
+      if(needed>=2&&rec.directedScoreV070a>=55)qty=2;
+      qty=Math.min(qty,cut.maxCut,maxSetting,legalMax);if(qty<1)continue;
+      const simulated=simulateSwapEntriesV055(deck,cut.card,rec.card,qty),after=deckFoundationModelV0610(simulated),delta=after.score-before.score;
+      const deficitGain=deficitUnitsV070(before)-deficitUnitsV070(after),gapGain=(before.profile.gaps?.length||0)-(after.profile.gaps?.length||0),connectionGain=(after.profile.connections?.length||0)-(before.profile.connections?.length||0);
+      const newDeficits=(after.deficits||[]).filter(d=>!(before.deficits||[]).some(b=>b.key===d.key));
+      if(delta<=0)continue;
+      if(newDeficits.length&&delta<8)continue;
+      if(connectionGain<0&&gapGain<=0&&deficitGain<=0)continue;
+      const compatibility=slotCompatibilityV055(rec,cut,stats);if(compatibility<=-50&&!fills.length)continue;
+      const issueBoost=(issues||[]).slice(0,4).reduce((s,issue,i)=>s+issueMatchV070a(rec.card,issue,before)*Math.max(.35,.8-i*.12),0);
+      const dep=cut.cutDependencyV070||{level:'low'};
+      const depPenalty=dep.level==='high'?35:dep.level==='medium'?12:0;
+      const pairScore=delta*16+deficitGain*20+gapGain*9+connectionGain*7+issueBoost+(+rec.directedScoreV070a||0)*.35+(+cut.directedCutScoreV070a||0)-depPenalty;
+      const notes=[];
+      if(fills.length)notes.push(`優先課題：${fills.map(x=>x.label).join('・')}不足を補う`);
+      const matched=issues.find(x=>issueMatchV070a(rec.card,x,before)>0);if(matched)notes.push(`診断課題「${matched.label}」から候補を探索`);
+      if(deficitGain>0)notes.push(`不足役割を${deficitGain}枠改善`);
+      if(gapGain>0)notes.push(`不足・孤立を${gapGain}件改善`);
+      if(connectionGain>0)notes.push(`効果接続を${connectionGain}件追加`);
+      notes.push(`デッキ全体評価 ${before.score} → ${after.score}`);
+      const item={add:rec,cut,qty,pairScore,afterStats:after.stats,afterProfile:after.profile,deltaEngine:(after.profile.engineScore||0)-(before.profile.engineScore||0),deltaConnections:connectionGain,deltaGaps:gapGain,landDelta:(after.stats.lands||0)-(before.stats.lands||0),foundationBefore:before,foundationAfter:after,deltaFoundation:delta,balanceNotes:unique(notes),cutDependencyV070:dep,optimizerObjectiveV070:{boost:issueBoost,notes:unique(notes)},directedV070a:true};
+      if(!best||item.pairScore>best.pairScore)best=item;
+    }
+    if(best)proposals.push(best);
+  }
+  proposals.sort((a,b)=>b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation);
+  const out=[],usedAdds=new Set(),cutUse=new Map();
+  for(const item of proposals){
+    const ak=cardKeyV056(item.add.card),ck=cardKeyV056(item.cut.card);if(usedAdds.has(ak)||(cutUse.get(ck)||0)>=2)continue;
+    usedAdds.add(ak);cutUse.set(ck,(cutUse.get(ck)||0)+1);out.push(item);if(out.length>=8)break;
+  }
+  return out;
+}
+
+const buildSwapRecommendationsBaseV070a=buildSwapRecommendationsV055;
+buildSwapRecommendationsV055=function(stats,profile,recommendations,mainResolved){
+  const before=deckFoundationModelV0610(deck),directed=buildDirectedSwapsV070a(stats,before,mainResolved,recommendations);
+  if(directed.length)return directed.slice(0,6);
+  return buildSwapRecommendationsBaseV070a(stats,profile,recommendations,mainResolved);
+};
+
+buildOptimizationPlansV070=function(before){
+  const maxChanges=Math.max(1,+swapSettingsV056.maxChanges||2),stats=before.stats||deckStats(deck),main=mainResolvedEntriesV070(),source=buildDirectedSwapsV070a(stats,before,main,recs||[]).slice(0,8),plans=[],seen=new Set();
+  function add(items){
+    const sig=items.map(x=>`${x.cut.card.oracle_id||x.cut.card.name}>${x.add.card.oracle_id||x.add.card.name}:${x.qty}`).sort().join('|');if(seen.has(sig))return;seen.add(sig);
+    const p=evaluateOptimizationPlanV070(items,before);if(p&&p.changes<=maxChanges){p.searchModeV070a='課題起点探索';plans.push(p);}
+  }
+  source.forEach(x=>{if(x.qty<=maxChanges)add([x]);});
+  for(let i=0;i<source.length;i++)for(let j=i+1;j<source.length;j++){const a=source[i],b=source[j];if(a.qty+b.qty<=maxChanges)add([a,b]);}
+  if(maxChanges>=3){for(let i=0;i<Math.min(6,source.length);i++)for(let j=i+1;j<Math.min(6,source.length);j++)for(let k=j+1;k<Math.min(6,source.length);k++){const g=[source[i],source[j],source[k]];if(g.reduce((s,x)=>s+x.qty,0)<=maxChanges)add(g);}}
+  return plans.sort((a,b)=>b.score-a.score||b.delta-a.delta||a.changes-b.changes).slice(0,3);
+};
+
+const renderDeckOptimizerBaseV070a=renderDeckOptimizerV070;
+renderDeckOptimizerV070=function(){
+  renderDeckOptimizerBaseV070a();
+  const root=$('deckOptimizerV070');if(!root)return;
+  const h=root.querySelector('.optimizerPlansV070 .knowledgeHeader .notice');
+  if(h)h.textContent='v0.7.0a：既存の入れ替え候補を並べ替えるのではなく、デッキ診断の優先課題から全カード候補を再探索し、OUT→IN後のメインデッキ全体を再計算します。';
+};
+
+if($('status'))$('status').textContent='v0.7.0a：Deck Optimization候補探索を課題起点へ修正。既存Swap候補の再利用だけではなく、診断結果からIN候補を再探索します。';

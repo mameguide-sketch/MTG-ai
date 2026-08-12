@@ -1,7 +1,19 @@
-# Lunch Forge v0.7.0
+# Lunch Forge v0.7.0a
 
+## Deck Optimization Candidate Search hotfix
 
-## Deck Optimization Engine α v0.7.0
+v0.7.0ではDeck Optimizationが既存のSwap Planner候補を再評価・組み合わせていたため、最適化パネルを追加してもOUT→INのカード内容が従来と変わりにくい構造でした。
+
+v0.7.0aでは候補生成の入口を変更し、デッキ診断で検出した最優先課題（不足役割、未接続の効果経路、土地枚数、マナカーブ、過剰役割）からスタンダードのカードプールを再探索します。その後、OUT候補との組み合わせを実際にメインデッキへ適用してDeck Foundation、役割不足、不足・孤立、効果接続を再計算します。
+
+- 優先課題からIN候補を独立探索
+- 既存Swap候補だけに探索範囲を限定しない
+- デッキ外色は最適化候補から除外
+- 通常時の不要な土地入れ替え提案を抑制
+- Verifiedシナジー中核は引き続きOUT禁止
+- 変更後のDeck Foundationが改善しない案は除外
+- Main / Sideboard分離、Rule Engine、Recommendation等はv0.7.0を継承
+
 
 v0.6.10で修正したMain / Sideboard分離、Mana Base / Ramp分離、交換後Deck Foundation評価を土台に、**デッキ全体を起点とした自動最適化**へ進める更新です。
 

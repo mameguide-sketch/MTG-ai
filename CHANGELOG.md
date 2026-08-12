@@ -1,3 +1,12 @@
+# v0.7.0a - Deck Optimization Candidate Search hotfix
+
+- v0.7.0の最適化案が既存Swap Planner候補の再利用に依存していた問題を修正
+- デッキの優先課題からIN候補をカードプール全体へ再探索
+- 不足役割、未接続経路、土地、マナカーブ、過剰役割を候補探索の目的関数へ反映
+- デッキ外色、不要な土地交換、Verified中核のOUTを抑制
+- OUT→IN適用後のDeck Foundation / deficits / gaps / connectionsを再計算して選別
+- 通常の入れ替え提案も課題起点候補を優先
+
 # v0.7.0 - Deck Optimization Engine α
 - デッキ分析に「デッキ最適化」パネルを追加
 - Deck Foundationの不足・過剰・効果接続・マナカーブから優先課題を抽出
