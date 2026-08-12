@@ -1,4 +1,4 @@
-# Lunch Forge v0.7.2
+# Lunch Forge v0.7.2a
 
 ## Adoption Evidence Engine
 
@@ -164,3 +164,6 @@ Recommendation scoreは勝率ではありません。対戦相手、メタゲー
 - CHECKLIST.md
 
 `data/` `docs/` `tests/` は変更しません。
+## v0.7.2a Deck Analysis Navigation
+
+デッキ分析ページの情報量増加に対応するため、分析結果は従来どおり縦に保持したまま、上部の固定ナビから各セクションへ直接移動できます。現在表示しているセクションはスクロール位置から自動判定して強調します。モバイルではナビ列のみ横スクロールできます。

@@ -4214,3 +4214,37 @@ if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
 bindAdoptionEvidenceV072();renderAdoptionEvidenceV072();
 document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(renderAdoptionEvidenceV072,0)));
 if($('status'))$('status').textContent='v0.7.2：Adoption Evidence Engine。公式Standard成功デッキの採用・共採用Evidenceを、User/Rule Evidenceと分離して候補順位とOUT保護へ反映します。';
+
+/* Deck Analysis Navigation v0.7.2a */
+const DECK_SECTION_IDS_V072A=['deckOverviewV072a','deckManaRolesV072a','deckIntelligenceV072a','deckSwapV072a','deckOptimizerV072a','deckLearningV072a','deckAdoptionV072a','deckCandidatesV072a'];
+function setDeckSectionActiveV072a(id){
+  document.querySelectorAll('.deckSectionNavBtnV072a').forEach(btn=>{
+    const on=btn.dataset.deckSection===id;
+    btn.classList.toggle('on',on);
+    if(on){btn.setAttribute('aria-current','location');btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}else btn.removeAttribute('aria-current');
+  });
+}
+function scrollToDeckSectionV072a(id){
+  const target=document.getElementById(id);if(!target)return;
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+  if(id!=='deckInputV072a')setDeckSectionActiveV072a(id);
+}
+function currentDeckSectionV072a(){
+  const offset=96;let current=DECK_SECTION_IDS_V072A[0],best=-Infinity;
+  for(const id of DECK_SECTION_IDS_V072A){const el=document.getElementById(id);if(!el)continue;const top=el.getBoundingClientRect().top;if(top<=offset&&top>best){best=top;current=id;}}
+  return current;
+}
+function refreshDeckSectionNavV072a(){
+  const analyzer=document.getElementById('analyzer');if(!analyzer?.classList.contains('on'))return;
+  setDeckSectionActiveV072a(currentDeckSectionV072a());
+}
+function bindDeckSectionNavV072a(){
+  if(document.body.dataset.deckNavBoundV072a)return;document.body.dataset.deckNavBoundV072a='1';
+  document.addEventListener('click',event=>{const btn=event.target.closest('[data-deck-section]');if(!btn||!btn.closest('#deckSectionNavV072a'))return;scrollToDeckSectionV072a(btn.dataset.deckSection);});
+  let scheduled=false;const onScroll=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;refreshDeckSectionNavV072a();});};
+  window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll,{passive:true});
+  document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(refreshDeckSectionNavV072a,0)));
+  refreshDeckSectionNavV072a();
+}
+bindDeckSectionNavV072a();
+if($('status'))$('status').textContent='v0.7.2a：デッキ分析ページに固定ページ内ナビを追加しました。各ボタンで分析セクションへ移動し、現在位置を自動表示します。';

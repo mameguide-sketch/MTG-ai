@@ -1,3 +1,11 @@
+# v0.7.2a
+
+- Deck Analysis Navigation を追加。デッキ分析ページ上部に固定ページ内ナビを配置。
+- 概要 / マナ・役割 / Deck Intelligence / 入れ替え提案 / デッキ最適化 / 学習 / 環境Evidence / 追加候補へワンクリックでスムーズ移動。
+- スクロール位置に応じて現在セクションを自動ハイライト。
+- 「↑ 上へ」でデッキ入力まで戻れる。
+- モバイルではナビ項目を横スクロール可能。分析ロジック、Evidence、推薦ロジックは v0.7.2 のまま維持。
+
 # v0.7.2 - Adoption Evidence Engine
 - Magic.ggの2026-08-03 Traditional Standard Ranked Decklistsを公式Environment seedとして追加
 - 8個の成功StandardデッキをMain / Side分離で収録
