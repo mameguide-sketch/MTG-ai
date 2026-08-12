@@ -1,3 +1,19 @@
+# v0.7.1 - Evidence & Learning Foundation
+
+- 最適化案 / Swap提案へGood / Badフィードバックを追加
+- 的外れ理由を6分類で記録
+- `OUTカードが重要` / `シナジーを壊す` のフィードバックからUser-confirmed Coreを自動生成
+- デッキ内カードの手動Core指定 / 解除を追加
+- User-confirmed CoreをDeck OptimizerのOUT候補から除外
+- 過去のGood / BadをIN候補・OUT→INペアの順位へ反映
+- カード本文から複数役割・継続価値・ルーティング・ダメージ・サーチ等を一次評価するCard Valueを追加
+- 高Card ValueカードへのOUTペナルティを追加
+- 学習状況パネル、最近の学習、Card Value上位表示を追加
+- User-confirmed / Parsed / InferredのEvidence区分を明示
+- IndexedDB + localStorageへローカル学習データを保存
+- 採用実績 / 大会結果 / メタゲームはまだ未実装であることを明示
+- app.js / styles.cssキャッシュバスターをv0.7.1へ更新
+
 # v0.7.0b - Strict Primary Objective Alignment hotfix
 
 - 最優先課題を候補スコアの加点要素からハード条件へ変更

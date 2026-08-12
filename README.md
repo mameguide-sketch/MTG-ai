@@ -1,3 +1,25 @@
+# Lunch Forge v0.7.1
+
+## Evidence & Learning Foundation
+
+v0.7.1では、カード本文だけでは捉えにくい「実際に使うと重要」「この交換は的外れ」という人間の判断を、Lunch Forgeへ戻すための学習基盤を追加します。学習データはこのブラウザ内だけに保存し、次回以降のOUT保護・候補順位へ反映します。
+
+### 追加機能
+- 最適化案・Swap提案に `👍 良い提案 / 👎 的外れ` フィードバックを追加
+- 的外れの理由を `OUTカードが重要 / INカードが弱い / シナジーを壊す / マナ基盤・色 / 役割違い / その他` から記録
+- `OUTカードが重要` または `シナジーを壊す` を選んだ場合、そのOUTカードを **User-confirmed Core** として自動保護
+- デッキ内カードを手動でCore指定 / 解除可能
+- User-confirmed CoreはDeck OptimizerのOUT候補から除外
+- 同じINカード・同じOUT→INペアに対する過去のGood / Badを候補順位へ反映
+- カード本文から `複数役割 / 継続価値 / ルーティング / ダメージ源 / サーチ / 状況対応力 / 能力密度` を読み取り、一次的な **Card Value** を算出
+- 高Card Valueカードは、役割ラベルだけを理由に安易なOUT候補になりにくいよう保護
+- 学習パネルにCore数、Good / Bad件数、最近の学習、Card Value上位を表示
+- Evidence区分を `User-confirmed / Parsed / Inferred` として分離
+- IndexedDB + localStorageへ最大200件の学習イベントを保存
+
+### 重要な制限
+v0.7.1は**ユーザー固有の学習基盤**です。大会採用率、共採用率、勝率、メタゲームなどの公開実績データはまだ取り込みません。これらは次段階のAdoption Evidenceとして別系統で扱い、ユーザーの体感と公開実績を混同しない設計にします。
+
 # Lunch Forge v0.7.0b
 
 ## Strict Primary Objective Alignment hotfix

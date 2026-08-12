@@ -3167,7 +3167,7 @@ renderSwapCompareV056=function(){
 };
 
 /* Deck Optimization Engine alpha v0.7.0 */
-const APP_VERSION_V070='0.7.0b';
+const APP_VERSION_V070='0.7.1';
 let currentDeckOptimizationV070=null;
 
 function mainResolvedEntriesV070(entries=deck){return (entries||[]).filter(e=>!e.side&&e.card&&(+e.qty||0)>0);}
@@ -3653,3 +3653,199 @@ renderDeckOptimizerV070=function(){
 };
 
 if($('status'))$('status').textContent='v0.7.0b：Deck Optimizationを最優先課題へ厳密一致。別課題で全体点だけ上がる提案は表示しません。';
+
+/* Evidence & Learning Foundation v0.7.1
+   Stores user-confirmed Core cards and proposal feedback locally, then feeds those
+   signals back into OUT protection and candidate / pair ranking. This is local,
+   user-specific evidence; it is intentionally kept separate from future public
+   adoption / tournament evidence. */
+const APP_VERSION_V071='0.7.1';
+const LF_LEARNING_IDB_KEY_V071='learning-evidence-v071';
+const LF_LEARNING_LOCAL_KEY_V071='lunchForgeLearningV071';
+const LF_LEARNING_MAX_EVENTS_V071=200;
+const LF_LEARNING_REASONS_V071={
+  cut_important:'OUTカードが重要',
+  add_weak:'INカードが弱い',
+  synergy_break:'シナジーを壊している',
+  mana_mismatch:'マナ基盤・色が合わない',
+  role_wrong:'役割が違う',
+  other:'その他'
+};
+function defaultLearningEvidenceV071(){return {version:1,updatedAt:0,cores:{},cards:{},pairs:{},objectives:{},events:[]};}
+function normalizeLearningEvidenceV071(raw){
+  const base=defaultLearningEvidenceV071(),x=raw&&typeof raw==='object'?raw:{};
+  return {...base,...x,cores:{...(x.cores||{})},cards:{...(x.cards||{})},pairs:{...(x.pairs||{})},objectives:{...(x.objectives||{})},events:Array.isArray(x.events)?x.events.slice(0,LF_LEARNING_MAX_EVENTS_V071):[]};
+}
+function loadLearningLocalV071(){try{return normalizeLearningEvidenceV071(JSON.parse(localStorage.getItem(LF_LEARNING_LOCAL_KEY_V071)||'null'))}catch{return defaultLearningEvidenceV071()}}
+let learningEvidenceV071=loadLearningLocalV071();
+function learningCardKeyV071(card){return String(card?.oracle_id||card?.name||'').trim().toLowerCase();}
+function learningObjectiveKeyV071(objective){return String(objective?.key||objective?.label||objective?.kind||'general').trim().toLowerCase();}
+function learningPairKeyV071(cut,add,objective){return `${learningObjectiveKeyV071(objective)}|${learningCardKeyV071(cut)}>${learningCardKeyV071(add)}`;}
+function learningCardSignalV071(card){const key=learningCardKeyV071(card);return learningEvidenceV071.cards[key]||{good:0,bad:0,weak:0,manaMismatch:0,roleWrong:0,synergyBreak:0};}
+function learningPairSignalV071(cut,add,objective){return learningEvidenceV071.pairs[learningPairKeyV071(cut,add,objective)]||{good:0,bad:0,reasons:{}};}
+function isUserCoreV071(card){return !!learningEvidenceV071.cores[learningCardKeyV071(card)];}
+function saveLearningEvidenceV071(){
+  learningEvidenceV071.updatedAt=Date.now();
+  try{localStorage.setItem(LF_LEARNING_LOCAL_KEY_V071,JSON.stringify(learningEvidenceV071));}catch(error){console.warn('Learning local save skipped',error)}
+  try{largeCacheSetV054c(LF_LEARNING_IDB_KEY_V071,learningEvidenceV071).catch(error=>console.warn('Learning IndexedDB save skipped',error));}catch{}
+}
+async function hydrateLearningEvidenceV071(){
+  try{
+    const indexed=await largeCacheGetV054c(LF_LEARNING_IDB_KEY_V071);
+    if(indexed&&(+indexed.updatedAt||0)>(+learningEvidenceV071.updatedAt||0)){
+      learningEvidenceV071=normalizeLearningEvidenceV071(indexed);
+      try{localStorage.setItem(LF_LEARNING_LOCAL_KEY_V071,JSON.stringify(learningEvidenceV071));}catch{}
+      renderLearningEvidenceV071();
+      if(deck?.length){refreshSwapPlannerV056(false);}
+    }
+  }catch(error){console.warn('Learning IndexedDB load skipped',error)}
+}
+function addLearningEventV071(event){
+  learningEvidenceV071.events.unshift({...event,at:new Date().toISOString()});
+  learningEvidenceV071.events=learningEvidenceV071.events.slice(0,LF_LEARNING_MAX_EVENTS_V071);
+}
+function setUserCoreV071(card,on=true,source='manual'){
+  if(!card)return;
+  const key=learningCardKeyV071(card);if(!key)return;
+  if(on){learningEvidenceV071.cores[key]={name:card.name||displayName(card),displayName:displayName(card),at:new Date().toISOString(),source};addLearningEventV071({type:'core_on',card:key,name:displayName(card),source});}
+  else{delete learningEvidenceV071.cores[key];addLearningEventV071({type:'core_off',card:key,name:displayName(card),source});}
+  saveLearningEvidenceV071();
+}
+function recordProposalFeedbackV071(item,verdict,reason='other',source='optimizer'){
+  if(!item?.cut?.card||!item?.add?.card)return;
+  const objective=item.primaryObjectiveV070b||currentDeckOptimizationV070?.objective||primaryObjectiveV070b(deckFoundationModelV0610(deck));
+  const pairKey=learningPairKeyV071(item.cut.card,item.add.card,objective),addKey=learningCardKeyV071(item.add.card),cutKey=learningCardKeyV071(item.cut.card),objKey=`${learningObjectiveKeyV071(objective)}|${addKey}`;
+  const pair=learningEvidenceV071.pairs[pairKey]||{good:0,bad:0,reasons:{},cut:cutKey,add:addKey,objective:learningObjectiveKeyV071(objective)};
+  const card=learningEvidenceV071.cards[addKey]||{good:0,bad:0,weak:0,manaMismatch:0,roleWrong:0,synergyBreak:0};
+  const obj=learningEvidenceV071.objectives[objKey]||{good:0,bad:0,roleWrong:0};
+  if(verdict==='good'){
+    pair.good=(pair.good||0)+1;card.good=(card.good||0)+1;obj.good=(obj.good||0)+1;
+  }else{
+    pair.bad=(pair.bad||0)+1;pair.reasons[reason]=(pair.reasons[reason]||0)+1;card.bad=(card.bad||0)+1;obj.bad=(obj.bad||0)+1;
+    if(reason==='add_weak')card.weak=(card.weak||0)+1;
+    if(reason==='mana_mismatch')card.manaMismatch=(card.manaMismatch||0)+1;
+    if(reason==='role_wrong'){card.roleWrong=(card.roleWrong||0)+1;obj.roleWrong=(obj.roleWrong||0)+1;}
+    if(reason==='synergy_break')card.synergyBreak=(card.synergyBreak||0)+1;
+    if(reason==='cut_important'||reason==='synergy_break')setUserCoreV071(item.cut.card,true,'feedback');
+  }
+  learningEvidenceV071.pairs[pairKey]=pair;learningEvidenceV071.cards[addKey]=card;learningEvidenceV071.objectives[objKey]=obj;
+  addLearningEventV071({type:'proposal_feedback',verdict,reason,source,objective:learningObjectiveKeyV071(objective),cut:cutKey,cutName:displayName(item.cut.card),add:addKey,addName:displayName(item.add.card)});
+  saveLearningEvidenceV071();
+}
+function cardValueV071(card,entry=null,before=null){
+  if(!card)return {score:0,reasons:[],confidence:'Inferred'};
+  if(isUserCoreV071(card))return {score:100,reasons:['ユーザー確認済みCore'],confidence:'User-confirmed'};
+  const raw=text(card),p=knowledgeProfile(card),roles=cardRoleKeysV070(card),tags=unique(p.tags||[]),signal=learningCardSignalV071(card);let score=30,reasons=[];
+  const roleCount=unique([...roles,...tags.filter(t=>['draw_cards','impulse','tutor','direct_damage','discard_payoff','loot','single_removal','board_wipe','counterspell','mana_add','extra_land','protection'].includes(t))]).length;
+  if(roleCount>=3){score+=14;reasons.push('複数の役割を1枚で担当');}else if(roleCount===2){score+=8;reasons.push('複数役割');}
+  if(/whenever|at the beginning of|each time|once during each/i.test(raw)){score+=8;reasons.push('継続的に価値を生む能力');}
+  if(/draw[^.\n]{0,90}discard|discard[^.\n]{0,90}draw|you may discard[^.\n]{0,120}if you do[^.\n]{0,60}draw/i.test(raw)){score+=9;reasons.push('ルーティング／手札選別');}
+  if(/deals? \d+ damage to (?:each )?(?:opponent|player)|each opponent loses|target opponent loses/i.test(raw)){score+=8;reasons.push('継続・直接ダメージ源');}
+  if(/search your library for (?:a|an|up to one|any) card|search your library for a card/i.test(raw)){score+=10;reasons.push('サーチ能力');}
+  if(/level \d|choose one|choose two|choose up to/i.test(raw)){score+=6;reasons.push('状況対応力');}
+  const abilityLines=oracle(card).split(/\n+/).filter(Boolean).length;if(abilityLines>=3){score+=7;reasons.push('能力密度が高い');}
+  const connections=before?connectionPotentialV070a(card,before):0;if(connections>0){score+=Math.min(12,connections*3);reasons.push('デッキ内の効果接続に参加');}
+  score+=Math.min(12,(signal.good||0)*5);score-=Math.min(18,(signal.bad||0)*3);
+  if((signal.good||0)>0)reasons.push('過去の良い提案フィードバックあり');
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  return {score,reasons:unique(reasons).slice(0,5),confidence:(signal.good||signal.bad)?'User-confirmed':'Parsed'};
+}
+function learningCandidateAdjustmentV071(card,before,issues){
+  const s=learningCardSignalV071(card),objective=(issues||[])[0]||primaryObjectiveV070b(before),obj=learningEvidenceV071.objectives[`${learningObjectiveKeyV071(objective)}|${learningCardKeyV071(card)}`]||{};
+  let n=Math.min(18,(s.good||0)*6)-Math.min(30,(s.weak||0)*14)-Math.min(22,(s.manaMismatch||0)*11)-Math.min(26,(s.roleWrong||0)*12)-Math.min(18,(s.bad||0)*4)+Math.min(10,(obj.good||0)*5)-Math.min(28,(obj.roleWrong||0)*14);
+  return Math.max(-60,Math.min(30,n));
+}
+function learningPairAdjustmentV071(item,objective){
+  const s=learningPairSignalV071(item.cut.card,item.add.card,objective);let n=(s.good||0)*14-(s.bad||0)*24;
+  if((s.reasons?.cut_important||0)>0)n-=50;if((s.reasons?.synergy_break||0)>0)n-=45;if((s.reasons?.role_wrong||0)>0)n-=32;if((s.reasons?.add_weak||0)>0)n-=28;
+  return Math.max(-120,Math.min(50,n));
+}
+
+const cardDependencyBaseV071=cardDependencyV070;
+cardDependencyV070=function(entry,beforeModel,entries=deck){
+  const dep=cardDependencyBaseV071(entry,beforeModel,entries);
+  if(entry?.card&&isUserCoreV071(entry.card))return {...dep,level:'high',score:Math.max(99,+dep.score||0),userConfirmedV071:true,reasons:unique(['ユーザー確認済みCore',...(dep.reasons||[])]).slice(0,4)};
+  return dep;
+};
+const cutPriorityBaseV071=cutPriorityV070a;
+cutPriorityV070a=function(cut,before,issues,dep){
+  if(cut?.card&&isUserCoreV071(cut.card))return -999;
+  let score=cutPriorityBaseV071(cut,before,issues,dep),value=cardValueV071(cut?.card,cut?.entry,before);
+  if(value.score>=60)score-=Math.round((value.score-55)*.85);
+  const signal=learningCardSignalV071(cut?.card);score-=Math.min(30,(signal.good||0)*6);
+  cut.cardValueV071=value;
+  return score;
+};
+const directedCandidateScoreBaseV071=directedCandidateScoreV070a;
+directedCandidateScoreV070a=function(rec,before,issues){
+  const base=directedCandidateScoreBaseV071(rec,before,issues);if(base<=-900)return base;
+  const adj=learningCandidateAdjustmentV071(rec?.card,before,issues);if(rec)rec.learningAdjustmentV071=adj;
+  return base+adj;
+};
+const buildDirectedSwapsBaseV071=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const objective=primaryObjectiveV070b(before),raw=buildDirectedSwapsBaseV071(stats,before,mainResolved,recommendations),out=[];
+  for(const item of raw){
+    if(isUserCoreV071(item.cut.card))continue;
+    const adj=learningPairAdjustmentV071(item,objective),pairSignal=learningPairSignalV071(item.cut.card,item.add.card,objective),value=cardValueV071(item.cut.card,item.cut.entry,before);
+    if((pairSignal.bad||0)>=2&&(pairSignal.good||0)===0)continue;
+    item.learningPairAdjustmentV071=adj;item.cutCardValueV071=value;item.pairScore=(+item.pairScore||0)+adj-Math.max(0,value.score-70)*.35;
+    out.push(item);
+  }
+  return out.sort((a,b)=>b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation);
+};
+
+function learningReasonOptionsV071(){return Object.entries(LF_LEARNING_REASONS_V071).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');}
+function learningFeedbackControlsV071(item,planIndex,itemIndex,source='optimizer'){
+  const objective=item.primaryObjectiveV070b||currentDeckOptimizationV070?.objective,pair=learningPairSignalV071(item.cut.card,item.add.card,objective),cutCore=isUserCoreV071(item.cut.card),addSignal=learningCardSignalV071(item.add.card),hasEvidence=(pair.good||pair.bad||cutCore||addSignal.good||addSignal.bad);
+  return `<div class="learningFeedbackV071" data-learning-source="${source}" data-learning-plan="${planIndex}" data-learning-item="${itemIndex}"><div class="learningFeedbackHeadV071"><b>${hasEvidence?'User Evidence':'Feedback'}</b><span>${cutCore?'OUT: Core':''}${pair.good?` 👍${pair.good}`:''}${pair.bad?` 👎${pair.bad}`:''}</span></div><div class="learningFeedbackRowV071"><button class="smallBtn" data-learning-good="1">👍 良い提案</button><select data-learning-reason="1" aria-label="的外れの理由">${learningReasonOptionsV071()}</select><button class="smallBtn" data-learning-bad="1">👎 的外れ</button><button class="smallBtn ${cutCore?'active':''}" data-learning-core="1">${cutCore?'Core解除':'OUTをCore指定'}</button></div></div>`;
+}
+const optimizerPlanHTMLBaseV071=optimizerPlanHTMLV070;
+optimizerPlanHTMLV070=function(plan,index){
+  let html=optimizerPlanHTMLBaseV071(plan,index),feedback=(plan.items||[]).map((item,itemIndex)=>`<div class="learningItemV071"><div class="learningPairLabelV071"><b>${esc(displayName(item.cut.card))}</b><span>→</span><b>${esc(displayName(item.add.card))}</b>${item.cutCardValueV071?`<small>OUT Card Value ${item.cutCardValueV071.score}/100</small>`:''}</div>${learningFeedbackControlsV071(item,index,itemIndex,'optimizer')}</div>`).join('');
+  return html.replace('<div class="swapActions">',`<div class="learningPlanFeedbackV071"><h4>この提案を学習させる</h4>${feedback}</div><div class="swapActions">`);
+};
+const renderSwapRecommendationsBaseV071=renderSwapRecommendationsV055;
+renderSwapRecommendationsV055=function(){
+  renderSwapRecommendationsBaseV071();const root=$('swapRecommendations');if(!root)return;
+  [...root.querySelectorAll('.swapProposal')].forEach((article,index)=>{if(article.querySelector('.learningFeedbackV071'))return;const item=currentSwapRecommendationsV055[index];if(!item)return;const actions=article.querySelector('.swapActions');if(actions)actions.insertAdjacentHTML('beforebegin',learningFeedbackControlsV071(item,index,0,'swap'));});
+};
+function learningItemFromControlV071(control){
+  const box=control.closest('.learningFeedbackV071');if(!box)return null;const source=box.dataset.learningSource||'optimizer',planIndex=+box.dataset.learningPlan||0,itemIndex=+box.dataset.learningItem||0;
+  if(source==='swap')return currentSwapRecommendationsV055[planIndex]||null;
+  return currentDeckOptimizationV070?.plans?.[planIndex]?.items?.[itemIndex]||null;
+}
+function refreshAfterLearningV071(message){
+  renderLearningEvidenceV071();if(deck?.length){refreshSwapPlannerV056(false);setTimeout(()=>{renderLearningEvidenceV071();},240);}if(message)toast(message);
+}
+function bindLearningFeedbackV071(){
+  if(document.body.dataset.learningBoundV071)return;document.body.dataset.learningBoundV071='1';
+  document.addEventListener('click',event=>{
+    const good=event.target.closest('[data-learning-good]'),bad=event.target.closest('[data-learning-bad]'),core=event.target.closest('[data-learning-core]');
+    if(good){const item=learningItemFromControlV071(good);if(item){recordProposalFeedbackV071(item,'good','other',good.closest('.learningFeedbackV071')?.dataset.learningSource||'optimizer');refreshAfterLearningV071('良い提案として学習しました');}return;}
+    if(bad){const item=learningItemFromControlV071(bad),box=bad.closest('.learningFeedbackV071'),reason=box?.querySelector('[data-learning-reason]')?.value||'other';if(item){recordProposalFeedbackV071(item,'bad',reason,box?.dataset.learningSource||'optimizer');refreshAfterLearningV071(`「${LF_LEARNING_REASONS_V071[reason]||reason}」として学習しました`);}return;}
+    if(core){const item=learningItemFromControlV071(core);if(item){const next=!isUserCoreV071(item.cut.card);setUserCoreV071(item.cut.card,next,'proposal');refreshAfterLearningV071(next?'OUTカードをCore指定しました':'Core指定を解除しました');}return;}
+    const remove=event.target.closest('[data-learning-core-remove]');if(remove){const card=pool.find(c=>learningCardKeyV071(c)===remove.dataset.learningCoreRemove)||mainResolvedEntriesV070().map(e=>e.card).find(c=>learningCardKeyV071(c)===remove.dataset.learningCoreRemove);if(card){setUserCoreV071(card,false,'manual');refreshAfterLearningV071('Core指定を解除しました');}return;}
+    const add=event.target.closest('[data-learning-manual-core-add]');if(add){const key=$('learningCoreSelectV071')?.value,entry=mainResolvedEntriesV070().find(e=>learningCardKeyV071(e.card)===key);if(!entry)return toast('デッキ分析後にカードを選択してください');setUserCoreV071(entry.card,true,'manual');refreshAfterLearningV071(`${displayName(entry.card)}をCore指定しました`);return;}
+    const clear=event.target.closest('[data-learning-clear]');if(clear){if(!confirm('Lunch Forgeがこのブラウザに保存した学習データをすべて消去しますか？'))return;learningEvidenceV071=defaultLearningEvidenceV071();saveLearningEvidenceV071();refreshAfterLearningV071('学習データを消去しました');return;}
+  });
+}
+function renderLearningEvidenceV071(){
+  const root=$('learningEvidenceV071');if(!root)return;const main=mainResolvedEntriesV070(),events=learningEvidenceV071.events||[],cores=Object.entries(learningEvidenceV071.cores||{}),good=events.filter(e=>e.type==='proposal_feedback'&&e.verdict==='good').length,bad=events.filter(e=>e.type==='proposal_feedback'&&e.verdict==='bad').length;
+  const select=$('learningCoreSelectV071');if(select){const old=select.value;select.innerHTML=main.length?main.map(e=>`<option value="${esc(learningCardKeyV071(e.card))}">${esc(displayName(e.card))} ×${e.qty}</option>`).join(''):'<option value="">デッキ分析後に選択</option>';if([...select.options].some(o=>o.value===old))select.value=old;}
+  const coreHTML=cores.length?cores.map(([key,x])=>`<div class="learningCoreRowV071"><div><b>${esc(x.displayName||x.name||key)}</b><small>User-confirmed Core</small></div><button class="smallBtn" data-learning-core-remove="${esc(key)}">解除</button></div>`).join(''):'<div class="tiny">ユーザー確認済みCoreはまだありません。</div>';
+  const valueTop=main.map(e=>({entry:e,value:cardValueV071(e.card,e,currentDeckOptimizationV070?.before||null)})).sort((a,b)=>b.value.score-a.value.score).slice(0,5);
+  const valueHTML=valueTop.length?valueTop.map(x=>`<div class="learningValueRowV071"><div><b>${esc(displayName(x.entry.card))}</b><small>${esc(x.value.reasons.slice(0,2).join('／')||'カード本文から一次評価')}</small></div><span>${x.value.score}<small>/100</small></span></div>`).join(''):'<div class="tiny">デッキ分析後にCard Valueを表示します。</div>';
+  const recent=events.slice(0,6).map(e=>{if(e.type==='proposal_feedback')return `<li><b>${e.verdict==='good'?'👍':'👎'}</b> ${esc(e.cutName||'OUT')} → ${esc(e.addName||'IN')} <small>${e.verdict==='bad'?esc(LF_LEARNING_REASONS_V071[e.reason]||e.reason):'良い提案'}</small></li>`;return `<li><b>Core</b> ${esc(e.name||'カード')} <small>${e.type==='core_on'?'指定':'解除'}</small></li>`;}).join('')||'<li>まだフィードバックはありません。</li>';
+  root.innerHTML=`<div class="learningMetricsV071"><div><span>Core</span><b>${cores.length}</b></div><div><span>良い提案</span><b>${good}</b></div><div><span>的外れ</span><b>${bad}</b></div><div><span>保存イベント</span><b>${events.length}</b></div></div><div class="learningGridV071"><section><h3>ユーザー確認済みCore</h3><p class="tiny">Core指定したカードはOptimizerのOUT候補から外します。「OUTカードが重要」「シナジーを壊す」のフィードバックでも自動Core化します。</p><div class="learningCoreAddV071"><select id="learningCoreSelectV071">${main.length?main.map(e=>`<option value="${esc(learningCardKeyV071(e.card))}">${esc(displayName(e.card))} ×${e.qty}</option>`).join(''):'<option value="">デッキ分析後に選択</option>'}</select><button class="smallBtn" data-learning-manual-core-add="1">Core指定</button></div><div class="learningCoreListV071">${coreHTML}</div><h3 class="learningSubheadV071">Card Value 上位（Parsed）</h3><div class="learningValueListV071">${valueHTML}</div></section><section><h3>最近の学習</h3><ul class="learningRecentV071">${recent}</ul><p class="tiny">保存先：このブラウザのIndexedDB + localStorage。公開データや他ユーザーへは送信しません。</p><button class="smallBtn" data-learning-clear="1">学習データを消去</button></section></div><div class="ruleDisclaimer"><b>Evidence区分：</b> User-confirmed はユーザーの明示フィードバック、Parsed はカード本文から抽出、Inferred はLunch Forgeの推論です。v0.7.1では採用実績・大会結果はまだ学習していません。</div>`;
+  bindLearningFeedbackV071();
+}
+
+const renderDeckOptimizerBaseV071=renderDeckOptimizerV070;
+renderDeckOptimizerV070=function(){renderDeckOptimizerBaseV071();renderLearningEvidenceV071();};
+const analyzeBaseV071=analyze;
+analyze=async function(){await analyzeBaseV071();renderLearningEvidenceV071();};
+if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+bindLearningFeedbackV071();renderLearningEvidenceV071();hydrateLearningEvidenceV071();
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(()=>{renderLearningEvidenceV071();bindLearningFeedbackV071();},0)));
+if($('status'))$('status').textContent='v0.7.1：Evidence & Learning Foundation。提案フィードバックとCore指定をローカル保存し、OUT保護・候補順位へ反映します。';
