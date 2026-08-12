@@ -2899,3 +2899,269 @@ function bindRuleEngineV069(){
   const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-9：カードを1～3枚入力してください。';
 }
 bindRuleEngineV069();
+
+/* Deck Analysis Foundation v0.6.10 */
+const APP_VERSION_V0610='0.6.10';
+
+function isLandCardV0610(card){return /\bLand\b/i.test(type(card||{}));}
+function isTrueLandAccelerationV0610(card){
+  if(!isLandCardV0610(card))return false;
+  const o=String(oracle(card)||text(card)||'').toLowerCase();
+  return /add (?:two|three|four|five|x) mana/.test(o)
+    || /add \{[wubrgc]\}\{[wubrgc]\}/i.test(o)
+    || /untap (?:another |target )?land/.test(o)
+    || /whenever [^.]{0,80} land [^.]{0,80} add an additional/.test(o)
+    || /you may play an additional land/.test(o);
+}
+function isRampCardV0610(card){
+  if(!card)return false;
+  if(isLandCardV0610(card))return isTrueLandAccelerationV0610(card);
+  const o=String(oracle(card)||text(card)||'').toLowerCase();
+  return /add \{|treasure token|search your library for (?:a|up to one) (?:basic )?land|play an additional land|additional land on each of your turns/i.test(o);
+}
+
+/* Lands are mana base by default. Normal mana-producing lands must not be counted as Ramp. */
+if(KNOWLEDGE_TAGS&&!KNOWLEDGE_TAGS.mana_base){KNOWLEDGE_TAGS.mana_base={label:'マナ基盤',group:'補助',rx:/$a/};}
+const featuresBaseV0610=features;
+features=function(card){
+  const f=featuresBaseV0610(card),roles=[...(f.roles||[])];
+  if(isLandCardV0610(card)&&!isTrueLandAccelerationV0610(card)){
+    const i=roles.indexOf('ramp');if(i>=0)roles.splice(i,1);
+  }
+  return {...f,roles};
+};
+const knowledgeProfileBaseV0610=knowledgeProfile;
+knowledgeProfile=function(card){
+  const p=knowledgeProfileBaseV0610(card),tags=[...(p.tags||[])];
+  if(isLandCardV0610(card)){
+    if(!tags.includes('mana_base'))tags.push('mana_base');
+    if(!isTrueLandAccelerationV0610(card)){
+      const i=tags.indexOf('mana_add');if(i>=0)tags.splice(i,1);
+    }
+  }
+  const grouped={};
+  for(const tag of tags){const def=KNOWLEDGE_TAGS[tag];if(!def)continue;(grouped[def.group]??=[]).push(def.label);}
+  return {...p,tags,grouped};
+};
+
+function parseDeckTextV0610(text,forceSide=false){
+  let side=!!forceSide,out=[];
+  for(const raw of String(text||'').split(/\r?\n/)){
+    let line=raw.trim();if(!line)continue;
+    if(/^(deck|main(?: deck)?)$/i.test(line)){if(!forceSide)side=false;continue;}
+    if(/^(sideboard|side)$/i.test(line)){side=true;continue;}
+    const sbPrefix=/^SB:\s*/i.test(line);if(sbPrefix){side=true;line=line.replace(/^SB:\s*/i,'');}
+    if(/^companion$/i.test(line))continue;
+    let m=line.match(/^(\d+)x?\s+(.+?)(?:\s+\([A-Z0-9]+\)\s+\d+)?$/i);
+    if(!m)m=[null,'1',line];
+    out.push({qty:+m[1],name:m[2].trim(),side:forceSide?true:side});
+  }
+  return out;
+}
+parseDeck=function(text){return parseDeckTextV0610(text,false);};
+function mergeDeckEntriesV0610(entries){
+  const map=new Map();
+  for(const e of entries){
+    if(!e?.name||!(+e.qty>0))continue;const key=(e.side?'S|':'M|')+normalizeCardNameV053(e.name);
+    if(map.has(key))map.get(key).qty+=+e.qty;else map.set(key,{qty:+e.qty,name:e.name,side:!!e.side});
+  }
+  return [...map.values()];
+}
+function rebuildMainTextV0610(entries){
+  const main=mergeDeckEntriesV0610(entries.filter(e=>!e.side&&e.qty>0));
+  return main.length?'Deck\n'+main.map(e=>`${e.qty} ${e.name}`).join('\n'):'';
+}
+function rebuildSideTextV0610(entries){
+  const side=mergeDeckEntriesV0610(entries.filter(e=>e.side&&e.qty>0));
+  return side.map(e=>`${e.qty} ${e.name}`).join('\n');
+}
+function deckInputsV0610({normalize=false}={}){
+  const mainText=String($('deckInput')?.value||''),sideText=String($('sideboardInput')?.value||'');
+  const parsedMain=parseDeckTextV0610(mainText,false);
+  const embeddedSide=parsedMain.filter(e=>e.side);
+  const main=parsedMain.filter(e=>!e.side).map(e=>({...e,side:false}));
+  const side=(embeddedSide.length?embeddedSide:parseDeckTextV0610(sideText,true)).map(e=>({...e,side:true}));
+  const merged=mergeDeckEntriesV0610([...main,...side]);
+  if(normalize&&embeddedSide.length&&$('sideboardInput')){
+    $('deckInput').value=rebuildMainTextV0610(merged);
+    $('sideboardInput').value=rebuildSideTextV0610(merged);
+  }
+  return merged;
+}
+
+/* Consistency always uses Main Deck only. */
+rawDeckContextV067=function(cards){
+  const useDeck=$('ruleUseDeckContext')?.checked!==false;
+  const parsed=useDeck?deckInputsV0610().filter(x=>!x.side):[];
+  const hasDeck=parsed.length>0,deckSize=hasDeck?parsed.reduce((s,x)=>s+(+x.qty||0),0):60;
+  const entries=parsed.map(x=>({...x,card:findPoolCard(x.name)||null}));
+  const copies=cards.map(card=>hasDeck?entries.reduce((sum,e)=>sum+(entryMatchesCardV055(e,card)?(+e.qty||0):0),0):4);
+  const missing=cards.filter((c,i)=>copies[i]===0).map(displayName);
+  const lands=hasDeck?entries.filter(e=>e.card&&isLandCardV0610(e.card)).reduce((s,e)=>s+e.qty,0):24;
+  return {useDeck,hasDeck,source:hasDeck?'現在のメインデッキ':'60枚・各4枚の仮定',deckSize,copies,entries,missing,lands};
+};
+
+function sideCountV0610(){return deck.filter(e=>e.side).reduce((s,e)=>s+(+e.qty||0),0);}
+const renderStatsBaseV0610=renderStats;
+renderStats=function(s,all,res,profile=currentDeckKnowledgeV054){
+  renderStatsBaseV0610(s,all,res,profile);
+  if($('mSide'))$('mSide').textContent=sideCountV0610();
+  if($('resolvedDeck')){
+    const main=deck.filter(e=>!e.side),side=deck.filter(e=>e.side);
+    const rows=arr=>arr.length?arr.map(x=>`<div>${x.qty} ${esc(x.card?displayName(x.card):x.name)} ${x.card?'':'<span class="tag bad">未特定</span>'}</div>`).join(''):'<span class="tiny">なし</span>';
+    $('resolvedDeck').innerHTML=`<div class="resolvedGroupsV0610"><section class="resolvedGroupV0610"><h4>メイン ${s.total}枚</h4>${rows(main)}</section><section class="resolvedGroupV0610"><h4>サイド ${sideCountV0610()}枚</h4>${rows(side)}<span class="tiny">メイン分析・Consistencyには含めません。</span></section></div>`;
+  }
+};
+
+function roleCountsV0610(entries,profile){
+  const main=entries.filter(e=>!e.side&&e.card),stats=deckStats(entries);
+  const qtyWithTags=tags=>main.filter(e=>{const p=knowledgeProfile(e.card);return tags.some(t=>(p.tags||[]).includes(t));}).reduce((sum,e)=>sum+e.qty,0);
+  const creatures=main.filter(e=>/\bCreature\b/i.test(type(e.card))).reduce((sum,e)=>sum+e.qty,0);
+  const high=main.filter(e=>!isLandCardV0610(e.card)&&(+e.card.cmc||0)>=5).reduce((sum,e)=>sum+e.qty,0);
+  return {
+    removal:qtyWithTags(['single_removal','board_wipe','counterspell','bounce']),
+    draw:qtyWithTags(['draw_cards','impulse']),
+    ramp:main.filter(e=>isRampCardV0610(e.card)).reduce((sum,e)=>sum+e.qty,0),
+    protection:qtyWithTags(['protection']),
+    finisher:qtyWithTags(['direct_damage','alternate_win','evasion']),
+    creatures,high,stats
+  };
+}
+function roleTargetsV0610(rc){
+  return {removal:4,draw:rc.stats.avg>=2.5?3:2,ramp:(rc.stats.avg>=3.35||rc.high>=7)?2:0,protection:rc.creatures>=16?1:0,finisher:rc.stats.avg>=2.6?2:1};
+}
+function deckFoundationModelV0610(entries){
+  const main=entries.filter(e=>!e.side&&e.card),stats=deckStats(entries),profile=deckKnowledgeProfileV054(main),rc=roleCountsV0610(entries,profile),targets=roleTargetsV0610(rc),deficits=[],excess=[];
+  const labelsMap={removal:'除去／妨害',draw:'手札補充',ramp:'マナ加速',protection:'保護',finisher:'勝ち筋'};
+  let roleScore=100;
+  for(const k of Object.keys(targets)){
+    const n=rc[k]||0,t=targets[k]||0;if(t>0&&n<t){deficits.push({key:k,label:labelsMap[k],count:n,target:t});roleScore-=Math.min(24,(t-n)*9);}else if(t>0&&n>t+5){excess.push({key:k,label:labelsMap[k],count:n,target:t});roleScore-=Math.min(10,(n-t-5)*2);}
+  }
+  let landPenalty=0;const minLand=stats.avg<2.1?20:stats.avg<2.8?22:stats.avg<3.6?23:24,maxLand=stats.avg<2.1?24:stats.avg<2.8?26:stats.avg<3.6?27:28;
+  if(stats.lands<minLand)landPenalty=(minLand-stats.lands)*6;else if(stats.lands>maxLand)landPenalty=(stats.lands-maxLand)*4;
+  const curveCore=(stats.curve[1]||0)+(stats.curve[2]||0)+(stats.curve[3]||0);const curvePenalty=curveCore<18?Math.min(18,(18-curveCore)*1.4):0;
+  const sizePenalty=Math.min(20,Math.abs(stats.total-60)*2.5);
+  const structure=rdClampV069(100-landPenalty-curvePenalty-sizePenalty);
+  const effect=rdClampV069(profile.engineScore||0),gapScore=rdClampV069(100-(profile.gaps?.length||0)*8),connectionScore=rdClampV069(45+Math.min(55,(profile.connections?.length||0)*7));
+  const score=Math.round(structure*.26+roleScore*.25+effect*.23+gapScore*.14+connectionScore*.12);
+  return {score:rdClampV069(score),stats,profile,rc,targets,deficits,excess,structure:Math.round(structure),roleScore:Math.round(roleScore),gapScore,connectionScore};
+}
+function candidateFillsDeficitV0610(rec,model){
+  const p=knowledgeProfile(rec.card),tags=p.tags||[],f=features(rec.card),keys=[];
+  if(tags.some(t=>['single_removal','board_wipe','counterspell','bounce'].includes(t))||f.roles.includes('removal'))keys.push('removal');
+  if(tags.some(t=>['draw_cards','impulse'].includes(t))||f.roles.includes('draw'))keys.push('draw');
+  if((tags.includes('mana_add')||tags.includes('extra_land'))&&!isLandCardV0610(rec.card)||isTrueLandAccelerationV0610(rec.card))keys.push('ramp');
+  if(tags.includes('protection')||f.roles.includes('protection'))keys.push('protection');
+  if(tags.some(t=>['direct_damage','alternate_win','evasion'].includes(t))||f.roles.includes('finisher'))keys.push('finisher');
+  return model.deficits.filter(d=>keys.includes(d.key));
+}
+function replacementRoleLossV0610(cut,rec,beforeModel,afterModel){
+  const before=beforeModel.rc,after=afterModel.rc,targets=beforeModel.targets,loss=[];
+  for(const k of Object.keys(targets)){
+    if((after[k]||0)<(before[k]||0)&&(before[k]||0)<=Math.max(1,(targets[k]||0)+1))loss.push(k);
+  }
+  return loss;
+}
+
+const buildSwapRecommendationsBaseV0610=buildSwapRecommendationsV055;
+buildSwapRecommendationsV055=function(stats,profile,recommendations,mainResolved){
+  const raw=buildSwapRecommendationsBaseV0610(stats,profile,recommendations,mainResolved),before=deckFoundationModelV0610(deck),out=[];
+  for(const item of raw){
+    if(item.add?.recommendationDecision&&item.add.recommendationDecision.score<50)continue;
+    const simulated=simulateSwapEntriesV055(deck,item.cut.card,item.add.card,item.qty),after=deckFoundationModelV0610(simulated),delta=after.score-before.score;
+    const fills=candidateFillsDeficitV0610(item.add,before),roleLoss=replacementRoleLossV0610(item.cut,item.add,before,after);
+    const addTags=new Set(knowledgeProfile(item.add.card).tags||[]),cutTags=(knowledgeProfile(item.cut.card).tags||[]),shared=cutTags.filter(t=>addTags.has(t)&&t!=='mana_base');
+    const strongRelation=(item.add.relations||[]).some(r=>['ENGINE','COVERAGE','ENABLE','SYNERGY'].includes(r));
+    if(roleLoss.length&&!fills.length)continue;
+    if(delta<=0)continue;
+    if(item.deltaConnections<0&&item.deltaGaps<=0&&fills.length===0)continue;
+    if(!shared.length&&!strongRelation&&!fills.length)continue;
+    const notes=[];
+    if(fills.length)notes.push(`不足している${fills.map(x=>x.label).join('・')}を補う`);
+    if(shared.length)notes.push(`削減カードの役割を${shared.slice(0,2).map(t=>KNOWLEDGE_TAGS[t]?.label||t).join('・')}で引き継ぐ`);
+    if(item.deltaConnections>0)notes.push(`効果接続が${item.deltaConnections}件増える`);
+    if(item.deltaGaps>0)notes.push(`不足・孤立が${item.deltaGaps}件減る`);
+    notes.push(`デッキ全体評価 ${before.score} → ${after.score}`);
+    item.foundationBefore=before;item.foundationAfter=after;item.deltaFoundation=delta;item.balanceNotes=unique(notes);item.pairScore+=(delta*8)+(fills.length*8)-(roleLoss.length*18);
+    out.push(item);
+  }
+  return out.sort((a,b)=>b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation).slice(0,6);
+};
+
+renderSwapRecommendationsV055=function(){
+  const root=$('swapRecommendations'),count=$('swapCount');if(!root)return;if(count)count.textContent=`${currentSwapRecommendationsV055.length}件`;
+  if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">交換後のデッキ全体評価が改善する案を検出できませんでした。無理に入れ替えず、条件やデッキ構成を確認してください。</div>';renderSwapCompareV056();return;}
+  const beforeStats=deckStats(deck),beforeProfile=currentDeckKnowledgeV054;
+  root.innerHTML=currentSwapRecommendationsV055.map((item,index)=>{
+    const addReasons=unique([...(item.balanceNotes||[]),...(item.add.why||[])]).slice(0,4),cutReasons=item.cut.reasons.slice(0,3),confidence=swapConfidenceV055(item),landMetric=item.landDelta?swapMetricHTMLV055('土地',beforeStats.lands,item.afterStats.lands,'up',0):'';
+    const ownedBadge=swapSettingsV056.ownedOnly?'<span class="swapOwnedBadgeV056">所有確認済み</span>':'';
+    const fb=item.foundationBefore,fa=item.foundationAfter;
+    return `<article class="swapProposal" id="swapProposalV056-${index}"><div class="swapProposalHead"><div><div class="swapProposalHeadTagsV056"><span class="swapRank">提案 ${index+1}</span><span class="swapPolicyBadgeV056">${esc(policyLabelV056())}</span>${ownedBadge}</div><h3>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</h3></div><span class="swapConfidence confidence${confidence}">確度 ${confidence}</span></div><div class="swapFoundationSummaryV0610"><div><span>交換後のデッキ全体評価</span><strong>${fb?.score??'—'} → ${fa?.score??'—'}</strong></div><b>+${item.deltaFoundation||0}</b></div><div class="swapPair">${swapCardPanelV055(item.add.card,item.qty,'add')}<div class="swapExchange" aria-hidden="true">⇄</div>${swapCardPanelV055(item.cut.card,item.qty,'cut')}</div><div class="swapReasonGrid"><section><h4>追加する理由</h4><ul class="explainList">${addReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section><section><h4>減らす理由</h4><ul class="explainList">${cutReasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section></div><div class="swapMetrics">${swapMetricHTMLV055('デッキ全体評価',fb?.score||0,fa?.score||0,'up',0)}${swapMetricHTMLV055('効果構造点',beforeProfile.engineScore,item.afterProfile.engineScore,'up',0)}${swapMetricHTMLV055('不足・孤立',beforeProfile.gaps.length,item.afterProfile.gaps.length,'down',0)}${swapMetricHTMLV055('効果接続',beforeProfile.connections.length,item.afterProfile.connections.length,'up',0)}${swapMetricHTMLV055('平均MV',beforeStats.avg,item.afterStats.avg,'down',2)}${landMetric}</div><div class="swapActions"><button class="btn" data-swapapply="${index}">${item.qty}枚入れ替えて再分析</button><button class="btn secondary" data-deckadd="${esc(item.add.card.name)}">追加だけ行う</button><button class="btn ghost" data-detail="${esc(item.add.card.name)}">追加カードの詳細</button><button class="smallBtn" data-lockcut="${esc(cardKeyV056(item.cut.card))}">この削減候補を固定</button></div></article>`;
+  }).join('');renderSwapCompareV056();
+};
+
+pushSwapHistoryV056=function(label){
+  const main=$('deckInput')?.value||'',side=$('sideboardInput')?.value||'';if(!main.trim())return;
+  swapHistoryV056.unshift({text:main,sideText:side,label,at:new Date().toISOString()});swapHistoryV056=swapHistoryV056.slice(0,10);saveSwapHistoryV056();
+};
+undoSwapV056=function(){
+  const item=swapHistoryV056.shift();if(!item)return toast('戻せる入れ替えがありません');
+  $('deckInput').value=item.text||'';if($('sideboardInput'))$('sideboardInput').value=item.sideText||'';saveSwapHistoryV056();toast(`入れ替え前へ戻しました${item.label?'：'+item.label:''}`);setTimeout(()=>analyze(),60);
+};
+applySwapProposalV055=function(index){
+  const item=currentSwapRecommendationsV055[index];if(!item)return;if(isCardLockedV056(item.cut.card))return toast('固定カードは減らせません');
+  pushSwapHistoryV056(`${displayName(item.cut.card)} → ${displayName(item.add.card)}`);
+  const entries=parseDeckTextV0610($('deckInput')?.value||'',false).filter(e=>!e.side).map(e=>({...e,side:false}));let remaining=item.qty;
+  for(const entry of entries){if(remaining<=0)continue;const card=findPoolCard(entry.name);if(card&&entryMatchesCardV055(entry,item.cut.card)){const take=Math.min(entry.qty,remaining);entry.qty-=take;remaining-=take;}}
+  const existing=entries.find(e=>entryMatchesCardV055(e,item.add.card));if(existing)existing.qty+=item.qty;else entries.push({qty:item.qty,name:item.add.card.name,side:false});
+  $('deckInput').value=rebuildMainTextV0610(entries.filter(e=>e.qty>0));toast(`${displayName(item.cut.card)}を${item.qty}枚減らし、${displayName(item.add.card)}を${item.qty}枚追加しました。サイドボードは変更していません。`);setTimeout(()=>analyze(),80);
+};
+
+addCardToDeck=function(name){
+  const entries=parseDeckTextV0610($('deckInput')?.value||'',false).filter(e=>!e.side).map(e=>({...e,side:false}));
+  const existing=entries.find(e=>normalizeCardNameV053(e.name)===normalizeCardNameV053(name));if(existing)existing.qty++;else entries.push({qty:1,name,side:false});
+  $('deckInput').value=rebuildMainTextV0610(entries);document.querySelector('[data-view="analyzer"]')?.click();status(`${name} をメインデッキへ追加しました。`);
+};
+
+function markSideboardCandidateV0610(x,sideNames){
+  if(sideNames.has(normalizeCardNameV053(x.card.name))||sideNames.has(normalizeCardNameV053(displayName(x.card))))x.cautions=unique([...(x.cautions||[]),'サイドボードに採用済み']);return x;
+}
+analyze=async function(){
+  if(!pool.length){status('先にカードデータを取得します。',3);await fetchPool();if(!pool.length)return;}
+  const beforeMain=$('deckInput')?.value||'',parsed=deckInputsV0610({normalize:true});
+  if(!parsed.filter(e=>!e.side).length){status('メインデッキを入力してください。');return;}
+  const migrated=beforeMain!==($('deckInput')?.value||'');$('analyzeBtn').disabled=true;deck=[];currentSwapRecommendationsV055=[];renderSwapRecommendationsV055();
+  try{
+    for(let i=0;i<parsed.length;i++){status(`カード特定中 ${i+1}/${parsed.length}`,10+48*i/parsed.length);const c=findPoolCard(parsed[i].name)||await named(parsed[i].name);deck.push({...parsed[i],card:c||null});await sleep(45);}
+    const resolved=deck.filter(x=>x.card),mainResolved=resolved.filter(x=>!x.side),sideResolved=resolved.filter(x=>x.side),stats=deckStats(deck);currentDeckKnowledgeV054=deckKnowledgeProfileV054(mainResolved);await loadVerifiedSynergiesV053(false);renderStats(stats,parsed.length,resolved.length,currentDeckKnowledgeV054);
+    const presentMain=new Set(mainResolved.map(x=>x.card.name)),sideNames=new Set(sideResolved.flatMap(x=>[normalizeCardNameV053(x.card.name),normalizeCardNameV053(displayName(x.card))]));
+    recs=pool.filter(c=>!presentMain.has(c.name)).map(c=>markSideboardCandidateV0610(scoreCard(c,stats,$('strategy').value,mainResolved),sideNames)).filter(x=>x.score>=12&&x.why.length).sort((a,b)=>b.score-a.score||displayName(a.card).localeCompare(displayName(b.card),'ja'));
+    renderSwapLockListV056(mainResolved);currentSwapRecommendationsV055=buildSwapRecommendationsV055(stats,currentDeckKnowledgeV054,recs,mainResolved);renderSwapRecommendationsV055();renderResults();
+    const allowed=recs.filter(x=>recommendationAllowedV056(x.card)).length;if($('swapControlStatusV056'))$('swapControlStatusV056').textContent=`${policyLabelV056()}・最大${swapSettingsV056.maxChanges}枚・追加候補${allowed.toLocaleString()}件から、デッキ全体が改善する${currentSwapRecommendationsV055.length}案を表示。`;
+    const foundation=deckFoundationModelV0610(deck),rampCount=foundation.rc.ramp||0;
+    status(`${migrated?'Sideboardを別欄へ自動分離。':''}メイン${stats.total}枚／サイド${sideCountV0610()}枚。マナ加速${rampCount}枚（通常土地は除外）。全体評価${foundation.score}/100、入れ替え提案${currentSwapRecommendationsV055.length}件。`,100);
+  }catch(error){console.error(error);status('デッキ分析中にエラーが発生しました：'+(error?.message||error),0);}finally{$('analyzeBtn').disabled=false;}
+};
+
+function combinedDeckExportV0610(){
+  const entries=deckInputsV0610(),main=rebuildMainTextV0610(entries),side=rebuildSideTextV0610(entries);return main+(side?'\n\nSideboard\n'+side:'');
+}
+function bindDeckInputControlsV0610(){
+  if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+  if($('sampleBtn'))$('sampleBtn').onclick=()=>{$('deckInput').value='Deck\n4 Llanowar Elves\n4 Mossborn Hydra\n4 Innkeeper\'s Talent\n4 Snakeskin Veil\n4 Bushwhack\n4 Pawpatch Formation\n4 Bristly Bill, Spine Sower\n4 Railway Brawler\n2 Archdruid\'s Charm\n2 Nissa, Ascended Animist\n24 Forest';if($('sideboardInput'))$('sideboardInput').value='2 Pick Your Poison\n2 Soul-Guide Lantern';};
+  if($('saveBtn'))$('saveBtn').onclick=()=>{const text=$('deckInput').value.trim(),sideText=$('sideboardInput')?.value.trim()||'';if(!text)return;const name=prompt('保存名','マイデッキ');if(!name)return;const a=saves();a.unshift({name,text,sideText,time:Date.now()});localStorage.setItem('mtgSavedDecks',JSON.stringify(a.slice(0,30)));renderSaves();};
+  window.loadSave=i=>{const x=saves()[i];$('deckInput').value=x?.text||'';if($('sideboardInput'))$('sideboardInput').value=x?.sideText||'';document.querySelector('[data-view="analyzer"]')?.click();};
+  if($('copyDeckBtn'))$('copyDeckBtn').onclick=async()=>{const text=combinedDeckExportV0610().trim();if(!text)return toast('コピーするデッキがありません');try{await navigator.clipboard.writeText(text);toast('メイン＋サイドをArena形式でコピーしました')}catch{toast('コピーできませんでした。手動で選択してください')}};
+  if($('clearDeckBtn'))$('clearDeckBtn').onclick=()=>{const has=($('deckInput')?.value||'').trim()||($('sideboardInput')?.value||'').trim();if(!has||confirm('メインデッキとサイドボードの入力を消去しますか？')){$('deckInput').value='';if($('sideboardInput'))$('sideboardInput').value='';toast('メインとサイドの入力を消去しました')}};
+  if($('swapUndoV056'))$('swapUndoV056').onclick=undoSwapV056;
+}
+bindDeckInputControlsV0610();
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(bindDeckInputControlsV0610,0)));
+
+/* Surface the corrected categorization immediately in card/deck views. */
+if($('status'))$('status').textContent='v0.6.10：メインとサイドを分離し、通常土地をマナ加速から除外して分析します。';
+
+renderSwapCompareV056=function(){
+  const root=$('swapCompareV056');if(!root)return;if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">比較できる改善案がありません。</div>';return;}
+  root.innerHTML=currentSwapRecommendationsV055.slice(0,3).map((item,index)=>`<button class="swapCompareCardV056" data-swapfocus="${index}"><small>案 ${index+1}・${item.qty}枚変更</small><strong>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</strong><div class="swapCompareMetricsV056"><span>全体 +${item.deltaFoundation||0}</span><span>接続 ${item.deltaConnections>=0?'+':''}${item.deltaConnections}</span><span>不足 ${item.deltaGaps>0?'-'+item.deltaGaps:item.deltaGaps===0?'±0':'+'+Math.abs(item.deltaGaps)}</span></div></button>`).join('');
+};

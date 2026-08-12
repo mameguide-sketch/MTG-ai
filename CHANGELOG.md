@@ -1,3 +1,17 @@
+# v0.6.10 - Deck Analysis Foundation
+- 通常の土地をマナ加速から除外し、マナ基盤として別分類
+- 特殊な追加マナ能力を持つ土地のみRamp候補として扱う判定を追加
+- メインデッキ / サイドボードを別入力へ変更
+- Arena一括リスト内のSideboardを解析時に別欄へ自動分離
+- Deck Stats / Deck Intelligence / Consistencyはメインのみを母集団に使用
+- サイドボード枚数とMain / Side別の解析済み一覧を追加
+- 入れ替え提案へDeck Foundation scoreを追加
+- 交換後のデッキ全体評価が改善しない案を除外
+- 不足役割を壊す交換、効果接続だけを悪化させる交換、役割継承も不足補完もない交換を抑制
+- Swap適用 / Undoでサイドボードを変更しない
+- 保存デッキでMain / Sideを別々に保持し、コピー時はArena形式へ再結合
+- app.jsキャッシュバスターをv0.6.10へ更新
+
 # v0.6.7a
 - Fix theoretical earliest-turn calculation to follow Verified Rule Paths.
 - Moonshadow / Bloodthorn Flail / Flamewake Phoenix now evaluates to turn 2.
