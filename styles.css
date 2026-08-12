@@ -188,3 +188,44 @@ main{max-width:1500px;margin:auto;padding:0 18px 40px}.view{display:none}.view.o
 @media(max-width:760px){.deckInputSplitV0610,.resolvedGroupsV0610{grid-template-columns:1fr}}
 .deckInputSplitV0610{grid-template-columns:1fr}
 .deckInputSplitV0610 textarea{min-height:180px}
+
+/* Deck Optimization Engine alpha v0.7.0 */
+.deckOptimizerCardV070{overflow:hidden}
+.optimizerHeadActionsV070{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.optimizerSummaryV070{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.optimizerSummaryV070>div{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.025);display:flex;flex-direction:column;gap:4px}
+.optimizerSummaryV070 span,.optimizerSummaryV070 small{font-size:12px;color:var(--muted)}
+.optimizerSummaryV070 strong{font-size:28px;line-height:1.05}
+.optimizerSummaryV070 strong small{font-size:13px;margin-left:3px}
+.optimizerGridV070{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.optimizerGridV070>section{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.02)}
+.optimizerGridV070 h3,.optimizerPlansV070 h3{margin:0 0 10px}
+.optimizerIssueV070,.optimizerProtectedV070{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.optimizerIssueV070:last-child,.optimizerProtectedV070:last-child{border-bottom:0}
+.optimizerIssueV070>div,.optimizerProtectedV070>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.optimizerIssueV070 small,.optimizerProtectedV070 small{color:var(--muted);font-size:12px;line-height:1.45}
+.optimizerIssueV070>span,.optimizerProtectedV070>span{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid var(--line);white-space:nowrap}
+.optimizerIssueV070.critical>span{border-color:rgba(255,122,122,.45);background:rgba(255,122,122,.09)}
+.optimizerIssueV070.warn>span{border-color:rgba(255,200,94,.4);background:rgba(255,200,94,.08)}
+.optimizerProtectedV070>span{border-color:rgba(116,187,255,.38);background:rgba(116,187,255,.07)}
+.optimizerPlansV070{margin-top:18px}
+.optimizerPlanV070{border:1px solid var(--line);border-radius:16px;padding:15px;margin-top:12px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015))}
+.optimizerPlanHeadV070{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.optimizerPlanHeadV070 span{font-size:12px;color:var(--muted)}
+.optimizerPlanHeadV070 h3{margin:3px 0 0;font-size:18px}
+.optimizerDeltaV070{display:grid;grid-template-columns:auto auto;column-gap:9px;align-items:end;text-align:right}
+.optimizerDeltaV070 small{grid-column:1/-1;color:var(--muted);font-size:11px}
+.optimizerDeltaV070 strong{font-size:18px}
+.optimizerDeltaV070 b{font-size:15px;border-radius:999px;padding:3px 8px;background:rgba(104,211,145,.09);border:1px solid rgba(104,211,145,.32)}
+.optimizerSwapListV070{display:grid;gap:7px;margin-top:12px}
+.optimizerSwapRowV070{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto minmax(0,1fr);align-items:center;gap:8px;padding:9px 10px;border-radius:11px;background:rgba(0,0,0,.16)}
+.optimizerSwapRowV070 .out,.optimizerSwapRowV070 .in{font-size:11px;font-weight:700;border-radius:999px;padding:3px 7px;white-space:nowrap}
+.optimizerSwapRowV070 .out{background:rgba(255,122,122,.09);border:1px solid rgba(255,122,122,.25)}
+.optimizerSwapRowV070 .in{background:rgba(104,211,145,.09);border:1px solid rgba(104,211,145,.25)}
+.optimizerChipsV070{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.optimizerChipV070{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--muted)}
+.optimizerChipV070.good{border-color:rgba(104,211,145,.28);color:inherit}
+.optimizerConcernsV070{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+.optimizerConcernsV070 b{color:inherit}.optimizerConcernsV070 span{border-left:1px solid var(--line);padding-left:7px}
+.optimizerConcernsV070.good{color:var(--muted)}
+@media(max-width:860px){.optimizerSummaryV070{grid-template-columns:1fr}.optimizerGridV070{grid-template-columns:1fr}.optimizerSwapRowV070{grid-template-columns:auto 1fr}.optimizerSwapRowV070>b{display:none}.optimizerSwapRowV070 .in{grid-column:1}.optimizerPlanHeadV070{flex-direction:column}.optimizerDeltaV070{text-align:left}}

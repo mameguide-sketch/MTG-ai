@@ -3165,3 +3165,169 @@ renderSwapCompareV056=function(){
   const root=$('swapCompareV056');if(!root)return;if(!currentSwapRecommendationsV055.length){root.innerHTML='<div class="empty">比較できる改善案がありません。</div>';return;}
   root.innerHTML=currentSwapRecommendationsV055.slice(0,3).map((item,index)=>`<button class="swapCompareCardV056" data-swapfocus="${index}"><small>案 ${index+1}・${item.qty}枚変更</small><strong>${esc(displayName(item.cut.card))} → ${esc(displayName(item.add.card))}</strong><div class="swapCompareMetricsV056"><span>全体 +${item.deltaFoundation||0}</span><span>接続 ${item.deltaConnections>=0?'+':''}${item.deltaConnections}</span><span>不足 ${item.deltaGaps>0?'-'+item.deltaGaps:item.deltaGaps===0?'±0':'+'+Math.abs(item.deltaGaps)}</span></div></button>`).join('');
 };
+
+/* Deck Optimization Engine alpha v0.7.0 */
+const APP_VERSION_V070='0.7.0';
+let currentDeckOptimizationV070=null;
+
+function mainResolvedEntriesV070(entries=deck){return (entries||[]).filter(e=>!e.side&&e.card&&(+e.qty||0)>0);}
+function availableCopiesV070(entries,card){return mainResolvedEntriesV070(entries).filter(e=>entryMatchesCardV055(e,card)).reduce((s,e)=>s+(+e.qty||0),0);}
+function removeCopiesV070(entries,card,qty=1){
+  const out=(entries||[]).map(e=>({...e}));let remaining=Math.max(0,+qty||0);
+  for(const e of out){if(remaining<=0)break;if(e.side||!e.card||!entryMatchesCardV055(e,card))continue;const take=Math.min(+e.qty||0,remaining);e.qty-=take;remaining-=take;}
+  return remaining>0?null:out.filter(e=>(+e.qty||0)>0);
+}
+function applyProposalEntriesV070(entries,item){
+  if(!item?.cut?.card||!item?.add?.card||!(+item.qty>0))return null;
+  if(availableCopiesV070(entries,item.cut.card)<item.qty)return null;
+  let out=removeCopiesV070(entries,item.cut.card,item.qty);if(!out)return null;
+  const existing=out.find(e=>!e.side&&e.card&&entryMatchesCardV055(e,item.add.card));
+  if(existing)existing.qty+=item.qty;else out.push({qty:item.qty,name:item.add.card.name,side:false,card:item.add.card});
+  return out;
+}
+function deficitUnitsV070(model){return (model?.deficits||[]).reduce((s,d)=>s+Math.max(0,(+d.target||0)-(+d.count||0)),0);}
+function cardRoleKeysV070(card){
+  const p=knowledgeProfile(card),tags=p.tags||[],f=features(card),keys=[];
+  if(tags.some(t=>['single_removal','board_wipe','counterspell','bounce'].includes(t))||(f.roles||[]).includes('removal'))keys.push('removal');
+  if(tags.some(t=>['draw_cards','impulse','tutor'].includes(t))||(f.roles||[]).includes('draw'))keys.push('draw');
+  if(isRampCardV0610(card))keys.push('ramp');
+  if(tags.includes('protection')||(f.roles||[]).includes('protection'))keys.push('protection');
+  if(tags.some(t=>['direct_damage','alternate_win','evasion','go_wide','go_tall'].includes(t))||(f.roles||[]).includes('finisher'))keys.push('finisher');
+  return unique(keys);
+}
+function dependencyLabelV070(key){return ({removal:'除去／妨害',draw:'手札補充',ramp:'マナ加速',protection:'保護',finisher:'勝ち筋'})[key]||key;}
+function cardDependencyV070(entry,beforeModel,entries=deck){
+  if(!entry?.card)return {level:'none',score:0,reasons:[],verified:false};
+  const coreNames=verifiedCoreNamesV055(beforeModel?.profile||currentDeckKnowledgeV054||deckKnowledgeProfileV054(mainResolvedEntriesV070(entries)));
+  const verified=cardNameVariantsV053(entry.card).some(x=>coreNames.has(x));
+  const reduced=removeCopiesV070(entries,entry.card,1);if(!reduced)return {level:'none',score:0,reasons:[],verified};
+  const after=deckFoundationModelV0610(reduced),before=beforeModel||deckFoundationModelV0610(entries);
+  const connectionLoss=Math.max(0,(before.profile?.connections?.length||0)-(after.profile?.connections?.length||0));
+  const gapIncrease=Math.max(0,(after.profile?.gaps?.length||0)-(before.profile?.gaps?.length||0));
+  const foundationLoss=Math.max(0,(before.score||0)-(after.score||0));
+  const scarceRoles=[];for(const key of cardRoleKeysV070(entry.card)){const target=before.targets?.[key]||0,count=before.rc?.[key]||0;if(target>0&&count<=target+1)scarceRoles.push(key);}
+  let score=foundationLoss+connectionLoss*6+gapIncrease*5+scarceRoles.length*5+(verified?40:0);
+  const reasons=[];
+  if(verified)reasons.push('検証済みシナジーの構成カード');
+  if(connectionLoss)reasons.push(`1枚減らすと効果接続が${connectionLoss}件減る`);
+  if(gapIncrease)reasons.push(`1枚減らすと不足・孤立が${gapIncrease}件増える`);
+  if(scarceRoles.length)reasons.push(`${scarceRoles.map(dependencyLabelV070).join('・')}の必要枠を担う`);
+  if(foundationLoss>=4)reasons.push(`単独削減で全体評価 -${foundationLoss}`);
+  const level=verified||score>=18?'high':score>=8?'medium':'low';
+  return {level,score:Math.round(score),reasons:unique(reasons).slice(0,3),verified,connectionLoss,gapIncrease,foundationLoss,scarceRoles};
+}
+function optimizationIssuesV070(model){
+  const issues=[];
+  for(const d of model.deficits||[])issues.push({kind:'deficit',key:d.key,label:`${d.label}が不足`,detail:`${d.count}/${d.target}枚`,priority:95+Math.max(0,d.target-d.count)*4});
+  for(const g of (model.profile?.gaps||[]).slice(0,6))issues.push({kind:'gap',key:g.code||g.tag||'',label:g.label,detail:g.kind==='coverage'?'役割不足':'効果経路が未接続',priority:g.kind==='coverage'?82:76});
+  const s=model.stats||{};const minLand=s.avg<2.1?20:s.avg<2.8?22:s.avg<3.6?23:24,maxLand=s.avg<2.1?24:s.avg<2.8?26:s.avg<3.6?27:28;
+  if(s.lands<minLand)issues.push({kind:'structure',key:'lands',label:'土地枚数が少ない',detail:`${s.lands}枚 / 目安${minLand}枚以上`,priority:100});
+  if(s.lands>maxLand)issues.push({kind:'structure',key:'lands',label:'土地枚数が多い',detail:`${s.lands}枚 / 目安${maxLand}枚以下`,priority:72});
+  const core=(s.curve?.[1]||0)+(s.curve?.[2]||0)+(s.curve?.[3]||0);if(core<18)issues.push({kind:'curve',key:'early',label:'1～3マナ域が薄い',detail:`現在${core}枚`,priority:68});
+  for(const e of model.excess||[])issues.push({kind:'excess',key:e.key,label:`${e.label}が過剰気味`,detail:`${e.count}枚 / 基準${e.target}枚`,priority:58});
+  return issues.sort((a,b)=>b.priority-a.priority).slice(0,8);
+}
+function optimizerObjectiveForProposalV070(item,before){
+  const fills=candidateFillsDeficitV0610(item.add,before),keys=cardRoleKeysV070(item.add.card),notes=[];let boost=0;
+  if(fills.length){boost+=fills.length*12;notes.push(`${fills.map(x=>x.label).join('・')}不足を直接補う`);}
+  if(item.deltaGaps>0){boost+=item.deltaGaps*7;notes.push(`不足・孤立を${item.deltaGaps}件減らす`);}
+  if(item.deltaConnections>0){boost+=item.deltaConnections*5;notes.push(`効果接続を${item.deltaConnections}件増やす`);}
+  const deficitKeys=new Set((before.deficits||[]).map(x=>x.key));if(keys.some(k=>deficitKeys.has(k)))boost+=8;
+  return {boost,notes:unique(notes)};
+}
+
+const buildSwapRecommendationsBaseV070=buildSwapRecommendationsV055;
+buildSwapRecommendationsV055=function(stats,profile,recommendations,mainResolved){
+  const before=deckFoundationModelV0610(deck),dependencyCache=new Map();
+  const raw=buildSwapRecommendationsBaseV070(stats,profile,recommendations,mainResolved),out=[];
+  for(const item of raw){
+    const key=item.cut.card.oracle_id||item.cut.card.name;let dep=dependencyCache.get(key);
+    if(!dep){const entry=mainResolved.find(e=>entryMatchesCardV055(e,item.cut.card));dep=cardDependencyV070(entry,before,deck);dependencyCache.set(key,dep);}
+    item.cutDependencyV070=dep;
+    if(dep.verified)continue;
+    if(dep.level==='high'&&(item.deltaFoundation<5||item.deltaConnections<0||item.deltaGaps<0))continue;
+    if(dep.level==='medium'&&item.deltaFoundation<3&&item.deltaConnections<=0&&item.deltaGaps<=0)continue;
+    const objective=optimizerObjectiveForProposalV070(item,before);item.optimizerObjectiveV070=objective;
+    item.pairScore+=(objective.boost||0)-(dep.level==='high'?12:dep.level==='medium'?5:0);
+    out.push(item);
+  }
+  return out.sort((a,b)=>b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation).slice(0,6);
+};
+
+function evaluateOptimizationPlanV070(items,before){
+  let entries=deck.map(e=>({...e}));
+  for(const item of items){entries=applyProposalEntriesV070(entries,item);if(!entries)return null;}
+  const after=deckFoundationModelV0610(entries),changes=items.reduce((s,x)=>s+(+x.qty||0),0);
+  const deficitGain=deficitUnitsV070(before)-deficitUnitsV070(after),gapGain=(before.profile.gaps?.length||0)-(after.profile.gaps?.length||0),connectionGain=(after.profile.connections?.length||0)-(before.profile.connections?.length||0),delta=after.score-before.score;
+  const newDeficitKeys=(after.deficits||[]).filter(x=>!(before.deficits||[]).some(y=>y.key===x.key)).map(x=>x.label);
+  const protectedCuts=items.filter(x=>x.cutDependencyV070?.level==='high').length;
+  if(delta<=0)return null;
+  if(newDeficitKeys.length&&delta<7)return null;
+  if(connectionGain<0&&gapGain<=0&&deficitGain<=0)return null;
+  const reasons=[];if(delta>0)reasons.push(`デッキ全体評価 +${delta}`);if(deficitGain>0)reasons.push(`不足役割を${deficitGain}枠改善`);if(gapGain>0)reasons.push(`不足・孤立を${gapGain}件改善`);if(connectionGain>0)reasons.push(`効果接続を${connectionGain}件追加`);
+  const concerns=[];if(connectionGain<0)concerns.push(`効果接続 ${connectionGain}`);if(after.stats.avg>before.stats.avg+0.25)concerns.push(`平均MV +${(after.stats.avg-before.stats.avg).toFixed(2)}`);if(newDeficitKeys.length)concerns.push(`新しい不足：${newDeficitKeys.join('・')}`);if(protectedCuts)concerns.push('依存度の高いカードを変更');
+  const score=Math.round(delta*10+deficitGain*14+gapGain*6+connectionGain*5-changes*1.5-protectedCuts*10);
+  return {items,entries,before,after,changes,delta,deficitGain,gapGain,connectionGain,newDeficitKeys,reasons,concerns,score};
+}
+function buildOptimizationPlansV070(before){
+  const maxChanges=Math.max(1,+swapSettingsV056.maxChanges||2),source=(currentSwapRecommendationsV055||[]).slice(0,6),plans=[];
+  const seen=new Set();
+  function add(items){
+    const sig=items.map(x=>`${x.cut.card.oracle_id||x.cut.card.name}>${x.add.card.oracle_id||x.add.card.name}:${x.qty}`).sort().join('|');if(seen.has(sig))return;seen.add(sig);
+    const p=evaluateOptimizationPlanV070(items,before);if(p&&p.changes<=maxChanges)plans.push(p);
+  }
+  source.forEach(x=>{if(x.qty<=maxChanges)add([x]);});
+  for(let i=0;i<source.length;i++)for(let j=i+1;j<source.length;j++){const a=source[i],b=source[j];if(a.qty+b.qty<=maxChanges)add([a,b]);}
+  if(maxChanges>=3){for(let i=0;i<Math.min(5,source.length);i++)for(let j=i+1;j<Math.min(5,source.length);j++)for(let k=j+1;k<Math.min(5,source.length);k++){const group=[source[i],source[j],source[k]];if(group.reduce((s,x)=>s+x.qty,0)<=maxChanges)add(group);}}
+  return plans.sort((a,b)=>b.score-a.score||b.delta-a.delta||a.changes-b.changes).slice(0,3);
+}
+function buildDeckOptimizationV070(){
+  if(!deck.length||!mainResolvedEntriesV070().length)return null;
+  const before=deckFoundationModelV0610(deck),issues=optimizationIssuesV070(before),protectedCards=[];
+  for(const entry of mainResolvedEntriesV070()){
+    const dep=cardDependencyV070(entry,before,deck);if(dep.level==='high'||dep.level==='medium')protectedCards.push({entry,dep});
+  }
+  protectedCards.sort((a,b)=>b.dep.score-a.dep.score);
+  const plans=buildOptimizationPlansV070(before),objective=issues[0]||{label:'明確な不足なし',detail:'構造を壊さず接続と効率を改善',priority:0};
+  return {before,issues,protectedCards:protectedCards.slice(0,8),plans,objective,maxChanges:Math.max(1,+swapSettingsV056.maxChanges||2),policy:policyLabelV056()};
+}
+function optimizerIssueHTMLV070(issue){const cls=issue.priority>=90?'critical':issue.priority>=70?'warn':'soft';return `<div class="optimizerIssueV070 ${cls}"><div><b>${esc(issue.label)}</b><small>${esc(issue.detail||'')}</small></div><span>${issue.priority>=90?'優先':issue.priority>=70?'注意':'監視'}</span></div>`;}
+function optimizerProtectedHTMLV070(x){return `<div class="optimizerProtectedV070"><div><b>${esc(displayName(x.entry.card))} ×${x.entry.qty}</b><small>${esc((x.dep.reasons||[]).join('／')||'効果接続への依存度が高い')}</small></div><span>${x.dep.level==='high'?'保護':'注意'}</span></div>`;}
+function optimizerPlanHTMLV070(plan,index){
+  const changes=plan.items.map(x=>`<div class="optimizerSwapRowV070"><span class="out">OUT ${x.qty}</span><button class="textButton" data-detail="${esc(x.cut.card.name)}">${esc(displayName(x.cut.card))}</button><b>→</b><span class="in">IN ${x.qty}</span><button class="textButton" data-detail="${esc(x.add.card.name)}">${esc(displayName(x.add.card))}</button></div>`).join('');
+  const reasons=plan.reasons.length?plan.reasons.map(x=>`<span class="optimizerChipV070 good">${esc(x)}</span>`).join(''):'<span class="optimizerChipV070">構造維持</span>';
+  const concerns=plan.concerns.length?`<div class="optimizerConcernsV070"><b>トレードオフ</b>${plan.concerns.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:'<div class="optimizerConcernsV070 good"><b>重大な悪化を検出せず</b></div>';
+  return `<article class="optimizerPlanV070"><div class="optimizerPlanHeadV070"><div><span>最適化案 ${index+1}</span><h3>${plan.changes}枚変更</h3></div><div class="optimizerDeltaV070"><small>全体評価</small><strong>${plan.before.score} → ${plan.after.score}</strong><b>+${plan.delta}</b></div></div><div class="optimizerSwapListV070">${changes}</div><div class="optimizerChipsV070">${reasons}</div>${concerns}<div class="swapActions"><button class="btn" data-optapply="${index}">この最適化案を適用</button></div></article>`;
+}
+function renderDeckOptimizerV070(){
+  const root=$('deckOptimizerV070'),count=$('optimizerPlanCountV070');if(!root)return;
+  currentDeckOptimizationV070=buildDeckOptimizationV070();const m=currentDeckOptimizationV070;
+  if(!m){root.innerHTML='<div class="empty">デッキ分析後、優先課題・保護すべき構成要素・複数枚を含む最適化案を表示します。</div>';if(count)count.textContent='0案';return;}
+  if(count)count.textContent=`${m.plans.length}案`;
+  const issues=m.issues.length?m.issues.map(optimizerIssueHTMLV070).join(''):'<div class="deckIntelGood">✓ 現在の基礎構造に大きな不足は検出されませんでした。</div>';
+  const protectedHTML=m.protectedCards.length?m.protectedCards.map(optimizerProtectedHTMLV070).join(''):'<div class="tiny">自動保護が必要な高依存カードは検出されませんでした。</div>';
+  const plans=m.plans.length?m.plans.map(optimizerPlanHTMLV070).join(''):'<div class="empty">現在の条件では、全体評価を改善する安全な最適化案を作れませんでした。無理な交換は提案しません。</div>';
+  root.innerHTML=`<div class="optimizerSummaryV070"><div><span>現在のDeck Foundation</span><strong>${m.before.score}<small>/100</small></strong></div><div><span>最優先課題</span><b>${esc(m.objective.label)}</b><small>${esc(m.objective.detail||'')}</small></div><div><span>探索条件</span><b>${esc(m.policy)}</b><small>最大${m.maxChanges}枚変更</small></div></div><div class="optimizerGridV070"><section><h3>優先課題</h3>${issues}</section><section><h3>自動保護する構成要素</h3><p class="tiny">検証済みシナジーや、1枚減らすだけで接続・不足が悪化するカードを優先的に守ります。</p>${protectedHTML}</section></div><section class="optimizerPlansV070"><div class="knowledgeHeader"><div><h3>デッキ全体の最適化案</h3><p class="notice">単体評価ではなく、OUT→INを適用した後のメインデッキ全体を再計算しています。</p></div></div>${plans}</section><div class="ruleDisclaimer"><b>α版の注意：</b>最適化点は勝率予測ではありません。現在のカード本文、役割、Rule/Knowledge接続、マナカーブ、Deck Foundationを使った構築支援です。メタゲームと対戦相手別サイドプランはまだ含みません。</div>`;
+  bindActionContainer(root);
+}
+function applyOptimizationPlanV070(index){
+  const plan=currentDeckOptimizationV070?.plans?.[index];if(!plan)return toast('適用できる最適化案がありません');
+  pushSwapHistoryV056(`Deck Optimization案 ${index+1}`);
+  let entries=parseDeckTextV0610($('deckInput')?.value||'',false).filter(e=>!e.side).map(e=>({...e,side:false,card:findPoolCard(e.name)||null}));
+  for(const item of plan.items){const next=applyProposalEntriesV070(entries,item);if(!next){toast('現在のデッキ内容が変わったため、最適化案を再計算してください');return;}entries=next;}
+  $('deckInput').value=rebuildMainTextV0610(entries.filter(e=>!e.side&&e.qty>0));toast(`最適化案${index+1}を適用しました。サイドボードは変更していません。`);setTimeout(()=>analyze(),80);
+}
+function bindDeckOptimizerV070(){
+  const root=$('deckOptimizerV070');if(root&&!root.dataset.boundV070){root.dataset.boundV070='1';root.addEventListener('click',e=>{const b=e.target.closest('[data-optapply]');if(b)applyOptimizationPlanV070(+b.dataset.optapply);});}
+  const recalc=$('optimizerRecalcV070');if(recalc)recalc.onclick=()=>{if(!deck.length)return toast('先にデッキを分析してください');renderDeckOptimizerV070();toast('最適化案を再計算しました');};
+  if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+}
+
+const analyzeBaseV070=analyze;
+analyze=async function(){await analyzeBaseV070();renderDeckOptimizerV070();bindDeckOptimizerV070();};
+const refreshSwapPlannerBaseV070=refreshSwapPlannerV056;
+refreshSwapPlannerV056=function(showMessage=false){refreshSwapPlannerBaseV070(showMessage);setTimeout(()=>{renderDeckOptimizerV070();bindDeckOptimizerV070();},180);};
+
+bindDeckOptimizerV070();
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>setTimeout(bindDeckOptimizerV070,0)));
+if($('status'))$('status').textContent='v0.7.0：Deck Optimization Engine α。優先課題からOUT→INを選び、交換後のデッキ全体を再評価します。';
