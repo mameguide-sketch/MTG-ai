@@ -1,3 +1,33 @@
+# v0.7.3 Candidate Quality Engine チェック
+
+- [ ] 画面上部のバージョンが v0.7.3
+- [ ] 入れ替え提案に Candidate Quality 0–100 / グレードが表示される
+- [ ] Candidate Qualityに「役割適合 / 効率 / 柔軟性 / 信頼性 / デッキ適合 / Evidence」の6軸が表示される
+- [ ] デッキ最適化案の各INカードにもCandidate Qualityが表示される
+- [ ] 最優先課題が「除去／妨害不足」の場合、除去／妨害カードだけが候補になる従来条件が維持される
+- [ ] 飛行限定除去は「飛行限定」が弱点として表示され、汎用除去より低評価になりやすい
+- [ ] 固定1点火力／小型一掃を汎用確定除去と同格に扱わない
+- [ ] 確定除去、追放、広い対象、インスタント速度は品質評価で有利になる
+- [ ] 低Candidate Qualityの役割一致カードがOptimizer上位を占有しにくい
+- [ ] 高Card Valueカードは低品質INとの交換でOUT候補になりにくい
+- [ ] User-confirmed Coreは引き続きOUT候補から除外される
+- [ ] 1色だけ外れ、色拘束が軽くCandidate Qualityが高いカードは「色追加候補」として残る場合がある
+- [ ] 色追加候補にはマナ基盤調整の注意が表示される
+- [ ] 複数の追加色や強い色拘束は引き続き抑制される
+- [ ] Adoption EvidenceがあるカードはEvidence軸に反映される
+- [ ] Good / BadフィードバックがCandidate Quality / 候補順位へ引き続き反映される
+- [ ] 「その他の追加候補」にCQの簡易表示が出る
+- [ ] 固定ページ内ナビが従来どおり動作する
+- [ ] Main / Sideboard分離が維持される
+- [ ] 通常土地がRamp扱いにならない
+- [ ] Rule Engine、Consistency、Game Plan、Recommendation Decisionが従来どおり動く
+
+## v0.7.3でまだ対象外
+- [ ] 実戦勝率を直接学習するモデル
+- [ ] matchup別Candidate Quality
+- [ ] 自動取得した大規模メタデータによる継続再学習
+- [ ] プレイログからのカード貢献度推定
+
 # v0.7.2a Deck Analysis Navigation チェック
 
 - [ ] 画面上部のバージョンが v0.7.2a

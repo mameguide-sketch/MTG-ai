@@ -4248,3 +4248,236 @@ function bindDeckSectionNavV072a(){
 }
 bindDeckSectionNavV072a();
 if($('status'))$('status').textContent='v0.7.2a：デッキ分析ページに固定ページ内ナビを追加しました。各ボタンで分析セクションへ移動し、現在位置を自動表示します。';
+
+/* Candidate Quality Engine v0.7.3
+   Ranks cards that already match the primary deck problem by how credible the
+   actual effect is: efficiency, breadth, restrictions, flexibility, deck fit,
+   User Evidence and Adoption Evidence. This is not a win-rate model. */
+const APP_VERSION_V073='0.7.3';
+const candidateQualityCacheV073=new Map();
+let candidateBeforeCacheV073={sig:'',model:null};
+function candidateDeckSignatureV073(){return mainResolvedEntriesV070().map(e=>`${e.card?.oracle_id||e.card?.name||e.name}:${e.qty}`).sort().join('|');}
+function candidateBeforeModelV073(){const sig=candidateDeckSignatureV073();if(candidateBeforeCacheV073.sig===sig&&candidateBeforeCacheV073.model)return candidateBeforeCacheV073.model;const model=deck?.length?deckFoundationModelV0610(deck):null;candidateBeforeCacheV073={sig,model};return model;}
+function clearCandidateQualityCacheV073(){candidateQualityCacheV073.clear();candidateBeforeCacheV073={sig:'',model:null};}
+function clampV073(n,min=0,max=100){return Math.max(min,Math.min(max,Math.round(Number.isFinite(+n)?+n:0)));}
+function candidateGradeV073(score){return score>=88?'A+':score>=80?'A':score>=72?'B+':score>=64?'B':score>=55?'C':score>=45?'D':'E';}
+function manaValueFromCostV073(cost){
+  let total=0,found=false;
+  for(const m of String(cost||'').matchAll(/\{([^}]+)\}/g)){
+    found=true;const s=m[1].toUpperCase();
+    if(/^\d+$/.test(s))total+=+s;
+    else if(/^X$|^Y$|^Z$/.test(s))total+=0;
+    else if(/^\d+\/[WUBRG]$/.test(s))total+=+s.split('/')[0];
+    else total+=1;
+  }
+  return found?total:null;
+}
+function faceRecordsV073(card){
+  const faces=Array.isArray(card?.card_faces)&&card.card_faces.length?card.card_faces:[card];
+  return faces.filter(Boolean).map(face=>({
+    face,
+    text:String(face.oracle_text||'').toLowerCase(),
+    type:String(face.type_line||card?.type_line||''),
+    cost:String(face.mana_cost||''),
+    mv:manaValueFromCostV073(face.mana_cost)
+  }));
+}
+function objectiveRoleV073(objective){
+  if(objective?.kind==='deficit')return objective.key;
+  if(/除去|妨害/.test(objective?.label||''))return 'removal';
+  if(/手札|ドロー/.test(objective?.label||''))return 'draw';
+  if(/マナ加速/.test(objective?.label||''))return 'ramp';
+  if(/保護/.test(objective?.label||''))return 'protection';
+  if(/勝ち筋|フィニッシャ/.test(objective?.label||''))return 'finisher';
+  return 'general';
+}
+function faceMatchesRoleV073(face,role){
+  const o=face.text;
+  if(role==='removal')return /destroy|exile|counter target|return target .{0,45}(?:owner'?s hand|to its owner'?s hand)|deals? \d+ damage to target|gets? -[x0-9]+\/-[x0-9]+|each creature gets -|damage to each creature/.test(o);
+  if(role==='draw')return /draw (?:a|one|two|three|four|\d+) cards?|search your library|exile the top|look at the top/.test(o);
+  if(role==='ramp')return /add \{|search your library for (?:a|up to .*?) land|additional land|treasure token/.test(o);
+  if(role==='protection')return /hexproof|indestructible|phase out|protection from|ward|counter target spell .* targets/.test(o);
+  if(role==='finisher')return /damage to (?:target |each )?opponent|opponent loses|double strike|trample|flying|menace|can'?t be blocked/.test(o);
+  return true;
+}
+function relevantFaceV073(card,role){
+  const faces=faceRecordsV073(card),matched=faces.filter(f=>faceMatchesRoleV073(f,role));
+  if(!matched.length)return faces[0]||{text:text(card),type:type(card),cost:manaCost(card),mv:+card?.cmc||0};
+  return matched.sort((a,b)=>(a.mv??999)-(b.mv??999))[0];
+}
+function efficiencyFromMVV073(mv){
+  mv=Number.isFinite(+mv)?+mv:3;
+  if(mv<=1)return 96;if(mv<=2)return 90;if(mv<=3)return 78;if(mv<=4)return 64;if(mv<=5)return 50;if(mv<=6)return 38;return 28;
+}
+function outsideColorInfoV073(card,before,face=null){
+  const colorsInDeck=before?.stats?.cols||[],outside=(features(card).colors||[]).filter(x=>!colorsInDeck.includes(x));
+  const cost=String(face?.cost||manaCostForCardV067(card)||'').toUpperCase();let outsidePips=0;
+  for(const c of outside)outsidePips+=(cost.match(new RegExp(`\\{${c}\\}`,'g'))||[]).length;
+  return {outside,outsidePips};
+}
+function removalQualityV073(card,face){
+  const o=face.text||text(card),tl=(face.type||type(card)).toLowerCase();let roleFit=48,reliability=62,flexibility=42,efficiency=efficiencyFromMVV073(face.mv??card.cmc),strengths=[],concerns=[];
+  const dmg=+(o.match(/deals? (\d+) damage to target/)||[])[1]||0,sweepDmg=+(o.match(/deals? (\d+) damage to each creature/)||[])[1]||0;
+  if(/destroy target (?:nonland )?permanent|exile target (?:nonland )?permanent/.test(o)){roleFit=100;reliability=94;strengths.push('広い種類のパーマネントに対応');}
+  else if(/target creature or planeswalker/.test(o)&&/(destroy|exile)/.test(o)){roleFit=94;reliability=92;strengths.push('クリーチャー／プレインズウォーカー対応');}
+  else if(/(?:destroy|exile) target creature/.test(o)){roleFit=88;reliability=88;strengths.push('確定クリーチャー除去');}
+  else if(/counter target spell/.test(o)){roleFit=88;reliability=82;strengths.push('スタック上で広く妨害');}
+  else if(/return target (?:nonland )?permanent .*owner'?s hand|return target (?:nonland )?permanent to its owner'?s hand/.test(o)){roleFit=76;reliability=78;strengths.push('テンポ妨害として広い対象');}
+  else if(/return target creature .*owner'?s hand|return target creature to its owner'?s hand/.test(o)){roleFit=66;reliability=74;strengths.push('クリーチャーへのテンポ妨害');}
+  else if(/each creature|all creatures/.test(o)&&/(destroy|exile|gets? -)/.test(o)){roleFit=86;reliability=80;strengths.push('全体へ干渉');}
+  else if(sweepDmg){roleFit=sweepDmg>=4?84:sweepDmg===3?74:sweepDmg===2?60:44;reliability=sweepDmg>=4?82:sweepDmg===3?72:sweepDmg===2?58:43;strengths.push(`全体${sweepDmg}点火力`);if(sweepDmg<=1)concerns.push('小型クリーチャー向け');}
+  else if(dmg){roleFit=dmg>=5?78:dmg>=3?68:dmg===2?56:42;reliability=dmg>=5?76:dmg>=3?67:dmg===2?55:42;strengths.push(`${dmg}点火力`);}
+  else if(/gets? -[x0-9]+\/-[x0-9]+/.test(o)){roleFit=72;reliability=68;strengths.push('タフネス低下による除去');}
+  if(/exile target/.test(o)){roleFit+=7;reliability+=5;strengths.push('追放');}
+  if(/\binstant\b/.test(tl)){efficiency+=6;reliability+=7;strengths.push('インスタント速度');}
+  if(/\bsorcery\b/.test(tl)){efficiency-=5;concerns.push('ソーサリー速度');}
+  if(/choose one|choose two|choose up to/.test(o)){flexibility+=22;strengths.push('モード選択');}
+  if(cardRoleKeysV070(card).length>=2){flexibility+=16;strengths.push('除去以外の役割も持つ');}
+  if(/with flying/.test(o)){roleFit-=30;reliability-=35;concerns.push('飛行限定');}
+  if(/attacking|blocking|tapped creature/.test(o)){roleFit-=15;reliability-=18;concerns.push('盤面状態の条件あり');}
+  if(/mana value \d+ or less|power \d+ or less|toughness \d+ or less|power less than|toughness less than/.test(o)){roleFit-=12;reliability-=16;concerns.push('対象サイズの制限あり');}
+  if(/if (?:that|the|target|it|you)|unless/.test(o)){reliability-=7;concerns.push('条件付き効果');}
+  if(/sacrifice (?:~|this|[a-z ,'-]+):|sacrifice [^.;\n]{0,35}(?:as an additional cost|to activate)/.test(o)){efficiency-=18;reliability-=10;concerns.push('自身／追加リソースの消費');}
+  if(/discard a card|discard [^.;\n]+ card/.test(o)){efficiency-=10;concerns.push('手札コストあり');}
+  if(/only as a sorcery/.test(o)){efficiency-=8;reliability-=6;concerns.push('起動タイミング制限');}
+  flexibility+=Math.min(18,Math.max(0,cardValueV071(card,null,null).score-55)*.35);
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths,concerns};
+}
+function drawQualityV073(card,face){
+  const o=face.text||text(card),tl=(face.type||type(card)).toLowerCase();let roleFit=52,reliability=74,flexibility=48,efficiency=efficiencyFromMVV073(face.mv??card.cmc),strengths=[],concerns=[];
+  if(/search your library for (?:a|an|up to one|any) card/.test(o)){roleFit=94;strengths.push('任意カードへアクセス');}
+  else if(/draw (?:three|four|[3-9]) cards?/.test(o)){roleFit=92;strengths.push('大きなカード・アドバンテージ');}
+  else if(/draw (?:two|2) cards?/.test(o)){roleFit=84;strengths.push('純粋なカード・アドバンテージ');}
+  else if(/draw (?:a|one|1) card/.test(o)){roleFit=64;strengths.push('キャントリップ／1枚補充');}
+  if(/draw[^.\n]{0,90}discard|discard[^.\n]{0,90}draw/.test(o)){roleFit=Math.max(roleFit,68);flexibility+=13;strengths.push('ルーティング');concerns.push('純粋な手札枚数は増えにくい');}
+  if(/exile the top|you may play .*exiled|until end of turn, you may play/.test(o)){roleFit=Math.max(roleFit,70);strengths.push('衝動的ドロー／一時アクセス');}
+  if(/whenever|at the beginning of|each time/.test(o)){roleFit+=10;reliability+=5;strengths.push('継続的な手札供給');}
+  if(/\binstant\b/.test(tl)){efficiency+=5;strengths.push('インスタント速度');}
+  if(/only if|if you control|if you attacked|if .* died/.test(o)){reliability-=14;concerns.push('発動条件あり');}
+  if(cardRoleKeysV070(card).length>=2){flexibility+=15;strengths.push('複数役割');}
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths,concerns};
+}
+function rampQualityV073(card,face){
+  const o=face.text||text(card),tl=(face.type||type(card)).toLowerCase(),mv=face.mv??card.cmc;let roleFit=62,reliability=70,flexibility=45,efficiency=efficiencyFromMVV073(mv),strengths=[],concerns=[];
+  if(/search your library for (?:a|up to .*?) basic land|search your library for (?:a|up to .*?) land/.test(o)){roleFit=88;reliability=90;strengths.push('土地を直接増やす');}
+  if(/add \{[wubrgc]\}|add (?:one|two|three) mana|add \{c\}/.test(o)){roleFit=Math.max(roleFit,mv<=1?90:82);strengths.push('追加マナを生成');}
+  if(/treasure token/.test(o)){roleFit=Math.max(roleFit,68);flexibility+=8;strengths.push('Treasureで一時加速');}
+  if(/additional land/.test(o)){roleFit=Math.max(roleFit,82);strengths.push('追加土地プレイ');}
+  if(/\bcreature\b/.test(tl)&&/\{t\}: add/.test(o)){reliability-=14;concerns.push('クリーチャー除去の影響を受ける');}
+  if(/when .* dies|when .* attacks|whenever .* attacks/.test(o)){reliability-=14;concerns.push('条件を満たしてから加速');}
+  if(cardRoleKeysV070(card).length>=2){flexibility+=16;strengths.push('複数役割');}
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths,concerns};
+}
+function protectionQualityV073(card,face){
+  const o=face.text||text(card),tl=(face.type||type(card)).toLowerCase();let roleFit=58,reliability=70,flexibility=48,efficiency=efficiencyFromMVV073(face.mv??card.cmc),strengths=[],concerns=[];
+  if(/hexproof and indestructible|indestructible and hexproof/.test(o)){roleFit=96;reliability=92;strengths.push('複数種類の除去を回避');}
+  else if(/phase out/.test(o)){roleFit=90;reliability=90;strengths.push('多くの干渉を回避');}
+  else if(/hexproof|indestructible|protection from/.test(o)){roleFit=82;reliability=84;strengths.push('対象を保護');}
+  if(/\binstant\b/.test(tl)){efficiency+=7;strengths.push('インスタント速度');}
+  if(/target creature you control/.test(o)){flexibility-=8;concerns.push('保護対象がクリーチャー限定');}
+  if(cardRoleKeysV070(card).length>=2){flexibility+=17;strengths.push('複数役割');}
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths,concerns};
+}
+function finisherQualityV073(card,face){
+  const o=face.text||text(card),tl=(face.type||type(card)).toLowerCase();let roleFit=62,reliability=66,flexibility=50,efficiency=efficiencyFromMVV073(face.mv??card.cmc),strengths=[],concerns=[];
+  if(/damage to each opponent|target opponent loses|each opponent loses/.test(o)){roleFit=82;strengths.push('直接ライフを詰める');}
+  if(/can'?t be blocked|flying|menace|trample/.test(o)){roleFit+=8;strengths.push('攻撃を通す能力');}
+  if(/double strike/.test(o)){roleFit+=10;strengths.push('高い打点変換');}
+  if(/whenever|at the beginning of/.test(o)){reliability+=6;strengths.push('継続的な勝ち筋');}
+  if(cardRoleKeysV070(card).length>=2){flexibility+=15;strengths.push('複数役割');}
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths,concerns};
+}
+function generalRoleQualityV073(card,face,before){
+  const value=cardValueV071(card,null,before),cp=connectionPotentialV070a(card,before);return {roleFit:clampV073(52+cp*8),efficiency:clampV073(efficiencyFromMVV073(face.mv??card.cmc)),flexibility:clampV073(35+value.score*.5),reliability:clampV073(58+cp*4),strengths:value.reasons||[],concerns:[]};
+}
+function candidateQualityContextSignatureV073(before,objective){
+  const main=mainResolvedEntriesV070().map(e=>`${adoptionNameKeyV072(e.card?.name)}:${e.qty}`).sort().join('|');
+  return `${main}#${objective?.kind||''}:${objective?.key||objective?.label||''}#u${learningEvidenceV071?.events?.length||0}#a${adoptionImportsV072?.length||0}`;
+}
+function candidateQualityV073(card,before=null,objective=null){
+  if(!card)return {score:0,grade:'E',role:'general',axes:{},strengths:[],concerns:['カード情報なし'],confidence:'Inferred'};
+  before=before||candidateBeforeModelV073();if(!before)return {score:0,grade:'E',role:'general',axes:{roleFit:0,efficiency:0,flexibility:0,reliability:0,deckFit:0,evidence:0},strengths:[],concerns:['デッキ分析が必要'],confidence:'Inferred'};objective=objective||primaryObjectiveV070b(before);const role=objectiveRoleV073(objective),cacheKey=`${candidateQualityContextSignatureV073(before,objective)}#${card.oracle_id||card.name}`;
+  if(candidateQualityCacheV073.has(cacheKey))return candidateQualityCacheV073.get(cacheKey);
+  const face=relevantFaceV073(card,role);let base;
+  if(role==='removal')base=removalQualityV073(card,face);else if(role==='draw')base=drawQualityV073(card,face);else if(role==='ramp')base=rampQualityV073(card,face);else if(role==='protection')base=protectionQualityV073(card,face);else if(role==='finisher')base=finisherQualityV073(card,face);else base=generalRoleQualityV073(card,face,before);
+  const colorInfo=outsideColorInfoV073(card,before,face),cp=connectionPotentialV070a(card,before),ev=adoptionEvidenceForCardV072(card),signal=learningCardSignalV071(card),value=cardValueV071(card,null,before);
+  let deckFit=colorInfo.outside.length===0?86:colorInfo.outside.length===1?(colorInfo.outsidePips<=1?54:38):18;
+  deckFit+=Math.min(18,cp*5);if(value.score>=75)deckFit+=6;
+  let evidence=36+Math.min(42,ev.contextScore*.42)+Math.min(18,(signal.good||0)*8)-Math.min(30,(signal.bad||0)*10);
+  const score=clampV073(base.roleFit*.30+base.efficiency*.18+base.flexibility*.13+base.reliability*.17+clampV073(deckFit)*.14+clampV073(evidence)*.08);
+  const strengths=unique([...(base.strengths||[]),cp?`デッキ内の効果接続 ${cp}件候補`:null,ev.contextScore>=45?'類似成功デッキのAdoption Evidenceあり':null,(signal.good||0)?'過去のGood評価あり':null]).slice(0,5);
+  const concerns=unique([...(base.concerns||[]),colorInfo.outside.length===1?`追加色${colors(colorInfo.outside)}のマナ基盤調整が必要`:null,colorInfo.outside.length>1?'複数の追加色が必要':null,(signal.weak||0)?'過去に「INカードが弱い」と評価':null,(signal.roleWrong||0)?'過去に役割違いと評価':null]).slice(0,4);
+  const confidence=(signal.good||signal.bad)?'User + Parsed + Adoption':ev.observed?'Parsed + Adoption':'Parsed';
+  const result={score,grade:candidateGradeV073(score),role,roleLabel:dependencyLabelV070(role),axes:{roleFit:clampV073(base.roleFit),efficiency:clampV073(base.efficiency),flexibility:clampV073(base.flexibility),reliability:clampV073(base.reliability),deckFit:clampV073(deckFit),evidence:clampV073(evidence)},strengths,concerns,confidence,relevantMV:face.mv??card.cmc,colorInfo,adoption:ev,cardValue:value};
+  candidateQualityCacheV073.set(cacheKey,result);return result;
+}
+function qualityFloorV073(role){return ({removal:52,draw:50,ramp:50,protection:48,finisher:48})[role]||42;}
+function qualitySummaryHTMLV073(q){
+  const axes=[['役割適合',q.axes.roleFit],['効率',q.axes.efficiency],['柔軟性',q.axes.flexibility],['信頼性',q.axes.reliability],['デッキ適合',q.axes.deckFit],['Evidence',q.axes.evidence]];
+  return `<div class="candidateQualityV073"><div class="candidateQualityHeadV073"><div><span>Candidate Quality</span><b>${q.score}<small>/100</small></b></div><strong>${q.grade}</strong></div><div class="candidateQualityAxesV073">${axes.map(([label,n])=>`<div><span>${label}</span><i><em style="width:${n}%"></em></i><b>${n}</b></div>`).join('')}</div>${q.strengths?.length?`<div class="candidateQualityReasonsV073 good">${q.strengths.slice(0,3).map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}${q.concerns?.length?`<div class="candidateQualityReasonsV073 warn">${q.concerns.slice(0,3).map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}<div class="tiny">${esc(q.confidence)}・勝率予測ではなくカード本文／デッキ文脈／Evidenceからの候補品質です。</div></div>`;
+}
+
+const scoreCardBaseV073=scoreCard;
+scoreCard=function(c,stats,strategy,seedCards){
+  const rec=scoreCardBaseV073(c,stats,strategy,seedCards);try{const before=candidateBeforeModelV073();if(before){const objective=primaryObjectiveV070b(before),q=candidateQualityV073(c,before,objective);rec.candidateQualityV073=q;rec.score=Math.round((rec.score+(q.score-50)*.16)*10)/10;if(q.score>=75)rec.why=unique([`Candidate Quality ${q.score}/100 (${q.grade})`,...(rec.why||[])]).slice(0,7);}}catch(error){console.warn('Candidate Quality score attach failed',error)}return rec;
+};
+
+const directedCandidateScoreBaseV073=directedCandidateScoreV070a;
+function offColorQualityFallbackV073(rec,before,issues,q){
+  const objective=(issues||[])[0]||primaryObjectiveV070b(before),ci=q?.colorInfo||outsideColorInfoV073(rec?.card,before,relevantFaceV073(rec?.card,objectiveRoleV073(objective)));
+  if(ci.outside.length!==1||ci.outsidePips>1||!strictObjectiveMatchV070b(rec.card,objective,before))return -999;
+  const evidence=q?.adoption?.contextScore||0;if((q?.score||0)<72&&evidence<55)return -999;
+  let score=Math.max(0,+rec.score||0)*.35+issueMatchV070a(rec.card,objective,before)*2.2+Math.min(28,connectionPotentialV070a(rec.card,before)*6)+(q.score-50)*1.15-34;
+  score+=learningCandidateAdjustmentV071(rec.card,before,issues);rec.splashCandidateV073={colors:ci.outside,pips:ci.outsidePips,reason:'Candidate Qualityが高いため1色タッチ候補として検討'};rec.cautions=unique([...(rec.cautions||[]),`色追加候補：${colors(ci.outside)}。マナ基盤変更込みで評価してください`]);return score;
+}
+directedCandidateScoreV070a=function(rec,before,issues){
+  const objective=(issues||[])[0]||primaryObjectiveV070b(before),q=rec?.candidateQualityV073||candidateQualityV073(rec?.card,before,objective);if(rec)rec.candidateQualityV073=q;
+  let base=directedCandidateScoreBaseV073(rec,before,issues);if(base<=-900)base=offColorQualityFallbackV073(rec,before,issues,q);if(base<=-900)return base;
+  const qualityAdj=(q.score-50)*1.15+(q.axes.roleFit-50)*.38+(q.axes.reliability-50)*.28;
+  if(rec){rec.candidateQualityAdjustmentV073=Math.round(qualityAdj);if(q.score>=72)rec.why=unique([`候補品質 ${q.score}/100 (${q.grade})`,...(rec.why||[])]).slice(0,7);if(q.concerns?.length)rec.cautions=unique([...(rec.cautions||[]),...q.concerns.slice(0,2)]).slice(0,5);}
+  return base+qualityAdj;
+};
+
+const buildDirectedSwapsBaseV073=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const objective=primaryObjectiveV070b(before),role=objectiveRoleV073(objective),raw=buildDirectedSwapsBaseV073(stats,before,mainResolved,recommendations),out=[];
+  for(const item of raw){
+    const q=item.add?.candidateQualityV073||candidateQualityV073(item.add.card,before,objective),outValue=item.cutCardValueV071||cardValueV071(item.cut.card,item.cut.entry,before);item.candidateQualityV073=q;item.cutCardValueV073=outValue;
+    if(objective?.kind==='deficit'&&q.score<qualityFloorV073(role))continue;
+    if(role==='removal'&&(q.axes.reliability<45||q.axes.roleFit<50))continue;
+    if(outValue.score>=88&&q.score<82&&(+item.deltaFoundation||0)<8)continue;
+    const replacePenalty=Math.max(0,outValue.score-72)*1.45,itemScore=(q.score-50)*2.1+(q.axes.roleFit-50)*.6+(q.axes.reliability-50)*.45-replacePenalty;
+    item.candidateQualityAdjustmentV073=Math.round(itemScore);item.pairScore=(+item.pairScore||0)+itemScore;
+    item.balanceNotes=unique([...(item.balanceNotes||[]),`Candidate Quality ${q.score}/100 (${q.grade})`,outValue.score>=75?`OUT Card Value ${outValue.score}/100 を保護評価`:null]);
+    out.push(item);
+  }
+  return out.sort((a,b)=>(b.objectiveProgressV070b?.gain||0)-(a.objectiveProgressV070b?.gain||0)||(b.candidateQualityV073?.score||0)-(a.candidateQualityV073?.score||0)||b.pairScore-a.pairScore||b.deltaFoundation-a.deltaFoundation);
+};
+
+const optimizerPlanHTMLBaseV073=optimizerPlanHTMLV070;
+optimizerPlanHTMLV070=function(plan,index){
+  let html=optimizerPlanHTMLBaseV073(plan,index);const quality=(plan.items||[]).map(item=>{const q=item.candidateQualityV073||candidateQualityV073(item.add.card,plan.before||currentDeckOptimizationV070?.before,currentDeckOptimizationV070?.objective);return `<div class="candidateQualityPlanItemV073"><div><b>IN ${esc(displayName(item.add.card))}</b><span>Candidate Quality ${q.score}/100 · ${q.grade}</span></div>${qualitySummaryHTMLV073(q)}</div>`;}).join('');
+  if(quality)html=html.replace('<div class="learningPlanFeedbackV071">',`<div class="candidateQualityPlanV073"><h4>IN候補の品質評価</h4>${quality}</div><div class="learningPlanFeedbackV071">`);
+  return html;
+};
+
+const renderSwapRecommendationsBaseV073=renderSwapRecommendationsV055;
+renderSwapRecommendationsV055=function(){
+  renderSwapRecommendationsBaseV073();const root=$('swapRecommendations');if(!root)return;[...root.querySelectorAll('.swapProposal')].forEach((article,index)=>{if(article.querySelector('.candidateQualityV073'))return;const item=currentSwapRecommendationsV055[index];if(!item)return;const before=item.foundationBefore||deckFoundationModelV0610(deck),q=item.candidateQualityV073||candidateQualityV073(item.add.card,before,primaryObjectiveV070b(before)),target=article.querySelector('.learningFeedbackV071')||article.querySelector('.swapActions');if(target)target.insertAdjacentHTML('beforebegin',qualitySummaryHTMLV073(q));});
+};
+
+const cardHTMLBaseV073=cardHTML;
+cardHTML=function(x){
+  const before=candidateBeforeModelV073(),q=x.candidateQualityV073||(before?candidateQualityV073(x.card,before,primaryObjectiveV070b(before)):null);let html=cardHTMLBaseV073(x);if(q)html=html.replace('<div class="score">',`<div class="candidateQualityCompactV073"><span>CQ</span><b>${q.score}</b><small>${q.grade}</small></div><div class="score">`);return html;
+};
+
+const analyzeBaseV073=analyze;
+analyze=async function(){clearCandidateQualityCacheV073();await analyzeBaseV073();clearCandidateQualityCacheV073();if(Array.isArray(recs)&&deck?.length){const before=deckFoundationModelV0610(deck),objective=primaryObjectiveV070b(before);for(const rec of recs)rec.candidateQualityV073=candidateQualityV073(rec.card,before,objective);recs.sort((a,b)=>(b.score+(b.candidateQualityV073?.score||0)*.32)-(a.score+(a.candidateQualityV073?.score||0)*.32));renderResults();renderSwapRecommendationsV055();renderDeckOptimizerV070();}if($('status'))$('status').textContent='v0.7.3：Candidate Quality Engine。最優先課題に合う候補を、効率・対象範囲・条件・柔軟性・デッキ適合・User/Adoption Evidenceで比較します。';};
+if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+
+const refreshAfterLearningBaseV073=refreshAfterLearningV071;
+refreshAfterLearningV071=function(message){clearCandidateQualityCacheV073();return refreshAfterLearningBaseV073(message);};
+const saveAdoptionImportsBaseV073=saveAdoptionImportsV072;
+saveAdoptionImportsV072=function(){clearCandidateQualityCacheV073();return saveAdoptionImportsBaseV073();};
+
+if($('status'))$('status').textContent='v0.7.3：Candidate Quality Engine。役割一致の先で、実際の効果品質とEvidenceを比較して候補順位へ反映します。';

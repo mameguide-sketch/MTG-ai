@@ -1,3 +1,18 @@
+# v0.7.3 - Candidate Quality Engine
+
+- 最優先課題への役割一致後にCandidate Quality 0–100 / A+～Eを算出
+- 役割適合 / 効率 / 柔軟性 / 信頼性 / デッキ適合 / Evidenceの6軸を分離表示
+- 除去を汎用確定除去、追放、火力、全体干渉、バウンス、カウンターなどに分けて品質評価
+- 飛行限定、攻撃・ブロック限定、サイズ制限、条件付き、自己生け贄、追加コストを減点
+- インスタント速度、対象範囲、追放、モード、複数役割を加点
+- IN候補のCandidate QualityをOptimizer / Swap Plannerの順位へ強く反映
+- 低品質な役割一致カードをOptimizerから除外する品質フロアを追加
+- Card Valueが非常に高いOUTカードを低品質INと交換しにくくする保護を追加
+- 1色・軽い色拘束で高品質な候補はAdoption Evidenceが弱くても色追加候補として検討可能
+- その他の追加候補にもCQスコアを表示し、候補順位へ補助反映
+- Candidate Qualityは勝率や絶対的カードパワーではないことをUIで明記
+- Deck Analysis Navigation、User Evidence、Adoption Evidence、Main/Side分離を維持
+
 # v0.7.2a
 
 - Deck Analysis Navigation を追加。デッキ分析ページ上部に固定ページ内ナビを配置。
