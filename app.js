@@ -2738,3 +2738,164 @@ function bindRuleEngineV068(){
   const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-8：カードを1～3枚入力してください。';
 }
 bindRuleEngineV068();
+
+/* Recommendation Decision Engine beta-9 v0.6.9 */
+const RECOMMENDATION_WEIGHTS_V069={rulePath:.28,strategy:.22,consistency:.23,gamePlan:.27};
+function rdClampV069(n,min=0,max=100){return Math.max(min,Math.min(max,Number.isFinite(+n)?+n:0));}
+function rdGradeV069(score){return score>=80?'A':score>=65?'B':score>=50?'C':score>=35?'D':'E';}
+function rdAxisLabelV069(key){return {rulePath:'Rule Path',strategy:'Strategy',consistency:'Consistency',gamePlan:'Game Plan'}[key]||key;}
+function rdScoreOfV069(model,fallback=0){return rdClampV069(model&&Number.isFinite(+model.score)?+model.score:fallback);}
+function recommendationDecisionV069({rulePath,strategy,consistency,gamePlan,verified=false,estimated=false,context='rules'}={}){
+  const axes={
+    rulePath:rdScoreOfV069(rulePath),
+    strategy:rdScoreOfV069(strategy),
+    consistency:rdScoreOfV069(consistency),
+    gamePlan:rdScoreOfV069(gamePlan)
+  };
+  const pairs=Object.entries(axes),minPair=pairs.reduce((a,b)=>b[1]<a[1]?b:a,pairs[0]||['rulePath',0]);
+  const weighted=pairs.reduce((s,[k,v])=>s+v*(RECOMMENDATION_WEIGHTS_V069[k]||0),0);
+  let score=weighted*.78+minPair[1]*.22;
+  let penalty=0;
+  for(const [,v] of pairs){if(v<35)penalty+=(35-v)*.34;else if(v<50)penalty+=(50-v)*.08;}
+  if(minPair[1]<20)penalty+=8;
+  const missing=consistency?.ctx?.missing||[];
+  const hasDeck=!!consistency?.ctx?.hasDeck;
+  if(consistency?.color?.level==='高')penalty+=6;
+  if(estimated)penalty+=2;
+  score-=penalty;
+  if(verified&&minPair[1]>=35)score+=4;
+  if(axes.rulePath<30)score=Math.min(score,45);if(axes.rulePath<20)score=Math.min(score,35);
+  if(axes.consistency<30)score=Math.min(score,48);if(axes.consistency<20)score=Math.min(score,38);
+  if(axes.gamePlan<30)score=Math.min(score,50);if(axes.gamePlan<20)score=Math.min(score,40);
+  if(axes.strategy<30)score=Math.min(score,52);if(axes.strategy<20)score=Math.min(score,42);
+  if(missing.length)score=Math.min(score,18);
+  score=rdClampV069(Math.round(score));
+  const grade=rdGradeV069(score);
+  let verdict=score>=84?'採用優先度：非常に高い':score>=72?'採用優先度：高い':score>=58?'採用候補':score>=42?'条件付き候補':'採用優先度：低い';
+  if(missing.length)verdict='現デッキでは成立不可';
+  const confidence=verified?(hasDeck?'Verified + Deck':'Verified'):estimated?'Inferred':hasDeck?'Integrated':'Reference';
+  const reasons=[];
+  if(axes.rulePath>=75)reasons.push('ルール上の接続経路が明確');
+  if(axes.strategy>=65)reasons.push('必要枚数・マナ・応答窓の負荷が比較的小さい');
+  if(axes.consistency>=65)reasons.push('現在の採用枚数と到達性から再現性が高い');
+  if((consistency?.probs?.[4]||0)>=.3)reasons.push(`4Tまでの自然到達率が${pctV067(consistency.probs[4])}`);
+  if(axes.gamePlan>=65)reasons.push('現在のゲームプランへ明確に貢献');
+  if(gamePlan?.reasons?.length)reasons.push(...gamePlan.reasons.slice(0,2));
+  if(verified)reasons.unshift('検証済みRule Pathを含む');
+  const concerns=[];
+  if(axes.rulePath<45)concerns.push('ルール経路の接続信頼度が低い');
+  if(axes.strategy<45)concerns.push('成立条件・マナ・応答窓の負荷が大きい');
+  if(axes.consistency<45)concerns.push('必要パーツへの到達性またはマナ再現性が低い');
+  if(axes.gamePlan<45)concerns.push('デッキの勝ち筋・役割への接続が弱い');
+  if(missing.length)concerns.push(`未採用パーツ：${missing.join('／')}`);
+  if(consistency?.color?.level==='高')concerns.push(`色マナ難度が高い（${consistency.color.detail||'色源不足候補'}）`);
+  if(gamePlan?.concerns?.length)concerns.push(...gamePlan.concerns.slice(0,2));
+  if(rulePath?.interruptions?.length)concerns.push(rulePath.interruptions[0]);
+  if(!hasDeck&&context==='rules')concerns.push('デッキ未入力のためConsistencyは60枚・各4枚仮定の参考値');
+  const bottleneck={key:minPair[0],label:rdAxisLabelV069(minPair[0]),score:minPair[1]};
+  const recommendationBonus=score>=84?12:score>=72?8:score>=58?4:score<35?-12:score<45?-7:0;
+  return {score,grade,verdict,confidence,axes,bottleneck,weighted:Math.round(weighted),penalty:Math.round(penalty),reasons:unique(reasons).slice(0,6),concerns:unique(concerns).slice(0,6),verified,estimated,hasDeck,missing,recommendationBonus};
+}
+function recommendationAxisHTMLV069(label,score){
+  const n=Math.round(rdClampV069(score));
+  const cls=n>=70?'good':n>=50?'mid':n>=35?'warn':'weak';
+  return `<article class="rdAxisV069 ${cls}"><div><b>${esc(label)}</b><strong>${n}</strong></div><div class="rdAxisTrackV069"><span style="width:${n}%"></span></div></article>`;
+}
+function recommendationDecisionPanelHTMLV069(m){
+  const reasons=m.reasons.length?`<ul>${m.reasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確な採用理由を追加抽出できませんでした。</div>';
+  const concerns=m.concerns.length?`<ul>${m.concerns.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">重大な懸念は検出されませんでした。</div>';
+  return `<section class="recommendationEngineV069"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Recommendation Decision Engine β-9</div><h2>最終推薦判定</h2><p class="notice">4つの評価軸を統合しつつ、単純平均では埋もれる「重大な弱点」をボトルネックとして減点・上限制御します。</p></div><span class="recommendationScoreV069">${m.score}<small>/100</small><b>${m.grade}</b></span></div><div class="rdVerdictV069"><div><b>${esc(m.verdict)}</b><span>${esc(m.confidence)}</span></div><p>最大のボトルネック：<strong>${esc(m.bottleneck.label)} ${Math.round(m.bottleneck.score)}/100</strong></p></div><div class="rdAxisGridV069">${recommendationAxisHTMLV069('Rule Path',m.axes.rulePath)}${recommendationAxisHTMLV069('Strategy',m.axes.strategy)}${recommendationAxisHTMLV069('Consistency',m.axes.consistency)}${recommendationAxisHTMLV069('Game Plan',m.axes.gamePlan)}</div><div class="rdReasonGridV069"><section><h3>推薦する理由</h3>${reasons}</section><section><h3>採用前に確認する点</h3>${concerns}</section></div><div class="ruleDisclaimer"><b>β-9の注意：</b>Recommendation scoreは勝率や大会結果の予測ではありません。Rule Path・実戦成立性・再現性・ゲームプラン適合度を統合した構築判断用スコアです。対戦相手、メタゲーム、サイドボード後の勝率はまだ含みません。</div></section>`;
+}
+function recommendationMiniHTMLV069(m){
+  if(!m)return '';
+  const cls=m.score>=72?'good':m.score>=58?'mid':m.score>=42?'warn':'weak';
+  return `<div class="recommendationMiniV069 ${cls}"><b>Recommendation ${m.score}/100</b><span>${esc(m.verdict)}</span><small>弱点：${esc(m.bottleneck.label)} ${Math.round(m.bottleneck.score)}</small></div>`;
+}
+function pairStrategyProxyV069(seed,candidate,rp){
+  const cards=[seed,candidate],profiles=cards.map(parseRuleCardV060);
+  const reqCount=unique(profiles.flatMap(p=>[...(p.conditions||[]),...(p.costs||[])])).length;
+  let windows=Math.max(0,(rp?.interruptions||[]).length);
+  for(const p of profiles){if((p.costs||[]).length)windows++;if((p.events||[]).some(x=>/trigger|誘発/i.test(String(x))))windows++;}
+  windows=Math.min(6,windows);
+  const path={score:rp?.score||0,status:rp?.verified?'Verified':(rp?.score||0)>=65?'Connected':(rp?.score||0)>=35?'Partial':'Unconfirmed'};
+  const priority={windows:Array.from({length:windows},()=>({}))};
+  const m=strategyModelV066(cards,path,priority,profiles,rp?.verified?{}:null);
+  m.reqCount=Math.max(m.reqCount||0,reqCount);
+  return m;
+}
+function pairConsistencyProxyV069(cards,strategy){
+  const base=rawDeckContextV067(cards),onDraw=($('rulePlayDraw')?.value||'play')==='draw';
+  const copies=base.hasDeck?base.copies.map((n,i)=>i===cards.length-1?4:(n>0?n:4)):cards.map(()=>4);
+  const ctx={...base,copies,missing:[],source:base.hasDeck?'現在のデッキ＋候補4枚採用仮定':base.source};
+  const probs={};for(const t of [3,4,5,6])probs[t]=allPiecesProbabilityV067(ctx.deckSize,copies,cardsSeenByTurnV067(t,onDraw));
+  const mana=theoreticalManaTurnV067(cards),manaSeen=cardsSeenByTurnV067(mana.turn,onDraw),landNeed=mana.total>0?(mana.landNeed??mana.turn):0,landReady=ctx.hasDeck?hypergeomAtLeastV067(ctx.deckSize,ctx.lands,manaSeen,landNeed):null;
+  const color=colorDifficultyV067(cards,ctx),access=accessSupportV067(ctx,cards),standalone=standaloneRiskV067(cards),p4=probs[4]*100,p5=probs[5]*100;
+  let score=25+p4*.22+p5*.58+access.bonus-color.penalty-standalone.penalty-Math.max(0,mana.turn-4)*5;
+  if(strategy?.score>=75)score+=4;else if(strategy?.score<40)score-=4;if(landReady!=null)score+=(landReady*100-65)*.08;score=rdClampV069(Math.round(score));
+  const grade=rdGradeV069(score);return {score,grade,ctx,onDraw,probs,mana,landReady,color,access,standalone,timing:`候補4枚採用時の比較値`,reach4:reachLabelV067(probs[4])};
+}
+function pairRecommendationDecisionV069(seed,candidate,rp,gp){
+  const strategy=pairStrategyProxyV069(seed,candidate,rp),consistency=pairConsistencyProxyV069([seed,candidate],strategy);
+  const gamePlan={score:gp?.score||0,grade:gp?.grade,verdict:gp?.verdict,reasons:gp?.score>=65?[gp.verdict]:[],concerns:gp?.score<45?[gp.verdict]:[]};
+  const decision=recommendationDecisionV069({rulePath:rp,strategy,consistency,gamePlan,verified:!!rp?.verified,context:'pair'});
+  return {decision,strategy,consistency,gamePlan};
+}
+const enhanceCandidateV065BaseV069=enhanceCandidateV065;
+enhanceCandidateV065=function(seed,x){
+  const y=enhanceCandidateV065BaseV069(seed,x),bundle=pairRecommendationDecisionV069(seed,y.card,y.rulePath,y.gamePlan);y.recommendationDecision=bundle.decision;y.recommendationStrategy=bundle.strategy;y.recommendationConsistency=bundle.consistency;
+  y.score=rdClampV069(Math.round(y.score*.46+bundle.decision.score*.54));
+  if(bundle.decision.score>=72)y.why=unique([...(y.why||[]),`最終推薦：${bundle.decision.verdict}`]).slice(0,7);
+  if(bundle.decision.score<42)y.cautions=unique([...(y.cautions||[]),`最終判定のボトルネック：${bundle.decision.bottleneck.label} ${Math.round(bundle.decision.bottleneck.score)}`]);
+  return y;
+};
+function deckCandidateDecisionV069(x,stats,seedCards){
+  const rel=x.relations||[];
+  let rp=28;if(rel.includes('ENGINE'))rp=72;else if(rel.includes('ENABLE'))rp=66;else if(rel.includes('SYNERGY'))rp=62;else if(rel.includes('COVERAGE'))rp=52;else if(rel.includes('SUPPORT'))rp=46;
+  const mv=+x.card.cmc||0,roleCount=x.f?.roles?.length||0;
+  let strategy=54+Math.min(14,roleCount*3)-Math.max(0,mv-4)*5;if(x.cautions?.length)strategy-=Math.min(12,x.cautions.length*3);strategy=rdClampV069(strategy);
+  let consistency=mv<=2?76:mv===3?69:mv===4?61:mv===5?52:mv===6?44:38;
+  const outside=(x.f?.colors||[]).filter(c=>!(stats?.cols||[]).includes(c));if(outside.length)consistency-=22;
+  if((x.f?.roles||[]).includes('draw')||(x.f?.roles||[]).includes('ramp'))consistency+=5;consistency=rdClampV069(consistency);
+  const gp=x.gamePlanDeck||{score:50,verdict:'未評価'};
+  const rulePath={score:rp,confidence:'Inferred',interruptions:[]},strategyM={score:strategy},consistencyM={score:consistency,ctx:{hasDeck:true,missing:[]},color:{level:outside.length?'高':'低',detail:outside.length?'デッキ外色候補':'デッキ色内'},probs:{}},gamePlan={score:gp.score,reasons:gp.reasons||[],concerns:gp.concerns||[]};
+  return recommendationDecisionV069({rulePath,strategy:strategyM,consistency:consistencyM,gamePlan,estimated:true,context:'deck'});
+}
+const scoreCardBaseV069=scoreCard;
+scoreCard=function(c,stats,strategy,seedCards){
+  const x=scoreCardBaseV069(c,stats,strategy,seedCards),decision=deckCandidateDecisionV069(x,stats,seedCards);x.recommendationDecision=decision;
+  x.score=Math.round((x.score*.76+decision.score*.24)*10)/10;
+  if(decision.score>=72)x.why=unique([...(x.why||[]),`最終推薦：${decision.verdict}`]).slice(0,7);
+  if(decision.score<42)x.cautions=unique([...(x.cautions||[]),`推薦判定の弱点：${decision.bottleneck.label}`]);
+  return x;
+};
+candidateResultHTMLV053=function(x){
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}${gamePlanMiniHTMLV068(x.gamePlan)}${recommendationMiniHTMLV069(x.recommendationDecision)}<div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">推薦統合点</div></div></article>`;
+};
+advisorCandidateHTML=function(x){
+  const c=x.card,cat=advisorCategory(null,x),reason=x.why.slice(0,4);
+  return `<article class="advisorCandidate"><button class="imageButton" data-detail="${esc(c.name)}">${displayImg(c)?`<img loading="lazy" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</button><div><div class="advisorCategory">${esc(cat)}</div><h3><button class="textButton" data-detail="${esc(c.name)}">${esc(displayName(c))}</button></h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}${gamePlanMiniHTMLV068(x.gamePlan)}${recommendationMiniHTMLV069(x.recommendationDecision)}<div class="advisorStars" aria-label="推奨度">${advisorStars(x.score)}</div><ul class="explainList">${reason.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">条件：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="smallBtn" data-inspect="${esc(c.name)}">このカードも解析</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div></article>`;
+};
+cardHTML=function(x){
+  const primary=(x.relations||[]).includes('COVERAGE')?'不足補完':(x.relations||[]).includes('ENGINE')?'エンジン形成':(x.relations||[]).includes('ENABLE')?'成立支援':(x.relations||[]).includes('SYNERGY')?'効果接続':'安定化';
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><div class="candidatePurpose">${esc(primary)}</div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.gamePlanDeck?gamePlanMiniHTMLV068({score:x.gamePlanDeck.score,verdict:x.gamePlanDeck.verdict}):''}${recommendationMiniHTMLV069(x.recommendationDecision)}${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}${x.cautions?.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">推薦統合点</div></div></article>`;
+};
+const analyzeRulesV068BaseV069=analyzeRulesV065;
+analyzeRulesV065=async function(){
+  await analyzeRulesV068BaseV069();
+  const result=$('ruleResult');if(!result||!result.innerHTML||result.querySelector('.recommendationEngineV069'))return;
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length)return;
+  const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}if(!cards.length)return;
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+  const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,$('ruleTriggerOrder')?.value||'input'),priorityModel=priorityWindowsV064(cards,stackSim),pathModel=rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel),strategy=strategyModelV066(cards,pathModel,priorityModel,profiles,verified),consistency=consistencyModelV067(cards,strategy),gamePlan=gamePlanModelV068(cards,pathModel,strategy,consistency);
+  pathModel.interruptions=ruleInterruptionHintsV065(cards);
+  const decision=recommendationDecisionV069({rulePath:pathModel,strategy,consistency,gamePlan,verified:!!verified,context:'rules'});
+  const gp=result.querySelector('.gamePlanEngineV068'),cons=result.querySelector('.consistencyEngineV067');if(gp)gp.insertAdjacentHTML('afterend',recommendationDecisionPanelHTMLV069(decision));else if(cons)cons.insertAdjacentHTML('afterend',recommendationDecisionPanelHTMLV069(decision));else result.insertAdjacentHTML('afterbegin',recommendationDecisionPanelHTMLV069(decision));
+  const st=$('ruleStatus');if(st)st.textContent+=` Recommendation ${decision.score}/100（${decision.grade}：${decision.verdict}）。`;
+};
+function bindRuleEngineV069(){
+  const btn=$('ruleAnalyzeBtn');if(btn){const fresh=btn.cloneNode(true);btn.replaceWith(fresh);fresh.onclick=analyzeRulesV065;}
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(!el)return;const fresh=el.cloneNode(true);fresh.value=el.value;el.replaceWith(fresh);fresh.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();analyzeRulesV065();}});});
+  const clear=$('ruleClearBtn');if(clear){const fresh=clear.cloneNode(true);clear.replaceWith(fresh);fresh.onclick=()=>{['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.value='';});const r=$('ruleResult');if(r)r.innerHTML='<div class="empty">左でカードを選ぶと、Rule Engine β-9でRule Path・Strategy・Consistency・Game Plan・Recommendationまで統合表示します。</div>';const st=$('ruleStatus');if(st)st.textContent='Rule Engine β-9：カードを1～3枚入力してください。';};}
+  const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-9：カードを1～3枚入力してください。';
+}
+bindRuleEngineV069();

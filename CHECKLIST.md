@@ -42,3 +42,21 @@
 - [ ] 月影＋血茨のフレイル＋炎跡のフェニックスの理論最速は引き続き2T
 - [ ] Rule Path / Strategy / Consistency / Priority / Stack / State / Event Graphが従来どおり表示される
 - [ ] 日本語補完、入れ替え提案、保存デッキが従来どおり動く
+
+# v0.6.9 Recommendation Decision Engine β-9 確認項目
+- [ ] 画面上部が v0.6.9
+- [ ] ルール検証が Rule Engine β-9
+- [ ] 2～3枚解析すると「最終推薦判定」が表示される
+- [ ] Recommendation score / A～E評価が表示される
+- [ ] Rule Path / Strategy / Consistency / Game Plan の4軸が同時表示される
+- [ ] 「最大のボトルネック」が表示される
+- [ ] 「推薦する理由」と「採用前に確認する点」が別々に表示される
+- [ ] 低い評価軸がある組み合わせは、他の軸が高くてもRecommendationが過度に高くならない
+- [ ] デッキに未採用パーツがある場合「現デッキでは成立不可」になる
+- [ ] 月影＋血茨のフレイル＋炎跡のフェニックスの理論最速は2Tのまま
+- [ ] 月影セットでRecommendation判定が表示される
+- [ ] 単体カード探索の候補に Recommendation score が表示される
+- [ ] 構築相談の候補に Recommendation score が表示される
+- [ ] デッキ分析の推薦候補に Recommendation score が表示される
+- [ ] Rule Path / Strategy / Consistency / Game Plan / Priority / Stack / State / Event Graphが従来どおり表示される
+- [ ] 日本語補完、入れ替え提案、保存デッキが従来どおり動く

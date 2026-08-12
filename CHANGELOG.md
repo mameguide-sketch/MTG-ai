@@ -46,3 +46,15 @@
 - Rule Pathが強くても現在のデッキでは役割重複が大きい場合「強いシナジーだが優先度低め」と判定
 - 単体カード探索、構築相談、デッキ分析の推薦順位へGame Plan適合度を反映
 - app.jsキャッシュバスターをv0.6.8へ更新
+
+## v0.6.9 - Recommendation Decision Engine β-9
+- Rule Path / Strategy / Consistency / Game Planを最終推薦判定へ統合
+- Recommendation score（0～100）とA～E評価を追加
+- 単純平均ではなく、最低評価軸をボトルネックとして減点
+- Rule Path / Consistency / Game Plan / Strategyの重大な弱点にスコア上限を設定
+- 未採用パーツがある場合は「現デッキでは成立不可」を優先表示
+- 推薦理由と採用前の確認点を分離表示
+- 単体カード探索、構築相談、デッキ分析の候補カードへRecommendation表示を追加
+- Recommendation判定を推薦順位へ反映
+- デッキ大量候補では処理速度維持のためInferred軸を使用し、ルール検証では4エンジンの実測値を使用
+- app.jsキャッシュバスターをv0.6.9へ更新
