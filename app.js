@@ -2550,3 +2550,191 @@ function bindRuleEngineV067(){
   const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-7：カードを1～3枚入力してください。';
 }
 bindRuleEngineV067();
+
+/* Game Plan Engine beta-8 v0.6.8 */
+const GAME_PLAN_ROLE_DEFS_V068={
+  FINISHER:{label:'フィニッシャー',order:6},ENGINE:{label:'主エンジン',order:5},PAYOFF:{label:'利益変換',order:4},ENABLER:{label:'成立支援',order:3},INTERACTION:{label:'妨害',order:2},SUPPORT:{label:'安定化支援',order:1},THREAT:{label:'盤面要員',order:1},FLEX:{label:'補助要員',order:0}
+};
+const GP_FINISH_TAGS_V068=new Set(['evasion','direct_damage','alternate_win','go_wide','go_tall']);
+const GP_SUPPORT_TAGS_V068=new Set(['draw_cards','impulse','tutor','mana_add','extra_land','protection']);
+const GP_INTERACTION_TAGS_V068=new Set(['single_removal','board_wipe','counterspell','bounce']);
+const GP_PRODUCER_TAGS_V068=new Set(['treasure_make','food_make','clue_make','creature_token_make','counter_plus','counter_any','mill','discard','life_gain','extra_land']);
+const GP_PAYOFF_TAGS_V068=new Set(['token_double','token_buff','artifact_sac','creature_sac','death_trigger','counter_use','grave_cast','reanimate','grave_value','landfall','life_payoff','spell_payoff','etb','attack','combat_damage']);
+function gpClampV068(n,min=0,max=100){return Math.max(min,Math.min(max,n));}
+function gpGradeV068(score){return score>=80?'A':score>=65?'B':score>=50?'C':score>=35?'D':'E';}
+function gpTagLabelsV068(tags){return unique(tags.map(t=>KNOWLEDGE_TAGS[t]?.label||t));}
+function gamePlanRoleV068(card){
+  const p=knowledgeProfile(card),tags=p.tags||[],has=t=>tags.some(x=>t.has(x));
+  const producer=has(GP_PRODUCER_TAGS_V068),payoff=has(GP_PAYOFF_TAGS_V068),finish=has(GP_FINISH_TAGS_V068),support=has(GP_SUPPORT_TAGS_V068),interaction=has(GP_INTERACTION_TAGS_V068);
+  let primary='FLEX';
+  if(finish)primary='FINISHER';else if(producer&&payoff)primary='ENGINE';else if(payoff)primary='PAYOFF';else if(producer)primary='ENABLER';else if(interaction)primary='INTERACTION';else if(support)primary='SUPPORT';else if(/Creature/i.test(type(card)))primary='THREAT';
+  const mv=+card.cmc||0,phase=mv<=2?'序盤':mv<=4?'中盤':'終盤';
+  let standalone=42,reasons=[];
+  const directUtility=tags.filter(t=>GP_SUPPORT_TAGS_V068.has(t)||GP_INTERACTION_TAGS_V068.has(t)).length;
+  standalone+=Math.min(24,directUtility*7);
+  if(finish){standalone+=8;reasons.push('単体でも勝ち筋へ寄与');}
+  if(producer&&payoff){standalone+=12;reasons.push('自身で供給と利用を兼ねる');}
+  if(producer&&!payoff){standalone+=5;reasons.push('後続へ資源を供給できる');}
+  if(payoff&&!producer){standalone-=12;reasons.push('他カードの供給・条件に依存');}
+  if(interaction){standalone+=8;reasons.push('単体で相手へ干渉できる');}
+  if(support){standalone+=5;reasons.push('単体で安定化へ寄与');}
+  if(/Creature/i.test(type(card)))standalone+=4;
+  if(mv>=6)standalone-=7;
+  if(/if you control|if there (?:is|are)|cards? in your graveyard|for each .* you control/i.test(ruleTextV060(card)||'')){standalone-=5;reasons.push('盤面・墓地などの前提条件あり');}
+  standalone=gpClampV068(Math.round(standalone));
+  const standaloneLevel=standalone>=70?'高':standalone>=50?'中':'低';
+  return {primary,label:GAME_PLAN_ROLE_DEFS_V068[primary].label,phase,tags,producer,payoff,finish,support,interaction,standalone,standaloneLevel,reasons:unique(reasons)};
+}
+function gamePlanDeckContextV068(cards){
+  const ctx=rawDeckContextV067(cards),entries=ctx.entries.filter(e=>e.card),profile=ctx.hasDeck?deckKnowledgeProfileV054(entries):null;
+  const roleCounts={},phaseCounts={序盤:0,中盤:0,終盤:0};
+  for(const e of entries){const r=gamePlanRoleV068(e.card),q=Math.max(1,+e.qty||1);roleCounts[r.primary]=(roleCounts[r.primary]||0)+q;phaseCounts[r.phase]=(phaseCounts[r.phase]||0)+q;}
+  const winEntries=entries.filter(e=>gamePlanRoleV068(e.card).finish).sort((a,b)=>(+a.card.cmc||0)-(+b.card.cmc||0));
+  return {...ctx,entries,profile,roleCounts,phaseCounts,winEntries};
+}
+function gamePlanRedundancyV068(cards,deckCtx){
+  return cards.map(c=>{
+    const role=gamePlanRoleV068(c),copies=deckCtx.hasDeck?deckCtx.entries.reduce((s,e)=>s+(entryMatchesCardV055(e,c)?(+e.qty||0):0),0):0;
+    const roleTotal=deckCtx.roleCounts[role.primary]||0,alternatives=Math.max(0,roleTotal-copies);
+    const level=!deckCtx.hasDeck?'未評価':alternatives>=8?'高':alternatives>=4?'中':'低';
+    return {card:c,role,copies,alternatives,level};
+  });
+}
+function gamePlanWinPathV068(cards,pathModel,deckCtx){
+  const direct=cards.filter(c=>gamePlanRoleV068(c).finish);
+  const pathSteps=(pathModel?.steps||[]).slice(0,4);
+  if(direct.length){
+    const end=direct.map(c=>`${displayName(c)}：${gpTagLabelsV068(gamePlanRoleV068(c).tags.filter(t=>GP_FINISH_TAGS_V068.has(t))).join('・')||'勝ち筋'}`).join('／');
+    return {kind:'Direct',label:'直接勝ち筋へ接続',steps:[...pathSteps,`→ ${end}`].slice(0,5),confidence:pathModel?.status==='Verified'?'Verified':'Parsed / Inferred'};
+  }
+  if(deckCtx.hasDeck&&deckCtx.winEntries.length){
+    const finishers=deckCtx.winEntries.slice(0,2).map(e=>`${displayName(e.card)}×${e.qty}`).join('／');
+    return {kind:'Indirect',label:'デッキ内フィニッシャーへ接続',steps:[...pathSteps.slice(0,3),'→ このシナジーで盤面・資源優位を作る',`→ ${finishers}へ引き継いで勝ち筋へ`].slice(0,5),confidence:'Inferred'};
+  }
+  return {kind:'Open',label:'勝ち筋への終端未検出',steps:[...pathSteps.slice(0,3),'→ 最終的にゲームを終わらせるカード／経路が別途必要'].slice(0,4),confidence:'Incomplete'};
+}
+function gamePlanModelV068(cards,pathModel,strategy,consistency){
+  const deckCtx=gamePlanDeckContextV068(cards),roles=cards.map(gamePlanRoleV068),redundancy=gamePlanRedundancyV068(cards,deckCtx),combinedTags=unique(roles.flatMap(r=>r.tags));
+  const internalConnections=TAG_CONNECTIONS.filter(([from,to])=>combinedTags.includes(from)&&combinedTags.includes(to));
+  const deckConnections=deckCtx.profile?(deckCtx.profile.connections||[]).slice(0,5).filter(x=>combinedTags.includes(x.from)||combinedTags.includes(x.to)):[];
+  const winPath=gamePlanWinPathV068(cards,pathModel,deckCtx),standaloneAvg=Math.round(roles.reduce((s,r)=>s+r.standalone,0)/Math.max(1,roles.length));
+  const uniqueRoles=unique(roles.map(r=>r.primary)),phases=unique(roles.map(r=>r.phase));
+  const uniqueContribution=redundancy.filter(x=>x.level==='低').length;
+  const highRedundancy=redundancy.filter(x=>x.level==='高').length;
+  let score=18;
+  score+=Math.min(24,internalConnections.length*12);
+  score+=Math.min(14,deckConnections.length*5);
+  score+=winPath.kind==='Direct'?24:winPath.kind==='Indirect'?14:0;
+  score+=Math.min(14,uniqueContribution*6);
+  score+=Math.round((standaloneAvg-40)*.22);
+  score+=Math.min(8,phases.length*3);
+  score+=Math.round((pathModel?.score||0)*.08);
+  score-=highRedundancy*7;
+  if(winPath.kind==='Open')score-=8;
+  if(deckCtx.hasDeck&&deckCtx.missing.length)score-=15;
+  score=gpClampV068(Math.round(score));
+  const grade=gpGradeV068(score);
+  const strongButOptional=(pathModel?.score||0)>=70&&deckCtx.hasDeck&&winPath.kind!=='Direct'&&highRedundancy>0&&deckConnections.length===0;
+  let verdict=score>=78?'主ゲームプラン候補':score>=62?'ゲームプランに適合':score>=45?'補助プランとして有効':'優先度は低め';
+  if(strongButOptional)verdict='強いシナジーだが、このデッキでは優先度低め';
+  const stage={
+    early:roles.filter(r=>r.phase==='序盤').map(r=>`${r.label}：${displayName(cards[roles.indexOf(r)])}`),
+    mid:roles.filter(r=>r.phase==='中盤').map(r=>`${r.label}：${displayName(cards[roles.indexOf(r)])}`),
+    late:roles.filter(r=>r.phase==='終盤').map(r=>`${r.label}：${displayName(cards[roles.indexOf(r)])}`)
+  };
+  const reasons=[];
+  if(internalConnections.length)reasons.push(`組み合わせ内部で${internalConnections.length}本の供給→利用接続を形成`);
+  if(deckConnections.length)reasons.push(`現在のデッキ主要接続に${deckConnections.length}箇所参加`);
+  if(winPath.kind==='Direct')reasons.push('組み合わせ自身が勝ち筋まで持つ');
+  else if(winPath.kind==='Indirect')reasons.push('デッキ内の既存フィニッシャーへ価値を引き継げる');
+  if(uniqueContribution)reasons.push(`${uniqueContribution}枚がデッキ内で代替の少ない役割を担当`);
+  const concerns=[];
+  if(highRedundancy)concerns.push(`${highRedundancy}枚は同役割の代替が多く、役割重複が大きい`);
+  if(standaloneAvg<50)concerns.push('パーツ単体価値が低く、シナジー不成立時の手札負担が大きい');
+  if(winPath.kind==='Open')concerns.push('この組み合わせだけでは勝ち筋の終端を確認できない');
+  if(strongButOptional)concerns.push('Rule Pathは強い一方、現在のデッキ構造では追加採用の必然性が弱い');
+  return {score,grade,verdict,strongButOptional,deckCtx,roles,redundancy,internalConnections,deckConnections,winPath,standaloneAvg,uniqueRoles,phases,stage,reasons:unique(reasons),concerns:unique(concerns),strategyScore:strategy?.score??null,consistencyScore:consistency?.score??null};
+}
+function gamePlanPanelHTMLV068(m,cards){
+  const stageBox=(title,items,fallback)=>`<article><b>${title}</b>${items.length?`<ul>${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(fallback)}</p>`}</article>`;
+  const roleRows=m.roles.map((r,i)=>`<div class="gpRoleRowV068"><div><b>${esc(displayName(cards[i]))}</b><span>${esc(r.label)}・${esc(r.phase)}</span></div><strong>${r.standalone}</strong><small>単体価値 ${esc(r.standaloneLevel)}</small></div>`).join('');
+  const redRows=m.redundancy.map(x=>`<li><b>${esc(displayName(x.card))}</b>：${esc(x.role.label)}／代替${x.level==='未評価'?'未評価':x.alternatives+'枚'}${x.level!=='未評価'?`（重複 ${esc(x.level)}）`:''}</li>`).join('');
+  const plan=m.deckCtx.profile?.plan||'デッキ未入力：組み合わせ単体で評価';
+  return `<section class="gamePlanEngineV068"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Game Plan Engine β-8</div><h2>デッキ全体への貢献度</h2><p class="notice">「成立するか」ではなく、この組み合わせが序盤・中盤・終盤のどこを担当し、最終的な勝ち筋までどう寄与するかを評価します。</p></div><span class="gamePlanScoreV068">${m.score}<small>/100</small><b>${m.grade}</b></span></div><div class="gpVerdictV068 ${m.strongButOptional?'optional':''}"><b>${esc(m.verdict)}</b><span>推定ゲームプラン：${esc(plan)}</span></div><div class="gpStageGridV068">${stageBox('序盤',m.stage.early,'この組み合わせ単体では序盤担当を検出せず')}${stageBox('中盤',m.stage.mid,'中盤は既存デッキへ依存')}${stageBox('終盤',m.stage.late,m.winPath.kind==='Open'?'別途フィニッシャーが必要':'既存の勝ち筋へ接続')}</div><div class="gpMainGridV068"><section><h3>各カードの役割 / 単体価値</h3><div class="gpRoleListV068">${roleRows}</div></section><section><h3>役割重複</h3>${m.deckCtx.hasDeck?`<ul>${redRows}</ul>`:'<div class="empty">デッキ入力がないため役割重複は未評価です。</div>'}<p class="tiny">同じ役割のカードが多いほど、「強いがこのデッキには不要」の候補として減点します。</p></section><section><h3>勝ち筋までの経路</h3><div class="gpWinHeadV068"><b>${esc(m.winPath.label)}</b><span>${esc(m.winPath.confidence)}</span></div><ol>${m.winPath.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></section></div><div class="rulePathColumnsV065"><section><h3>採用する理由</h3>${m.reasons.length?`<ul>${m.reasons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">明確なゲームプラン上の加点要因は未検出です。</div>'}</section><section><h3>採用を見送る理由</h3>${m.concerns.length?`<ul>${m.concerns.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<div class="empty">大きな役割競合は検出されませんでした。</div>'}</section></div><div class="ruleDisclaimer"><b>β-8の注意：</b>Game Plan scoreは勝率ではありません。現在の効果タグ、デッキ内役割、Rule Path、単体依存度から「デッキの勝ち方への寄与」を評価する一次モデルです。戦闘盤面、対戦相手、メタゲーム、サイドボード後の価値はまだ含みません。</div></section>`;
+}
+function pairGamePlanFitV068(seed,candidate,rp){
+  const a=gamePlanRoleV068(seed),b=gamePlanRoleV068(candidate),tags=unique([...a.tags,...b.tags]);
+  const connections=TAG_CONNECTIONS.filter(([from,to])=>tags.includes(from)&&tags.includes(to));
+  const complement=a.primary!==b.primary,finisher=a.finish||b.finish,standalone=Math.round((a.standalone+b.standalone)/2);
+  let score=22+Math.round((rp?.score||0)*.28)+Math.min(24,connections.length*12)+(complement?10:2)+(finisher?10:0)+Math.round((standalone-45)*.18);
+  if(a.primary===b.primary&&['SUPPORT','INTERACTION','THREAT'].includes(a.primary))score-=8;
+  score=gpClampV068(Math.round(score));
+  const bonus=score>=78?10:score>=65?6:score>=50?2:score<35?-10:score<45?-5:0;
+  const verdict=score>=78?'勝ち筋・エンジンへ強く寄与':score>=65?'ゲームプランに適合':score>=50?'補助的に適合':score>=35?'用途限定':'プラン接続が弱い';
+  return {score,grade:gpGradeV068(score),bonus,verdict,roles:[a,b],connections,standalone};
+}
+function gamePlanMiniHTMLV068(m){
+  if(!m)return '';
+  const cls=m.score>=65?'good':m.score>=45?'warn':'weak';
+  return `<div class="gamePlanMiniV068 ${cls}"><b>Game Plan ${m.score}/100</b><span>${esc(m.verdict)}</span></div>`;
+}
+const enhanceCandidateV065BaseV068=enhanceCandidateV065;
+enhanceCandidateV065=function(seed,x){
+  const y=enhanceCandidateV065BaseV068(seed,x),gp=pairGamePlanFitV068(seed,y.card,y.rulePath);y.gamePlan=gp;y.score=gpClampV068(Math.round(y.score+gp.bonus));
+  if(gp.score>=65)y.why=unique([...(y.why||[]),`ゲームプラン適合：${gp.verdict}`]).slice(0,7);
+  else if(gp.score<45)y.cautions=unique([...(y.cautions||[]),'Rule Pathとは別に、勝ち筋・役割面の接続が弱い']);
+  return y;
+};
+candidateResultHTMLV053=function(x){
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.card.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}${gamePlanMiniHTMLV068(x.gamePlan)}<div class="tags">${x.profile.tags.slice(0,5).map(t=>`<span class="tag">${KNOWLEDGE_TAGS[t].label}</span>`).join('')}</div><ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細</button></div></div><div><div class="score">${x.score}</div><div class="tiny">統合適合点</div></div></article>`;
+};
+advisorCandidateHTML=function(x){
+  const c=x.card,cat=advisorCategory(null,x),reason=x.why.slice(0,4);
+  return `<article class="advisorCandidate"><button class="imageButton" data-detail="${esc(c.name)}">${displayImg(c)?`<img loading="lazy" src="${displayImg(c)}" alt="${esc(displayName(c))}">`:''}</button><div><div class="advisorCategory">${esc(cat)}</div><h3><button class="textButton" data-detail="${esc(c.name)}">${esc(displayName(c))}</button></h3>${englishSubName(c)}<div class="meta">${esc(displayType(c))} ・ MV ${c.cmc||0} ・ ${colors(c.color_identity||[])}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations)}</div>${rulePathMiniHTMLV065(x.rulePath)}${gamePlanMiniHTMLV068(x.gamePlan)}<div class="advisorStars" aria-label="推奨度">${advisorStars(x.score)}</div><ul class="explainList">${reason.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${x.cautions.length?`<div class="tiny caution">条件：${x.cautions.map(esc).join('／')}</div>`:''}<div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(c.name)}">デッキへ追加</button><button class="smallBtn" data-inspect="${esc(c.name)}">このカードも解析</button><button class="smallBtn" data-detail="${esc(c.name)}">詳細</button></div></div></article>`;
+};
+function deckCandidateGamePlanV068(card,stats,seedCards,profile){
+  const role=gamePlanRoleV068(card),p=knowledgeProfile(card),prof=profile||deckKnowledgeProfileV054(seedCards),coverage=gapCoverageForCandidateV054(prof,p);
+  const top=(prof.connections||[]).slice(0,4),connectionHits=top.filter(x=>p.tags.includes(x.from)||p.tags.includes(x.to)).length;
+  const winUtility=(prof.utility||[]).find(x=>x.code==='win'),needsWin=!!winUtility&&winUtility.count<winUtility.target;
+  let sameRole=0;for(const e of seedCards){if(!e.card)continue;if(gamePlanRoleV068(e.card).primary===role.primary)sameRole+=Math.max(1,+e.qty||1);}
+  let score=42,bonus=0,reasons=[],concerns=[];
+  if(coverage.why.length){score+=18;bonus+=7;reasons.push('現在のデッキ不足を直接補完');}
+  if(connectionHits){score+=Math.min(18,connectionHits*7);bonus+=Math.min(6,connectionHits*3);reasons.push('主要エンジンの供給／利用側に参加');}
+  if(role.finish&&needsWin){score+=20;bonus+=9;reasons.push('不足している勝ち筋を追加');}
+  if(role.standalone>=70){score+=8;bonus+=2;reasons.push('シナジー不成立時にも単体価値が高い');}
+  if(sameRole>=10&&!coverage.why.length&&!(role.finish&&needsWin)){score-=18;bonus-=9;concerns.push(`${role.label}がすでに${sameRole}枚あり役割重複が大きい`);}
+  if(!coverage.why.length&&!connectionHits&&!role.finish&&role.primary!=='INTERACTION'&&role.primary!=='SUPPORT'){score-=12;bonus-=6;concerns.push('現在の主ゲームプランとの直接接続が弱い');}
+  score=gpClampV068(Math.round(score));bonus=Math.max(-12,Math.min(12,Math.round(bonus)));
+  const verdict=score>=75?'優先候補':score>=60?'プラン適合':score>=45?'用途次第':'優先度低め';
+  return {score,grade:gpGradeV068(score),bonus,verdict,role,sameRole,reasons,concerns};
+}
+const scoreCardBaseV068=scoreCard;
+scoreCard=function(c,stats,strategy,seedCards){
+  const x=scoreCardBaseV068(c,stats,strategy,seedCards),gp=deckCandidateGamePlanV068(c,stats,seedCards,currentDeckKnowledgeV054);x.gamePlanDeck=gp;x.score=Math.round((x.score+gp.bonus)*10)/10;
+  if(gp.reasons.length)x.why=unique([...(x.why||[]),...gp.reasons.map(r=>`ゲームプラン：${r}`)]).slice(0,7);
+  if(gp.concerns.length)x.cautions=unique([...(x.cautions||[]),...gp.concerns]);
+  return x;
+};
+cardHTML=function(x){
+  const primary=(x.relations||[]).includes('COVERAGE')?'不足補完':(x.relations||[]).includes('ENGINE')?'エンジン形成':(x.relations||[]).includes('ENABLE')?'成立支援':(x.relations||[]).includes('SYNERGY')?'効果接続':'安定化';
+  return `<article class="result"><button class="imageButton" data-detail="${esc(x.card.name)}" aria-label="${esc(x.card.name)}の詳細">${displayImg(x.card)?`<img loading="lazy" src="${displayImg(x.card)}" alt="${esc(displayName(x.card))}">`:''}</button><div><div class="candidatePurpose">${esc(primary)}</div><h3><button class="textButton" data-detail="${esc(x.card.name)}">${esc(displayName(x.card))}</button></h3>${englishSubName(x.card)}<div class="meta">${esc(displayType(x.card))} ・ MV ${x.card.cmc||0} ・ ${colors(x.f.colors)}</div><div class="relationRow">${relationBadgesHTMLV053(x.relations||[])}</div>${x.gamePlanDeck?gamePlanMiniHTMLV068({score:x.gamePlanDeck.score,verdict:x.gamePlanDeck.verdict}):''}${x.why.length?`<ul class="explainList">${x.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>`:''}${x.cautions?.length?`<div class="tiny caution">注意：${x.cautions.map(esc).join('／')}</div>`:''}<div class="tags">${x.f.roles.slice(0,4).map(r=>`<span class="tag">${labels[r]||r}</span>`).join('')}</div><div class="oracle">${esc(displayOracle(x.card))}</div><div class="inlineActions"><button class="smallBtn primary" data-deckadd="${esc(x.card.name)}">デッキへ追加</button><button class="smallBtn" data-detail="${esc(x.card.name)}">詳細を見る</button></div></div><div><div class="score">${x.score}</div><div class="tiny">デッキ接続点</div></div></article>`;
+};
+const analyzeRulesV067BaseV068=analyzeRulesV065;
+analyzeRulesV065=async function(){
+  await analyzeRulesV067BaseV068();
+  const result=$('ruleResult');if(!result||!result.innerHTML||result.querySelector('.gamePlanEngineV068'))return;
+  const raw=['ruleCard1','ruleCard2','ruleCard3'].map(id=>$(id)?.value.trim()).filter(Boolean);if(!raw.length)return;
+  const cards=[];for(const name of raw){const c=findPoolCard(name)||await named(name);if(c&&!cards.some(x=>x.oracle_id===c.oracle_id))cards.push(c);}if(!cards.length)return;
+  const profiles=cards.map(parseRuleCardV060),verified=knownRuleCaseV060(cards),links=inferredRuleLinksV060(profiles),ios=cards.map((c,i)=>eventIOV061(c,profiles[i])),edges=graphEdgesV061(cards,profiles,ios);
+  const stackSim=verifiedStackTraceV062(cards,verified)||genericStackTraceV062(cards,profiles,$('ruleTriggerOrder')?.value||'input'),priorityModel=priorityWindowsV064(cards,stackSim),pathModel=rulePathModelV065(cards,profiles,ios,edges,links,verified,priorityModel),strategy=strategyModelV066(cards,pathModel,priorityModel,profiles,verified),consistency=consistencyModelV067(cards,strategy),gamePlan=gamePlanModelV068(cards,pathModel,strategy,consistency);
+  const consistencyEl=result.querySelector('.consistencyEngineV067'),strategyEl=result.querySelector('.strategyEngineV066');
+  if(consistencyEl)consistencyEl.insertAdjacentHTML('afterend',gamePlanPanelHTMLV068(gamePlan,cards));else if(strategyEl)strategyEl.insertAdjacentHTML('afterend',gamePlanPanelHTMLV068(gamePlan,cards));else result.insertAdjacentHTML('afterbegin',gamePlanPanelHTMLV068(gamePlan,cards));
+  const st=$('ruleStatus');if(st)st.textContent+=` Game Plan ${gamePlan.score}/100（${gamePlan.grade}：${gamePlan.verdict}）。`;
+};
+function bindRuleEngineV068(){
+  const btn=$('ruleAnalyzeBtn');if(btn){const fresh=btn.cloneNode(true);btn.replaceWith(fresh);fresh.onclick=analyzeRulesV065;}
+  ['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(!el)return;const fresh=el.cloneNode(true);fresh.value=el.value;el.replaceWith(fresh);fresh.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();analyzeRulesV065();}});});
+  const clear=$('ruleClearBtn');if(clear){const fresh=clear.cloneNode(true);clear.replaceWith(fresh);fresh.onclick=()=>{['ruleCard1','ruleCard2','ruleCard3'].forEach(id=>{const el=$(id);if(el)el.value='';});const r=$('ruleResult');if(r)r.innerHTML='<div class="empty">左でカードを選ぶと、Rule Engine β-8でRule Path・Strategy・Consistency・Game Planまで統合表示します。</div>';const st=$('ruleStatus');if(st)st.textContent='Rule Engine β-8：カードを1～3枚入力してください。';};}
+  const status=$('ruleStatus');if(status)status.textContent='Rule Engine β-8：カードを1～3枚入力してください。';
+}
+bindRuleEngineV068();
