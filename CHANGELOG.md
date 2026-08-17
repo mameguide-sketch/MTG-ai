@@ -1,3 +1,11 @@
+## v0.7.3c
+- v0.7.3aでBurst Lightningを除去認識したことで、Strict Primary Objectiveが removal→removal を「除去枚数 +0 = 改善なし」として候補生成前に落としていた競合を修正。
+- 除去不足時のSwapを「枚数改善」と「Candidate Quality品質改善」の2レーンへ分離。
+- 同役割交換でも、除去品質が有意に上がる場合は比較候補として表示。
+- `target creature or planeswalker ... deals N damage to it` の文脈型火力を単体除去として追加認識。
+- Bad済み候補／ペア、1点全体火力のハードブロックは維持。
+- 品質改善SwapをDeck Optimizerでも評価できるよう、枚数増加0でもCQ改善を別判定。
+
 ## v0.7.3b
 - Candidate Qualityの除去評価を「カード全体の多機能さ」から「実際の除去面の品質」中心へ修正。
 - `up to one target creature or planeswalker` 型の3点火力などを単体除去として正しく認識。

@@ -1,5 +1,15 @@
-# Lunch Forge v0.7.3b
+# Lunch Forge v0.7.3c
 
+## v0.7.3c hotfix
+
+- v0.7.3aで「噴出の稲妻」を除去として正しく認識した結果、従来のStrict Primary Objectiveが「除去→除去は枚数が増えないため改善0」と判定し、品質比較前に全候補を落とす問題を修正
+- 除去不足時の入れ替え提案を「枚数改善」と「品質改善」の2レーンに分離
+- 除去枚数が同じでも、Candidate Quality / 役割適合 / 信頼性が改善する交換を表示可能に変更
+- `噴出の稲妻 → 報いの呪詛 / 苦々しい勝利 / すべきでない悪ふざけ` のような同役割比較を可能に修正
+- `target creature or planeswalker ... deals N damage to it` 型の火力も除去として認識
+- Bad済みIN候補・Bad済みOUT→INペアのハードブロックは維持
+- 1点全体火力は汎用除去候補から引き続き除外
+- 品質改善案には「除去枚数は維持・CQ xx → yy」を表示
 
 ## v0.7.3b hotfix
 

@@ -4739,3 +4739,151 @@ refreshAfterLearningV071=function(message){
 clearCandidateQualityCacheV073();
 if($('versionBadge'))$('versionBadge').textContent='v0.7.3b';
 if($('status'))$('status').textContent='v0.7.3b：Candidate QualityとBad学習を修正。除去面そのものの品質を優先し、弱い全体火力・重い全体除去を抑制、Bad済み提案／候補の再表示をハードブロックします。';
+
+/* Swap quality-upgrade hotfix v0.7.3c
+   Root cause fixed:
+   after Burst Lightning became correctly recognized as removal in v0.7.3a,
+   the strict deficit gate treated removal -> removal as zero progress and
+   discarded the pair before Candidate Quality could compare the two cards.
+
+   v0.7.3c keeps the strict "add net missing role" lane, and adds a second
+   same-role quality-upgrade lane. Bad learning remains a hard gate.
+*/
+const APP_VERSION_V073C='0.7.3c';
+
+function contextualTargetDamageV073c(o){
+  o=String(o||'').toLowerCase();
+  let m=o.match(/deals?\s+(\d+)\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature(?:\s+or\s+planeswalker)?|planeswalker))/);
+  if(m)return +m[1]||0;
+  // Some cards choose the target in the previous sentence and later say "deals N damage to it".
+  m=o.match(/(?:up to\s+(?:one|1)\s+)?target\s+(?:creature(?:\s+or\s+planeswalker)?|planeswalker)[\s\S]{0,220}?deals?\s+(\d+)\s+damage\s+to\s+(?:it|that\s+(?:creature|permanent|planeswalker))/);
+  return +(m||[])[1]||0;
+}
+
+const removalEffectProfileBaseV073c=removalEffectProfileV073b;
+removalEffectProfileV073b=function(card,face=null){
+  const p=removalEffectProfileBaseV073c(card,face),o=String(p?.text||face?.text||text(card)||'').toLowerCase();
+  if(!p.targetDamage){
+    const d=contextualTargetDamageV073c(o);
+    if(d){p.targetDamage=d;if(p.kind==='other')p.kind='spot';}
+  }
+  return p;
+};
+
+// Keep the role detector in sync with the effect parser, including "...target... deals N damage to it" wording.
+RX.removal=/destroy\s+(?:up to\s+(?:one|1)\s+)?target|exile\s+(?:up to\s+(?:one|1)\s+)?target|deals?\s+\d+\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature|planeswalker)|each\s+creature)|(?:up to\s+(?:one|1)\s+)?target\s+(?:creature(?:\s+or\s+planeswalker)?|planeswalker)[\s\S]{0,220}?deals?\s+\d+\s+damage\s+to\s+(?:it|that\s+(?:creature|permanent|planeswalker))|target\s+creature[^.\n]{0,60}gets?\s+-|counter\s+target\s+spell|return\s+(?:up to\s+(?:one|1)\s+)?target\s+[^.\n]+owner'?s hand/i;
+if(KNOWLEDGE_TAGS?.single_removal){
+  KNOWLEDGE_TAGS.single_removal.rx=/destroy\s+(?:up to\s+(?:one|1)\s+)?target|exile\s+(?:up to\s+(?:one|1)\s+)?target|deals?\s+\d+\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature|planeswalker))|(?:up to\s+(?:one|1)\s+)?target\s+(?:creature(?:\s+or\s+planeswalker)?|planeswalker)[\s\S]{0,220}?deals?\s+\d+\s+damage\s+to\s+(?:it|that\s+(?:creature|permanent|planeswalker))|target\s+creature[^.\n]{0,60}gets?\s+-|counter\s+target\s+spell/i;
+}
+
+const faceMatchesRoleBaseV073c=faceMatchesRoleV073;
+faceMatchesRoleV073=function(face,role){
+  if(role==='removal'&&contextualTargetDamageV073c(face?.text))return true;
+  return faceMatchesRoleBaseV073c(face,role);
+};
+
+function removalUpgradeStrengthV073c(card,before,objective){
+  const face=relevantFaceV073(card,'removal'),q=candidateQualityV073(card,before,objective),p=removalEffectProfileV073b(card,face);
+  let score=q.axes.roleFit*.45+q.axes.reliability*.35+q.axes.efficiency*.15+q.axes.flexibility*.05;
+  if(p.kind==='spot')score+=4;
+  if(p.kind==='sweep')score-=p.mv>=5?8:3;
+  if(p.sweepDamage>0&&p.sweepDamage<=1)score-=30;
+  return {score:Math.round(score*10)/10,q,p,face};
+}
+
+function buildRemovalQualitySwapsV073c(stats,before,mainResolved,recommendations){
+  const objective=primaryObjectiveV070b(before);if(objectiveRoleV073(objective)!=='removal')return [];
+  const candidates=directedCandidatePoolV070b(stats,before,mainResolved,recommendations),cuts=[];
+  for(const entry of mainResolved||[]){
+    if(!entry?.card||!cardFillsObjectiveV073a(entry.card,objective,before)||isUserCoreV071(entry.card))continue;
+    const cut=cutCandidateV055(entry,stats,before.profile);if(!cut)continue;
+    const dep=cardDependencyV070(entry,before,deck);if(dep?.verified)continue;
+    cut.cutDependencyV070=dep;cut.qualityV073c=removalUpgradeStrengthV073c(entry.card,before,objective);cuts.push(cut);
+  }
+  if(!cuts.length)return [];
+
+  const proposals=[],maxSetting=Math.max(1,+swapSettingsV056.maxChanges||2);
+  for(const rec of candidates.slice(0,72)){
+    if(!rec?.card||hardFeedbackBlockCandidateV073b(rec.card,objective).blocked)continue;
+    const addQuality=removalUpgradeStrengthV073c(rec.card,before,objective),p=addQuality.p,q=addQuality.q;
+    if(p.kind==='sweep'&&p.sweepDamage>0&&p.sweepDamage<=1)continue;
+    if(q.axes.roleFit<50||q.axes.reliability<48)continue;
+    for(const cut of cuts){
+      if(cardKeyV056(cut.card)===cardKeyV056(rec.card))continue;
+      const existing=countCardInDeckV056(rec.card),legalMax=isBasicLandV055(rec.card)?maxSetting:Math.max(0,4-existing);if(legalMax<1)continue;
+      const itemForFeedback={cut,add:rec,primaryObjectiveV070b:objective};if(hardFeedbackBlockPairV073b(itemForFeedback))continue;
+      const cutQuality=cut.qualityV073c||removalUpgradeStrengthV073c(cut.card,before,objective);
+      const qualityGain=Math.round((addQuality.score-cutQuality.score)*10)/10;
+      // Same-role alternatives need a meaningful quality gain, not a role-count gain.
+      if(qualityGain<5)continue;
+      const qty=1,simulated=simulateSwapEntriesV055(deck,cut.card,rec.card,qty),after=deckFoundationModelV0610(simulated),delta=after.score-before.score;
+      const newDeficits=(after.deficits||[]).filter(d=>!(before.deficits||[]).some(b=>b.key===d.key));
+      // A quality upgrade may trade a minor secondary label, but must not damage the deck foundation severely.
+      if(delta<-8)continue;
+      const dep=cut.cutDependencyV070||{level:'low'},depPenalty=dep.level==='high'?24:dep.level==='medium'?9:0,newDeficitPenalty=newDeficits.length*8;
+      const pairScore=qualityGain*15+(q.score-(cutQuality.q?.score||0))*4+Math.max(-5,delta)*3-depPenalty-newDeficitPenalty;
+      const notes=[
+        `除去品質を改善：${cutQuality.q.score}/100 → ${q.score}/100`,
+        `除去品質差 +${qualityGain}`,
+        '除去枚数は維持（品質改善レーン）',
+        `デッキ全体評価 ${before.score} → ${after.score}`
+      ];
+      if(newDeficits.length)notes.push(`副次役割の変化：${newDeficits.map(d=>d.label||dependencyLabelV070(d.key)).join('・')}`);
+      proposals.push({add:rec,cut,qty,pairScore,afterStats:after.stats,afterProfile:after.profile,deltaEngine:(after.profile.engineScore||0)-(before.profile.engineScore||0),deltaConnections:(after.profile.connections?.length||0)-(before.profile.connections?.length||0),deltaGaps:(before.profile.gaps?.length||0)-(after.profile.gaps?.length||0),landDelta:(after.stats.lands||0)-(before.stats.lands||0),foundationBefore:before,foundationAfter:after,deltaFoundation:delta,balanceNotes:unique(notes),cutDependencyV070:dep,directedV070a:true,strictObjectiveV070b:true,primaryObjectiveV070b:objective,objectiveProgressV070b:{gain:0,beforeValue:before.rc?.removal||0,afterValue:after.rc?.removal||0,target:before.targets?.removal||0,label:objective.label},candidateQualityV073:q,cutCardValueV073:cardValueV071(cut.card,cut.entry,before),removalProfileV073b:p,qualityUpgradeV073c:true,qualityGainV073c:qualityGain,qualityBeforeV073c:cutQuality.q.score,qualityAfterV073c:q.score});
+    }
+  }
+  proposals.sort((a,b)=>(b.qualityGainV073c||0)-(a.qualityGainV073c||0)||(b.candidateQualityV073?.score||0)-(a.candidateQualityV073?.score||0)||b.pairScore-a.pairScore);
+  const out=[],seenAdds=new Set(),seenPairs=new Set();
+  for(const item of proposals){
+    const ak=cardKeyV056(item.add.card),pk=`${cardKeyV056(item.cut.card)}>${ak}`;if(seenPairs.has(pk)||seenAdds.has(ak))continue;
+    seenPairs.add(pk);seenAdds.add(ak);out.push(item);if(out.length>=8)break;
+  }
+  return out;
+}
+
+const buildDirectedSwapsBaseV073c=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const normal=buildDirectedSwapsBaseV073c(stats,before,mainResolved,recommendations),objective=primaryObjectiveV070b(before);
+  if(objectiveRoleV073(objective)!=='removal')return normal;
+  const quality=buildRemovalQualitySwapsV073c(stats,before,mainResolved,recommendations);
+  if(!quality.length)return normal;
+
+  // Preserve strict deficit fixes, but reserve room for same-role CQ comparisons.
+  const out=[],seen=new Set();
+  const add=item=>{const key=`${cardKeyV056(item.cut.card)}>${cardKeyV056(item.add.card)}`;if(seen.has(key))return;seen.add(key);out.push(item);};
+  normal.slice(0,3).forEach(add);quality.slice(0,3).forEach(add);
+  [...normal.slice(3),...quality.slice(3)].sort((a,b)=>{
+    const ap=a.qualityUpgradeV073c?(a.qualityGainV073c||0)*10:(a.objectiveProgressV070b?.gain||0)*120;
+    const bp=b.qualityUpgradeV073c?(b.qualityGainV073c||0)*10:(b.objectiveProgressV070b?.gain||0)*120;
+    return bp-ap||(+b.pairScore||0)-(+a.pairScore||0);
+  }).forEach(item=>{if(out.length<8)add(item);});
+  return out.slice(0,8);
+};
+
+// Optimizer previously rejected every quality-only item because role count stayed unchanged.
+// Allow such a plan when the swap has a meaningful CQ gain and does not badly damage Foundation.
+const evaluateOptimizationPlanBaseV073c=evaluateOptimizationPlanV070b;
+evaluateOptimizationPlanV070b=function(items,before,objective){
+  const normal=evaluateOptimizationPlanBaseV073c(items,before,objective);if(normal)return normal;
+  if(!Array.isArray(items)||!items.length||!items.every(x=>x.qualityUpgradeV073c))return null;
+  let entries=deck;for(const item of items){entries=simulateSwapEntriesV055(entries,item.cut.card,item.add.card,item.qty);}
+  const after=deckFoundationModelV0610(entries),changes=items.reduce((s,x)=>s+(+x.qty||0),0),qualityGain=items.reduce((s,x)=>s+(+x.qualityGainV073c||0)*(+x.qty||1),0);
+  if(qualityGain<5||after.score-before.score<-8)return null;
+  const p={items,changes,before,after,delta:after.score-before.score,reasons:unique([`同役割のCandidate Quality改善 +${Math.round(qualityGain*10)/10}`,...items.flatMap(x=>x.balanceNotes||[])]),concerns:[],score:qualityGain*15+Math.max(-5,after.score-before.score)*4,primaryObjectiveV070b:objective,objectiveProgressV070b:{gain:0,beforeValue:before.rc?.removal||0,afterValue:after.rc?.removal||0,target:before.targets?.removal||0,label:objective?.label||'除去／妨害'},qualityUpgradeV073c:true};
+  return p;
+};
+
+// Make the quality lane explicit in visible proposal notes.
+const renderSwapRecommendationsBaseV073c=renderSwapRecommendationsV055;
+renderSwapRecommendationsV055=function(){
+  renderSwapRecommendationsBaseV073c();const root=$('swapRecommendations');if(!root)return;
+  [...root.querySelectorAll('.swapProposal')].forEach((article,index)=>{
+    const item=currentSwapRecommendationsV055[index];if(!item?.qualityUpgradeV073c||article.querySelector('.qualityLaneBadgeV073c'))return;
+    const target=article.querySelector('.candidateQualityV073')||article.querySelector('.learningFeedbackV071')||article.querySelector('.swapActions');
+    if(target)target.insertAdjacentHTML('beforebegin',`<div class="qualityLaneBadgeV073c"><b>品質改善</b><span>除去枚数は維持・CQ ${item.qualityBeforeV073c} → ${item.qualityAfterV073c}</span></div>`);
+  });
+};
+
+clearCandidateQualityCacheV073();
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3c';
+if($('status'))$('status').textContent='v0.7.3c：除去不足の「枚数改善」と「品質改善」を分離。除去→除去でもCandidate Qualityが改善する交換は比較候補として残し、Bad済み候補と弱い1点全体火力は引き続き除外します。';

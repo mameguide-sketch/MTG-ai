@@ -279,3 +279,8 @@ main{max-width:1500px;margin:auto;padding:0 18px 40px}.view{display:none}.view.o
 .candidateQualityPlanV073{margin-top:12px;padding:12px;border:1px solid rgba(147,197,253,.22);border-radius:12px;background:rgba(57,107,170,.035)}.candidateQualityPlanV073>h4{margin:0 0 8px}.candidateQualityPlanItemV073{padding:8px 0;border-top:1px solid rgba(255,255,255,.065)}.candidateQualityPlanItemV073:first-of-type{border-top:0}.candidateQualityPlanItemV073>div:first-child{display:flex;justify-content:space-between;gap:10px;align-items:center}.candidateQualityPlanItemV073>div:first-child span{font-size:11px;color:var(--muted)}
 .candidateQualityCompactV073{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:5px;padding:4px 7px;border-radius:10px;border:1px solid rgba(126,211,255,.22);background:rgba(126,211,255,.05)}.candidateQualityCompactV073 span,.candidateQualityCompactV073 small{font-size:9px;color:var(--muted)}.candidateQualityCompactV073 b{font-size:15px}
 @media(max-width:680px){.candidateQualityAxesV073{grid-template-columns:1fr}.candidateQualityPlanItemV073>div:first-child{align-items:flex-start;flex-direction:column;gap:3px}}
+
+/* v0.7.3c quality-upgrade lane */
+.qualityLaneBadgeV073c{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;padding:9px 11px;border:1px solid rgba(120,170,255,.24);border-radius:10px;background:rgba(80,130,220,.08)}
+.qualityLaneBadgeV073c b{font-size:12px;letter-spacing:.04em}
+.qualityLaneBadgeV073c span{font-size:12px;opacity:.78}
