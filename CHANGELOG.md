@@ -1,4 +1,20 @@
-# v0.7.3 - Candidate Quality Engine
+## v0.7.3b
+- Candidate Qualityの除去評価を「カード全体の多機能さ」から「実際の除去面の品質」中心へ修正。
+- `up to one target creature or planeswalker` 型の3点火力などを単体除去として正しく認識。
+- 1点全体火力を汎用除去不足の候補からハード除外。
+- 5マナ以上の全体除去を一般的な単体除去候補より強く減点。
+- 1～2マナの直接的な単体除去を優先するランキング補正を追加。
+- Bad済みの同一OUT→INをobjective違いでも再表示しないよう、ペア学習をobjective横断で照合。
+- `OUTカードが重要` / `シナジーを壊す` 以外のBadは、同じ最優先課題でIN候補をハードブロック。
+- Bad直後にCQキャッシュと提案UIを再計算し、古い提案カードが残る問題を抑制。
+
+## v0.7.3a
+- Burst Lightning等の "any target" 火力を除去として認識するよう修正。
+- 除去不足などの deficit 解消時、既存の同役割カードをOUTして同役割へ置換する提案を禁止。
+- 同一 OUT→IN をBad評価した場合、Goodが上回るまで同じ提案を再表示しない。
+- 「INカードが弱い」「役割が違う」のBadは、その最優先課題で候補をハードブロック。
+
+# v0.7.3a - Candidate Quality Engine
 
 - 最優先課題への役割一致後にCandidate Quality 0–100 / A+～Eを算出
 - 役割適合 / 効率 / 柔軟性 / 信頼性 / デッキ適合 / Evidenceの6軸を分離表示

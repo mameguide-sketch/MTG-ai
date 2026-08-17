@@ -4481,3 +4481,261 @@ const saveAdoptionImportsBaseV073=saveAdoptionImportsV072;
 saveAdoptionImportsV072=function(){clearCandidateQualityCacheV073();return saveAdoptionImportsBaseV073();};
 
 if($('status'))$('status').textContent='v0.7.3：Candidate Quality Engine。役割一致の先で、実際の効果品質とEvidenceを比較して候補順位へ反映します。';
+
+/* Candidate Quality hotfix v0.7.3a
+   - Recognize "any target" damage as removal (e.g. Burst Lightning)
+   - Never solve a deficit by cutting a card that already fills that same deficit
+   - Treat explicit Bad feedback as a hard block for the same OUT->IN pair
+   - Treat "IN weak" / "role wrong" as a hard candidate block for that objective until outweighed by Good feedback
+*/
+const APP_VERSION_V073A='0.7.3a';
+
+// Expand removal parsing to modern Oracle wording such as "deals 2 damage to any target".
+RX.removal=/destroy target|exile target|deals? \d+ damage to (?:target|any target)|target creature gets -|counter target spell|return target [^\.]+ to its owner's hand/i;
+if(KNOWLEDGE_TAGS?.single_removal){
+  KNOWLEDGE_TAGS.single_removal.rx=/destroy target|exile target|target creature gets -\d+\/-\d+|deals? \d+ damage to (?:target|any target)|counter target spell/i;
+}
+
+const faceMatchesRoleBaseV073a=faceMatchesRoleV073;
+faceMatchesRoleV073=function(face,role){
+  const o=String(face?.text||'').toLowerCase();
+  if(role==='removal'&&/deals? \d+ damage to any target/.test(o))return true;
+  return faceMatchesRoleBaseV073a(face,role);
+};
+
+const removalQualityBaseV073a=removalQualityV073;
+removalQualityV073=function(card,face){
+  const r=removalQualityBaseV073a(card,face),o=String(face?.text||text(card)).toLowerCase();
+  const any=(o.match(/deals? (\d+) damage to any target/)||[])[1];
+  if(any){
+    const dmg=+any||0;
+    r.roleFit=clampV073(Math.max(r.roleFit,dmg>=4?82:dmg>=3?74:dmg===2?64:48));
+    r.reliability=clampV073(Math.max(r.reliability,dmg>=4?80:dmg>=3?73:dmg===2?63:48));
+    r.flexibility=clampV073(r.flexibility+10);
+    r.strengths=unique([`${dmg}点を任意の対象へ`,...(r.strengths||[])]);
+  }
+  return r;
+};
+
+function cardFillsObjectiveV073a(card,objective,before){
+  if(!card||!objective)return false;
+  if(objective.kind==='deficit')return cardRoleKeysV070(card).includes(objective.key);
+  return strictObjectiveMatchV070b(card,objective,before);
+}
+function hardFeedbackBlockCandidateV073a(card,objective){
+  const s=learningCardSignalV071(card),key=`${learningObjectiveKeyV071(objective)}|${learningCardKeyV071(card)}`,obj=learningEvidenceV071.objectives[key]||{};
+  const good=(s.good||0)+(obj.good||0);
+  if((s.weak||0)>good)return {blocked:true,reason:'過去に「INカードが弱い」と評価'};
+  if((s.roleWrong||0)+(obj.roleWrong||0)>good)return {blocked:true,reason:'過去に「役割が違う」と評価'};
+  return {blocked:false,reason:''};
+}
+function hardFeedbackBlockPairV073a(item,objective){
+  const s=learningPairSignalV071(item.cut.card,item.add.card,objective);
+  return (s.bad||0)>(s.good||0);
+}
+
+const directedCandidateScoreBaseV073a=directedCandidateScoreV070a;
+directedCandidateScoreV070a=function(rec,before,issues){
+  const objective=(issues||[])[0]||primaryObjectiveV070b(before),blocked=hardFeedbackBlockCandidateV073a(rec?.card,objective);
+  if(blocked.blocked){if(rec)rec.cautions=unique([...(rec.cautions||[]),blocked.reason]);return -999;}
+  return directedCandidateScoreBaseV073a(rec,before,issues);
+};
+
+const buildDirectedSwapsBaseV073a=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const objective=primaryObjectiveV070b(before),raw=buildDirectedSwapsBaseV073a(stats,before,mainResolved,recommendations),out=[];
+  for(const item of raw){
+    // A shortage must be solved by adding net copies of that role. Do not trade one existing role card for another.
+    if(objective?.kind==='deficit'&&cardFillsObjectiveV073a(item.cut.card,objective,before))continue;
+    // Once the user marks the same swap Bad, do not resurface it unless later Good evidence overtakes it.
+    if(hardFeedbackBlockPairV073a(item,objective))continue;
+    out.push(item);
+  }
+  return out;
+};
+
+// Clear CQ cache after feedback so a hard-block is reflected immediately.
+const recordProposalFeedbackBaseV073a=recordProposalFeedbackV071;
+recordProposalFeedbackV071=function(item,verdict,reason='other',source='optimizer'){
+  const r=recordProposalFeedbackBaseV073a(item,verdict,reason,source);clearCandidateQualityCacheV073();return r;
+};
+
+// Update visible version/status without changing the underlying v0.7.3 architecture.
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3a';
+if($('status'))$('status').textContent='v0.7.3a：Removal分類と学習反映を修正。any target火力を除去として認識し、除去不足時に既存除去をOUTしない・Bad済み同一提案を再表示しないようにしました。';
+
+/* Candidate Quality + Bad learning hotfix v0.7.3b
+   - Removal quality is evaluated from the actual removal face/effect first.
+   - Weak sweepers (especially 1-damage sweepers) cannot masquerade as general removal upgrades.
+   - Modern "up to one target creature or planeswalker" damage wording is recognized.
+   - Bad feedback is enforced across objective-key drift for the same OUT->IN pair.
+   - Candidate-level Bad blocks the IN card for the same objective unless the Bad reason was specifically about the OUT card / broken synergy.
+*/
+const APP_VERSION_V073B='0.7.3b';
+
+function removalTextV073b(face,card){return String(face?.text||text(card)||'').toLowerCase();}
+function removalEffectProfileV073b(card,face=null){
+  const f=face||relevantFaceV073(card,'removal'),o=removalTextV073b(f,card),mv=Number.isFinite(+(f?.mv))?+f.mv:(+card?.cmc||0);
+  const sweepDamage=+(o.match(/deals?\s+(\d+)\s+damage\s+to\s+each\s+creature/)||[])[1]||0;
+  const targetDamageMatch=o.match(/deals?\s+(\d+)\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature(?:\s+or\s+planeswalker)?|planeswalker)|(?:a|one)\s+target\s+(?:creature|planeswalker))/);
+  const targetDamage=+(targetDamageMatch||[])[1]||0;
+  const broadPermanent=/(?:destroy|exile)\s+(?:up to\s+(?:one|1)\s+)?target\s+(?:nonland\s+)?permanent/.test(o);
+  const creaturePw=/(?:destroy|exile)\s+(?:up to\s+(?:one|1)\s+)?target\s+creature\s+or\s+planeswalker/.test(o);
+  const creature=/(?:destroy|exile)\s+(?:up to\s+(?:one|1)\s+)?target\s+creature/.test(o);
+  const hardSweep=/(?:destroy|exile)\s+(?:all|each)\s+creatures?/.test(o)||/(?:all|each)\s+creatures?[^.\n]{0,55}(?:destroyed|exiled)/.test(o);
+  const counter=/counter\s+target\s+spell/.test(o);
+  const bounce=/return\s+(?:up to\s+(?:one|1)\s+)?target\s+(?:nonland\s+)?(?:permanent|creature)[^.\n]{0,70}(?:owner'?s hand|to its owner'?s hand)/.test(o);
+  const shrink=/target\s+(?:creature|creature or planeswalker)[^.\n]{0,70}gets?\s+-[x0-9]+\/-[x0-9]+/.test(o);
+  let kind='other';
+  if(hardSweep||sweepDamage)kind='sweep';
+  else if(broadPermanent||creaturePw||creature||targetDamage||shrink)kind='spot';
+  else if(counter)kind='counter';
+  else if(bounce)kind='tempo';
+  const limited=/mana value\s+(?:\d+|x)\s+or\s+less|power\s+(?:\d+|x)\s+or\s+less|toughness\s+(?:\d+|x)\s+or\s+less|with flying|attacking|blocking|tapped creature/.test(o);
+  return {kind,mv,sweepDamage,targetDamage,broadPermanent,creaturePw,creature,hardSweep,counter,bounce,shrink,limited,text:o};
+}
+
+// Broader role parser: catches "up to one target creature or planeswalker" as well as any-target damage.
+RX.removal=/destroy\s+(?:up to\s+(?:one|1)\s+)?target|exile\s+(?:up to\s+(?:one|1)\s+)?target|deals?\s+\d+\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature|planeswalker)|each\s+creature)|target\s+creature[^.\n]{0,60}gets?\s+-|counter\s+target\s+spell|return\s+(?:up to\s+(?:one|1)\s+)?target\s+[^.\n]+owner'?s hand/i;
+if(KNOWLEDGE_TAGS?.single_removal){
+  KNOWLEDGE_TAGS.single_removal.rx=/destroy\s+(?:up to\s+(?:one|1)\s+)?target|exile\s+(?:up to\s+(?:one|1)\s+)?target|deals?\s+\d+\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature|planeswalker))|target\s+creature[^.\n]{0,60}gets?\s+-|counter\s+target\s+spell/i;
+}
+
+const faceMatchesRoleBaseV073b=faceMatchesRoleV073;
+faceMatchesRoleV073=function(face,role){
+  if(role==='removal'){
+    const o=String(face?.text||'').toLowerCase();
+    return /destroy\s+(?:up to\s+(?:one|1)\s+)?target|exile\s+(?:up to\s+(?:one|1)\s+)?target|deals?\s+\d+\s+damage\s+to\s+(?:up to\s+(?:one|1)\s+)?(?:any\s+target|target\s+(?:creature|planeswalker)|each\s+creature)|(?:destroy|exile)\s+(?:all|each)\s+creatures?|counter\s+target\s+spell|return\s+(?:up to\s+(?:one|1)\s+)?target\s+[^.\n]+owner'?s hand|gets?\s+-[x0-9]+\/-[x0-9]+/.test(o);
+  }
+  return faceMatchesRoleBaseV073b(face,role);
+};
+
+// Effect-first removal quality. Whole-card value is deliberately not allowed to rescue a weak removal face.
+removalQualityV073=function(card,face){
+  const p=removalEffectProfileV073b(card,face),o=p.text,tl=String(face?.type||type(card)||'').toLowerCase();
+  let roleFit=42,reliability=54,flexibility=38,efficiency=efficiencyFromMVV073(p.mv),strengths=[],concerns=[];
+  if(p.broadPermanent){roleFit=98;reliability=94;flexibility+=10;strengths.push('広い種類のパーマネントに対応');}
+  else if(p.creaturePw){roleFit=94;reliability=92;strengths.push('クリーチャー／プレインズウォーカー対応');}
+  else if(p.creature){roleFit=88;reliability=88;strengths.push('確定クリーチャー除去');}
+  else if(p.targetDamage){
+    const d=p.targetDamage;roleFit=d>=5?88:d===4?84:d===3?77:d===2?64:48;reliability=d>=5?84:d===4?81:d===3?74:d===2?62:45;
+    strengths.push(`${d}点の単体火力`);if(/any\s+target/.test(o)){flexibility+=12;strengths.push('任意の対象へ使用可能');}if(/creature\s+or\s+planeswalker/.test(o)){roleFit+=4;reliability+=4;}
+  }
+  else if(p.hardSweep){roleFit=78;reliability=78;strengths.push('全体除去');}
+  else if(p.sweepDamage){
+    const d=p.sweepDamage;roleFit=d>=4?76:d===3?68:d===2?56:34;reliability=d>=4?75:d===3?67:d===2?55:32;strengths.push(`全体${d}点火力`);
+    if(d<=1)concerns.push('1点全体火力は汎用除去として信頼性が低い');else if(d===2)concerns.push('小型クリーチャー中心の全体火力');
+  }
+  else if(p.counter){roleFit=86;reliability=82;strengths.push('スタック上で広く妨害');}
+  else if(p.bounce){roleFit=68;reliability=72;strengths.push('テンポ除去');concerns.push('恒久的な除去ではない');}
+  else if(p.shrink){roleFit=74;reliability=70;strengths.push('タフネス低下による除去');}
+
+  if(/exile\s+/.test(o)&&p.kind!=='sweep'){roleFit+=5;reliability+=4;strengths.push('追放');}
+  if(/\binstant\b/.test(tl)){efficiency+=6;reliability+=5;strengths.push('インスタント速度');}
+  if(/\bsorcery\b/.test(tl)){efficiency-=5;concerns.push('ソーサリー速度');}
+  if(/choose one|choose two|choose up to/.test(o)){flexibility+=18;strengths.push('モード選択');}
+  if(p.limited){roleFit-=12;reliability-=16;concerns.push('対象条件・サイズ制限あり');}
+  if(/as an additional cost[^.\n]{0,100}discard|additional cost[^.\n]{0,100}discard|discard a card or pay \d+ life/.test(o)){efficiency-=9;concerns.push('追加コストあり');}
+  if(/sacrifice [^.\n]{0,45}(?:as an additional cost|to activate)/.test(o)){efficiency-=14;reliability-=8;concerns.push('追加リソースの消費');}
+  if(/only as a sorcery/.test(o)){efficiency-=8;reliability-=6;concerns.push('起動タイミング制限');}
+  if(p.kind==='sweep'&&p.mv>=5){roleFit-=8;reliability-=4;concerns.push('通常の単体除去枠としては重い');}
+  // Secondary roles are useful, but only a small bonus; they cannot override weak removal text.
+  if(cardRoleKeysV070(card).filter(k=>k!=='removal').length){flexibility+=7;strengths.push('副次的な役割も持つ');}
+  return {roleFit:clampV073(roleFit),efficiency:clampV073(efficiency),flexibility:clampV073(flexibility),reliability:clampV073(reliability),strengths:unique(strengths),concerns:unique(concerns),removalProfileV073b:p};
+};
+
+function pairAggregateV073b(cut,add){
+  const ck=learningCardKeyV071(cut),ak=learningCardKeyV071(add);let good=0,bad=0,reasons={};
+  for(const [key,x] of Object.entries(learningEvidenceV071.pairs||{})){
+    const storedCut=String(x?.cut||'').toLowerCase(),storedAdd=String(x?.add||'').toLowerCase(),tail=String(key).split('|').pop()||'',parts=tail.split('>');
+    const keyCut=parts[0]||'',keyAdd=parts.slice(1).join('>');
+    if(!((storedCut===ck&&storedAdd===ak)||(keyCut===ck&&keyAdd===ak)))continue;
+    good+=+x.good||0;bad+=+x.bad||0;for(const [r,n] of Object.entries(x.reasons||{}))reasons[r]=(reasons[r]||0)+(+n||0);
+  }
+  return {good,bad,reasons};
+}
+function candidateObjectiveFeedbackV073b(card,objective){
+  const ak=learningCardKeyV071(card),ok=learningObjectiveKeyV071(objective);let good=0,bad=0,candidateBad=0,reasons={};
+  for(const [key,x] of Object.entries(learningEvidenceV071.pairs||{})){
+    const objectiveKey=String(x?.objective||String(key).split('|')[0]||'').toLowerCase(),storedAdd=String(x?.add||'').toLowerCase(),tail=String(key).split('|').pop()||'',keyAdd=tail.split('>').slice(1).join('>');
+    if(objectiveKey!==ok||!((storedAdd&&storedAdd===ak)||keyAdd===ak))continue;
+    good+=+x.good||0;bad+=+x.bad||0;for(const [r,nRaw] of Object.entries(x.reasons||{})){const n=+nRaw||0;reasons[r]=(reasons[r]||0)+n;if(!['cut_important','synergy_break'].includes(r))candidateBad+=n;}
+    const knownReasonTotal=Object.values(x.reasons||{}).reduce((s,n)=>s+(+n||0),0);candidateBad+=Math.max(0,(+x.bad||0)-knownReasonTotal);
+  }
+  return {good,bad,candidateBad,reasons};
+}
+function hardFeedbackBlockPairV073b(item){
+  const s=pairAggregateV073b(item.cut.card,item.add.card);
+  return s.bad>0&&s.bad>=s.good;
+}
+function hardFeedbackBlockCandidateV073b(card,objective){
+  const s=learningCardSignalV071(card),obj=candidateObjectiveFeedbackV073b(card,objective),specific=learningEvidenceV071.objectives[`${learningObjectiveKeyV071(objective)}|${learningCardKeyV071(card)}`]||{};
+  const good=(s.good||0)+(specific.good||0)+obj.good;
+  if((s.weak||0)>good)return {blocked:true,reason:'過去に「INカードが弱い」と評価'};
+  if((s.roleWrong||0)+(specific.roleWrong||0)>good)return {blocked:true,reason:'過去に「役割が違う」と評価'};
+  if(obj.candidateBad>obj.good)return {blocked:true,reason:'この最優先課題でBad評価済み'};
+  return {blocked:false,reason:''};
+}
+
+const directedCandidateScoreBaseV073b=directedCandidateScoreV070a;
+directedCandidateScoreV070a=function(rec,before,issues){
+  const objective=(issues||[])[0]||primaryObjectiveV070b(before),block=hardFeedbackBlockCandidateV073b(rec?.card,objective);
+  if(block.blocked){if(rec)rec.cautions=unique([...(rec.cautions||[]),block.reason]);return -999;}
+  let score=directedCandidateScoreBaseV073b(rec,before,issues);if(score<=-900)return score;
+  if(objectiveRoleV073(objective)==='removal'){
+    const face=relevantFaceV073(rec.card,'removal'),p=removalEffectProfileV073b(rec.card,face),q=candidateQualityV073(rec.card,before,objective);
+    // Weak mass pings are sideboard/niche tools, not general removal-deficit upgrades.
+    if(p.kind==='sweep'&&p.sweepDamage>0&&p.sweepDamage<=1)return -999;
+    // General removal shortages should strongly prefer cheap, direct interaction.
+    if(p.kind==='spot'&&p.mv<=2)score+=18;else if(p.kind==='spot'&&p.mv===3)score+=8;
+    if(p.kind==='sweep'&&p.mv>=5)score-=30;
+    if(q.axes?.reliability<48||q.axes?.roleFit<50)return -999;
+  }
+  return score;
+};
+
+const buildDirectedSwapsBaseV073b=buildDirectedSwapsV070b;
+buildDirectedSwapsV070b=function(stats,before,mainResolved,recommendations){
+  const objective=primaryObjectiveV070b(before),role=objectiveRoleV073(objective),raw=buildDirectedSwapsBaseV073b(stats,before,mainResolved,recommendations),out=[];
+  for(const item of raw){
+    if(hardFeedbackBlockPairV073b(item))continue;
+    const block=hardFeedbackBlockCandidateV073b(item.add.card,objective);if(block.blocked)continue;
+    if(objective?.kind==='deficit'&&cardFillsObjectiveV073a(item.cut.card,objective,before))continue;
+    if(role==='removal'){
+      const face=relevantFaceV073(item.add.card,'removal'),p=removalEffectProfileV073b(item.add.card,face),q=candidateQualityV073(item.add.card,before,objective);
+      if(p.kind==='sweep'&&p.sweepDamage>0&&p.sweepDamage<=1)continue;
+      if(q.axes.reliability<48||q.axes.roleFit<50)continue;
+      item.removalProfileV073b=p;
+      if(p.kind==='spot'&&p.mv<=2)item.pairScore=(+item.pairScore||0)+22;
+      else if(p.kind==='spot'&&p.mv===3)item.pairScore=(+item.pairScore||0)+10;
+      else if(p.kind==='sweep'&&p.mv>=5)item.pairScore=(+item.pairScore||0)-34;
+    }
+    out.push(item);
+  }
+  return out.sort((a,b)=>{
+    if(role==='removal'){
+      const ar=a.removalProfileV073b,br=b.removalProfileV073b;
+      const aSpot=ar?.kind==='spot'?1:0,bSpot=br?.kind==='spot'?1:0;if(aSpot!==bSpot)return bSpot-aSpot;
+      const am=ar?.mv??99,bm=br?.mv??99;if(aSpot&&bSpot&&am!==bm)return am-bm;
+    }
+    return (b.candidateQualityV073?.score||0)-(a.candidateQualityV073?.score||0)||(+b.pairScore||0)-(+a.pairScore||0)||(+b.deltaFoundation||0)-(+a.deltaFoundation||0);
+  });
+};
+
+// Recalculate immediately after feedback; cache + proposal list must observe the new hard gate.
+const recordProposalFeedbackBaseV073b=recordProposalFeedbackV071;
+recordProposalFeedbackV071=function(item,verdict,reason='other',source='optimizer'){
+  const r=recordProposalFeedbackBaseV073b(item,verdict,reason,source);clearCandidateQualityCacheV073();return r;
+};
+const refreshAfterLearningBaseV073b=refreshAfterLearningV071;
+refreshAfterLearningV071=function(message){
+  clearCandidateQualityCacheV073();
+  const r=refreshAfterLearningBaseV073b(message);
+  // The normal refresh is debounced; one more render after the debounce prevents stale proposal cards from remaining visible.
+  setTimeout(()=>{if(deck?.length){renderSwapRecommendationsV055();renderDeckOptimizerV070();}},140);
+  return r;
+};
+
+clearCandidateQualityCacheV073();
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3b';
+if($('status'))$('status').textContent='v0.7.3b：Candidate QualityとBad学習を修正。除去面そのものの品質を優先し、弱い全体火力・重い全体除去を抑制、Bad済み提案／候補の再表示をハードブロックします。';

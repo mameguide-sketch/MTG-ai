@@ -1,6 +1,16 @@
-# v0.7.3 Candidate Quality Engine チェック
+## v0.7.3b 重点確認
+- [ ] 「噴出の稲妻」が除去／妨害としてカウントされる
+- [ ] 「すべきでない悪ふざけ」の `up to one target creature or planeswalker` 3点火力が単体除去として認識される
+- [ ] `Glóin the Mighty // Easy Pickings` の1点全体火力が汎用除去候補から除外される
+- [ ] 「ソジンの台頭 // 火の王ソジン」の6マナ全体除去が、1～2マナ単体除去より上位になりにくい
+- [ ] 「報いの呪詛」「苦々しい勝利」「すべきでない悪ふざけ」など低コスト単体除去が上位候補になりやすい
+- [ ] 一度Badにした同一OUT→IN提案が、最優先課題表現が変わっても再表示されない
+- [ ] `OUTカードが重要` / `シナジーを壊す` 以外のBadでは、同じ課題のIN候補自体が再浮上しない
+- [ ] Bad直後、画面上に古い提案が残らず再計算される
 
-- [ ] 画面上部のバージョンが v0.7.3
+# v0.7.3a Candidate Quality Engine チェック
+
+- [ ] 画面上部のバージョンが v0.7.3a
 - [ ] 入れ替え提案に Candidate Quality 0–100 / グレードが表示される
 - [ ] Candidate Qualityに「役割適合 / 効率 / 柔軟性 / 信頼性 / デッキ適合 / Evidence」の6軸が表示される
 - [ ] デッキ最適化案の各INカードにもCandidate Qualityが表示される
@@ -22,7 +32,7 @@
 - [ ] 通常土地がRamp扱いにならない
 - [ ] Rule Engine、Consistency、Game Plan、Recommendation Decisionが従来どおり動く
 
-## v0.7.3でまだ対象外
+## v0.7.3aでまだ対象外
 - [ ] 実戦勝率を直接学習するモデル
 - [ ] matchup別Candidate Quality
 - [ ] 自動取得した大規模メタデータによる継続再学習

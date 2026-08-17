@@ -1,8 +1,20 @@
-# Lunch Forge v0.7.3
+# Lunch Forge v0.7.3b
+
+
+## v0.7.3b hotfix
+
+- 除去Candidate Qualityをカード全体ではなく、実際に除去として使う面・モード中心で評価
+- `up to one target creature or planeswalker` 型の火力を単体除去として認識
+- 1点全体火力など、汎用除去として信頼性が低い効果を除去不足の候補から除外
+- 5マナ以上の全体除去を通常の単体除去候補より強く抑制
+- 1～2マナの直接的な単体除去を除去不足時に優先
+- Bad済みの同一OUT→INを、最優先課題キーが変わっても再表示しない
+- `OUTカードが重要` / `シナジーを壊す` 以外のBadは、同じ最優先課題でIN候補自体をハードブロック
+- Bad直後にCandidate Qualityキャッシュと提案表示を再計算
 
 ## Candidate Quality Engine
 
-v0.7.3では「最優先課題に合うカード」を見つけた後、その中で**実際の効果品質が高い候補を優先する層**を追加します。役割タグが同じだけでは同格にせず、カード本文の対象範囲・速度・条件・コスト・柔軟性と、現在のデッキ文脈・User Evidence・Adoption Evidenceを分離して評価します。
+v0.7.3系では「最優先課題に合うカード」を見つけた後、その中で**実際の効果品質が高い候補を優先する層**を追加します。役割タグが同じだけでは同格にせず、カード本文の対象範囲・速度・条件・コスト・柔軟性と、現在のデッキ文脈・User Evidence・Adoption Evidenceを分離して評価します。
 
 ### Candidate Quality 0–100
 - **役割適合**: 最優先課題へどれだけ直接答えるか
@@ -196,3 +208,7 @@ Recommendation scoreは勝率ではありません。対戦相手、メタゲー
 ## v0.7.2a Deck Analysis Navigation
 
 デッキ分析ページの情報量増加に対応するため、分析結果は従来どおり縦に保持したまま、上部の固定ナビから各セクションへ直接移動できます。現在表示しているセクションはスクロール位置から自動判定して強調します。モバイルではナビ列のみ横スクロールできます。
+
+
+### v0.7.3a hotfix
+Removal parser now recognizes modern `any target` damage wording. Deficit optimization preserves existing cards that already fill the shortage, and explicit Bad feedback is enforced as a hard block for repeated pair/candidate proposals.
