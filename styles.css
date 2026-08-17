@@ -284,3 +284,9 @@ main{max-width:1500px;margin:auto;padding:0 18px 40px}.view{display:none}.view.o
 .qualityLaneBadgeV073c{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;padding:9px 11px;border:1px solid rgba(120,170,255,.24);border-radius:10px;background:rgba(80,130,220,.08)}
 .qualityLaneBadgeV073c b{font-size:12px;letter-spacing:.04em}
 .qualityLaneBadgeV073c span{font-size:12px;opacity:.78}
+
+/* v0.7.3d objective policy / optimization lane */
+.policyLaneBadgeV073d,.objectivePolicyBadgeV073d{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:10px 0;background:rgba(255,255,255,.035)}
+.policyLaneBadgeV073d b,.objectivePolicyBadgeV073d b{font-size:.86rem}.policyLaneBadgeV073d span,.objectivePolicyBadgeV073d span{font-size:.76rem;color:var(--muted)}
+.policyLaneBadgeV073d.objective{border-color:rgba(255,184,77,.42)}.policyLaneBadgeV073d.quality{border-color:rgba(102,187,255,.42)}.policyLaneBadgeV073d.monitor{border-color:rgba(170,170,190,.38)}.policyLaneBadgeV073d.optimization{border-style:dashed}
+.objectivePolicyBadgeV073d{margin:0;min-width:180px;flex-direction:column;align-items:flex-start;justify-content:center}

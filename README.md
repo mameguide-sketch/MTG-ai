@@ -222,3 +222,12 @@ Recommendation scoreは勝率ではありません。対戦相手、メタゲー
 
 ### v0.7.3a hotfix
 Removal parser now recognizes modern `any target` damage wording. Deficit optimization preserves existing cards that already fill the shortage, and explicit Bad feedback is enforced as a hard block for repeated pair/candidate proposals.
+
+### v0.7.3d: 入れ替え提案の課題ポリシー
+Deck Optimization / 入れ替え提案では、診断課題の重大度によって候補探索方法を切り替えます。
+- **優先 (Hard)**: 最優先課題を実際に改善する交換だけを表示します。
+- **注意 (Soft)**: 最優先課題の改善を優先しますが、安全な同役割Candidate Quality改善も表示対象にします。
+- **監視 (Monitor)**: 課題は参考情報として扱い、明確なFoundation改善またはCQ改善がある交換を表示します。
+- **問題なし (Quality Optimization)**: 無理に交換せず、同役割でCandidate Qualityが明確に上がり、Foundationを悪化させない場合だけ任意提案します。
+
+Bad学習はすべてのレーンで維持されます。OUT→INペアのBadに加え、INカード自体の弱さ／役割違いとして評価された候補は、別課題の品質改善レーンにも再浮上しないよう制御します。

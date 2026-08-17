@@ -4887,3 +4887,237 @@ renderSwapRecommendationsV055=function(){
 clearCandidateQualityCacheV073();
 if($('versionBadge'))$('versionBadge').textContent='v0.7.3c';
 if($('status'))$('status').textContent='v0.7.3c：除去不足の「枚数改善」と「品質改善」を分離。除去→除去でもCandidate Qualityが改善する交換は比較候補として残し、Bad済み候補と弱い1点全体火力は引き続き除外します。';
+
+/* Priority policy + cross-objective quality optimization hotfix v0.7.3d
+   Policy:
+   - priority >= 90: HARD. The primary issue is a mandatory gate.
+   - priority 70..89: SOFT. Primary-issue fixes rank first, but safe same-role CQ upgrades remain eligible.
+   - priority 1..69: MONITOR. No hard gate; only meaningful objective/foundation/CQ improvements are shown.
+   - no issue: QUALITY OPTIMIZATION. Only safe same-role CQ upgrades with a clear quality gain are shown.
+*/
+const APP_VERSION_V073D='0.7.3d';
+
+function objectivePolicyV073d(before){
+  const issues=optimizationIssuesV070(before),objective=issues[0]||null,p=+objective?.priority||0;
+  if(p>=90)return {mode:'hard',label:'優先＝Hard',objective,issues,priority:p};
+  if(p>=70)return {mode:'soft',label:'注意＝Soft',objective,issues,priority:p};
+  if(p>0)return {mode:'monitor',label:'監視＝Monitor',objective,issues,priority:p};
+  return {mode:'quality',label:'問題なし＝Quality Optimization',objective:null,issues,priority:0};
+}
+function syntheticRoleObjectiveV073d(role){return {kind:'deficit',key:role,label:`${dependencyLabelV070(role)}の品質`,priority:0};}
+function sharedRoleForPairV073d(cutCard,addCard){
+  const a=cardRoleKeysV070(cutCard),b=new Set(cardRoleKeysV070(addCard));
+  return ['removal','draw','ramp','protection','finisher'].find(r=>a.includes(r)&&b.has(r))||null;
+}
+function candidateGloballyRejectedV073d(card){
+  const ak=learningCardKeyV071(card),signal=learningCardSignalV071(card);let good=+signal.good||0,candidateBad=(+signal.weak||0)+(+signal.roleWrong||0);
+  for(const [key,x] of Object.entries(learningEvidenceV071.pairs||{})){
+    const storedAdd=String(x?.add||'').toLowerCase(),tail=String(key).split('|').pop()||'',keyAdd=tail.split('>').slice(1).join('>');
+    if(!((storedAdd&&storedAdd===ak)||keyAdd===ak))continue;
+    good+=+x.good||0;let explained=0;
+    for(const [reason,nRaw] of Object.entries(x.reasons||{})){
+      const n=+nRaw||0;explained+=n;if(!['cut_important','synergy_break'].includes(reason))candidateBad+=n;
+    }
+    candidateBad+=Math.max(0,(+x.bad||0)-explained);
+  }
+  return candidateBad>0&&candidateBad>=Math.max(1,good);
+}
+function proposalBlockedV073d(item,objective){
+  if(!item?.add?.card||!item?.cut?.card)return true;
+  if(hardFeedbackBlockPairV073b(item))return true;
+  if(candidateGloballyRejectedV073d(item.add.card))return true;
+  if(objective&&hardFeedbackBlockCandidateV073b(item.add.card,objective).blocked)return true;
+  return false;
+}
+function pairQualityInfoV073d(item,before,fallbackObjective=null){
+  const role=sharedRoleForPairV073d(item.cut.card,item.add.card);
+  const objective=role?syntheticRoleObjectiveV073d(role):fallbackObjective;
+  if(!objective)return {role:null,gain:0,add:null,cut:null};
+  const add=candidateQualityV073(item.add.card,before,objective),cut=candidateQualityV073(item.cut.card,before,objective);
+  return {role:role||objectiveRoleV073(objective),gain:Math.round((add.score-cut.score)*10)/10,add,cut,objective};
+}
+function annotatePolicyProposalV073d(item,before,policy,lane){
+  const q=pairQualityInfoV073d(item,before,policy.objective),progress=policy.objective?objectiveProgressV070b(before,item.foundationAfter||before,policy.objective):null;
+  item.policyModeV073d=policy.mode;item.policyLabelV073d=policy.label;item.policyLaneV073d=lane;
+  item.pairQualityV073d=q;item.qualityGainV073d=q.gain;
+  if(q.add)item.candidateQualityV073=q.add;
+  if(progress)item.objectiveProgressSoftV073d=progress;
+  const laneText=lane==='objective'?'注意課題を改善（Soft）':lane==='quality'?'同役割の品質改善':lane==='monitor'?'監視項目を参考に改善':'品質最適化';
+  item.balanceNotes=unique([...(item.balanceNotes||[]),laneText,q.role&&q.gain>0?`${dependencyLabelV070(q.role)} CQ ${q.cut?.score??'-'} → ${q.add?.score??'-'}（+${q.gain}）`:null]);
+  return item;
+}
+function uniqueProposalsV073d(items,limit=6){
+  const out=[],seenPairs=new Set(),seenAdds=new Set();
+  for(const item of items){
+    const pk=`${cardKeyV056(item.cut.card)}>${cardKeyV056(item.add.card)}`,ak=cardKeyV056(item.add.card);
+    if(seenPairs.has(pk)||seenAdds.has(ak))continue;seenPairs.add(pk);seenAdds.add(ak);out.push(item);if(out.length>=limit)break;
+  }
+  return out;
+}
+
+function buildRoleQualitySwapsV073d(stats,before,mainResolved,recommendations,policy){
+  if(policy.mode==='hard')return [];
+  const present=new Set((mainResolved||[]).map(e=>e.card?.oracle_id||e.card?.name)),cutsByRole=new Map();
+  for(const entry of mainResolved||[]){
+    if(!entry?.card||isLandCardV0610(entry.card)||isUserCoreV071(entry.card))continue;
+    const dep=cardDependencyV070(entry,before,deck);if(dep?.verified||dep?.level==='high')continue;
+    const cut=cutCandidateV055(entry,stats,before.profile);if(!cut)continue;cut.cutDependencyV070=dep;
+    for(const role of cardRoleKeysV070(entry.card)){
+      if(!['removal','draw','ramp','protection','finisher'].includes(role))continue;
+      const objective=syntheticRoleObjectiveV073d(role),q=candidateQualityV073(entry.card,before,objective);
+      const arr=cutsByRole.get(role)||[];arr.push({cut,q,objective});cutsByRole.set(role,arr);
+    }
+  }
+  if(!cutsByRole.size)return [];
+  for(const arr of cutsByRole.values())arr.sort((a,b)=>a.q.score-b.q.score);
+
+  const recMap=new Map();
+  const addRec=card=>{
+    if(!card||present.has(card.oracle_id||card.name)||!recommendationAllowedV056(card)||candidateGloballyRejectedV073d(card))return;
+    const key=card.oracle_id||card.name;if(recMap.has(key))return;
+    const rec=(recommendations||[]).find(x=>(x.card?.oracle_id||x.card?.name)===key)||scoreCard(card,stats,$('strategy')?.value||'balanced',mainResolved||[]);
+    recMap.set(key,rec);
+  };
+  (recommendations||[]).slice(0,420).forEach(x=>addRec(x.card));
+  // Direct role discovery prevents a healthy deck from depending only on generic recommendation score.
+  for(const card of pool){
+    if(recMap.size>=900)break;
+    const roles=cardRoleKeysV070(card);if(roles.some(r=>cutsByRole.has(r)))addRec(card);
+  }
+
+  const bestByRole=new Map();
+  for(const [role,cuts] of cutsByRole){
+    const objective=syntheticRoleObjectiveV073d(role),arr=[];
+    for(const rec of recMap.values()){
+      if(!cardRoleKeysV070(rec.card).includes(role))continue;
+      if(hardFeedbackBlockCandidateV073b(rec.card,objective).blocked||candidateGloballyRejectedV073d(rec.card))continue;
+      const q=candidateQualityV073(rec.card,before,objective);if(q.score<58)continue;
+      if(q.colorInfo?.outside?.length)continue;
+      if(role==='removal'){
+        const p=removalEffectProfileV073b(rec.card,relevantFaceV073(rec.card,'removal'));
+        if(p.kind==='sweep'&&p.sweepDamage>0&&p.sweepDamage<=1)continue;
+        if(q.axes.roleFit<50||q.axes.reliability<48)continue;
+      }
+      arr.push({rec,q});
+    }
+    arr.sort((a,b)=>b.q.score-a.q.score||(+b.rec.score||0)-(+a.rec.score||0));bestByRole.set(role,arr.slice(0,18));
+  }
+
+  const proposals=[];
+  for(const [role,cuts] of cutsByRole){
+    const adds=bestByRole.get(role)||[],minGain=policy.mode==='quality'?7:policy.mode==='monitor'?6:5;
+    for(const {cut, q:cutQ, objective} of cuts.slice(0,12))for(const {rec,q:addQ} of adds){
+      if(cardKeyV056(cut.card)===cardKeyV056(rec.card))continue;
+      const gain=Math.round((addQ.score-cutQ.score)*10)/10;if(gain<minGain)continue;
+      const existing=countCardInDeckV056(rec.card),legalMax=isBasicLandV055(rec.card)?1:Math.max(0,4-existing);if(legalMax<1)continue;
+      const qty=1,simulated=simulateSwapEntriesV055(deck,cut.card,rec.card,qty),after=deckFoundationModelV0610(simulated),delta=after.score-before.score;
+      if(policy.mode==='quality'&&delta<0)continue;
+      if(policy.mode!=='quality'&&delta<-4)continue;
+      const newDeficits=(after.deficits||[]).filter(d=>!(before.deficits||[]).some(b=>b.key===d.key));if(newDeficits.length&&delta<6)continue;
+      const item={add:rec,cut,qty,pairScore:gain*14+delta*5+(addQ.score-60)*2,afterStats:after.stats,afterProfile:after.profile,deltaEngine:(after.profile.engineScore||0)-(before.profile.engineScore||0),deltaConnections:(after.profile.connections?.length||0)-(before.profile.connections?.length||0),deltaGaps:(before.profile.gaps?.length||0)-(after.profile.gaps?.length||0),landDelta:(after.stats.lands||0)-(before.stats.lands||0),foundationBefore:before,foundationAfter:after,deltaFoundation:delta,balanceNotes:[`${dependencyLabelV070(role)}のCandidate Qualityを改善`,`CQ ${cutQ.score}/100 → ${addQ.score}/100`,`デッキ全体評価 ${before.score} → ${after.score}`],cutDependencyV070:cut.cutDependencyV070,candidateQualityV073:addQ,qualityUpgradeV073d:true,qualityGainV073d:gain,qualityBeforeV073d:cutQ.score,qualityAfterV073d:addQ.score,qualityRoleV073d:role};
+      if(proposalBlockedV073d(item,policy.objective))continue;annotatePolicyProposalV073d(item,before,policy,policy.mode==='quality'?'optimization':'quality');proposals.push(item);
+    }
+  }
+  proposals.sort((a,b)=>(b.qualityGainV073d||0)-(a.qualityGainV073d||0)||(+b.deltaFoundation||0)-(+a.deltaFoundation||0)||(+b.pairScore||0)-(+a.pairScore||0));
+  return uniqueProposalsV073d(proposals,8);
+}
+
+const buildSwapRecommendationsBaseV073d=buildSwapRecommendationsV055;
+buildSwapRecommendationsV055=function(stats,profile,recommendations,mainResolved){
+  const before=deckFoundationModelV0610(deck),policy=objectivePolicyV073d(before);
+  if(policy.mode==='hard'){
+    return buildSwapRecommendationsBaseV073d(stats,profile,recommendations,mainResolved).filter(x=>!proposalBlockedV073d(x,policy.objective)).slice(0,6);
+  }
+  const strict=buildSwapRecommendationsBaseV073d(stats,profile,recommendations,mainResolved).filter(x=>!proposalBlockedV073d(x,policy.objective));
+  const exploratory=buildSwapRecommendationsBaseV070b(stats,profile,recommendations,mainResolved).filter(x=>!proposalBlockedV073d(x,policy.objective));
+  const quality=buildRoleQualitySwapsV073d(stats,before,mainResolved,recommendations,policy);
+  const ranked=[];
+  for(const item of strict){
+    const progress=policy.objective?objectiveProgressV070b(before,item.foundationAfter||before,policy.objective):null;
+    if(progress?.gain>0)ranked.push(annotatePolicyProposalV073d(item,before,policy,'objective'));
+    else if(item.qualityUpgradeV073c||item.qualityUpgradeV073d)ranked.push(annotatePolicyProposalV073d(item,before,policy,policy.mode==='quality'?'optimization':'quality'));
+  }
+  for(const item of exploratory){
+    const progress=policy.objective?objectiveProgressV070b(before,item.foundationAfter||before,policy.objective):null,q=pairQualityInfoV073d(item,before,policy.objective);
+    if(policy.mode==='soft'){
+      if(progress?.gain>0)ranked.push(annotatePolicyProposalV073d(item,before,policy,'objective'));
+      else if(q.gain>=5&&(+item.deltaFoundation||0)>=0)ranked.push(annotatePolicyProposalV073d(item,before,policy,'quality'));
+      else if((+item.deltaFoundation||0)>=4)ranked.push(annotatePolicyProposalV073d(item,before,policy,'quality'));
+    }else if(policy.mode==='monitor'){
+      if(progress?.gain>0||q.gain>=6||(+item.deltaFoundation||0)>=4)ranked.push(annotatePolicyProposalV073d(item,before,policy,'monitor'));
+    }else if(policy.mode==='quality'){
+      if(q.role&&q.gain>=7&&(+item.deltaFoundation||0)>=0)ranked.push(annotatePolicyProposalV073d(item,before,policy,'optimization'));
+    }
+  }
+  ranked.push(...quality);
+  const laneRank=x=>x.policyLaneV073d==='objective'?4:x.policyLaneV073d==='quality'?3:x.policyLaneV073d==='monitor'?2:1;
+  ranked.sort((a,b)=>laneRank(b)-laneRank(a)||(b.objectiveProgressSoftV073d?.gain||0)-(a.objectiveProgressSoftV073d?.gain||0)||(b.qualityGainV073d||b.qualityGainV073c||0)-(a.qualityGainV073d||a.qualityGainV073c||0)||(+b.deltaFoundation||0)-(+a.deltaFoundation||0)||(+b.pairScore||0)-(+a.pairScore||0));
+  return uniqueProposalsV073d(ranked,6);
+};
+
+// Build optimizer plans from the already policy-filtered swap list instead of re-imposing the old strict primary-objective gate.
+buildOptimizationPlansV070=function(before){
+  const policy=objectivePolicyV073d(before),maxChanges=Math.max(1,+swapSettingsV056.maxChanges||2),source=(currentSwapRecommendationsV055||[]).slice(0,8),plans=[],seen=new Set();
+  function add(items){
+    const sig=items.map(x=>`${x.cut.card.oracle_id||x.cut.card.name}>${x.add.card.oracle_id||x.add.card.name}:${x.qty}`).sort().join('|');if(seen.has(sig))return;seen.add(sig);
+    let entries=deck;for(const item of items){entries=applyProposalEntriesV070(entries,item);if(!entries)return;}
+    const after=deckFoundationModelV0610(entries),changes=items.reduce((s,x)=>s+(+x.qty||0),0),delta=after.score-before.score;
+    const qualityGain=items.reduce((s,x)=>s+(+x.qualityGainV073d||+x.qualityGainV073c||0),0),progress=policy.objective?objectiveProgressV070b(before,after,policy.objective):null;
+    if(policy.mode==='hard'&&(!progress||progress.gain<=0))return;
+    if(policy.mode==='soft'&&(!progress?.gain)&&qualityGain<5&&delta<4)return;
+    if(policy.mode==='monitor'&&(!progress?.gain)&&qualityGain<6&&delta<4)return;
+    if(policy.mode==='quality'&&(qualityGain<7||delta<0))return;
+    const newDeficits=(after.deficits||[]).filter(d=>!(before.deficits||[]).some(b=>b.key===d.key));if(newDeficits.length&&delta<7)return;
+    const reasons=unique([progress?.gain>0?`${policy.objective.label}を改善：${objectiveProgressTextV070b(progress)}`:null,qualityGain>0?`Candidate Quality改善 +${Math.round(qualityGain*10)/10}`:null,delta>0?`デッキ全体評価 +${delta}`:null,...items.flatMap(x=>x.balanceNotes||[])]);
+    const concerns=[];if(delta<0)concerns.push(`デッキ全体評価 ${delta}`);if(newDeficits.length)concerns.push(`新しい不足：${newDeficits.map(x=>x.label).join('・')}`);
+    plans.push({items,entries,before,after,changes,delta,reasons,concerns,score:(progress?.gain||0)*120+qualityGain*15+delta*8,primaryObjectiveV070b:policy.objective,objectiveProgressV070b:progress,policyModeV073d:policy.mode,qualityUpgradeV073d:qualityGain>0});
+  }
+  source.forEach(x=>{if((+x.qty||1)<=maxChanges)add([x]);});
+  for(let i=0;i<source.length;i++)for(let j=i+1;j<source.length;j++){const g=[source[i],source[j]];if(g.reduce((s,x)=>s+(+x.qty||1),0)<=maxChanges)add(g);}
+  return plans.sort((a,b)=>b.score-a.score||b.delta-a.delta).slice(0,3);
+};
+
+const renderSwapRecommendationsBaseV073d=renderSwapRecommendationsV055;
+renderSwapRecommendationsV055=function(){
+  renderSwapRecommendationsBaseV073d();const root=$('swapRecommendations');if(!root)return;
+  const before=deck?.length?deckFoundationModelV0610(deck):null,policy=before?objectivePolicyV073d(before):null;
+  if(!currentSwapRecommendationsV055.length){
+    const msg=policy?.mode==='hard'?'優先課題を安全に改善できる入れ替えは見つかりませんでした。無理な交換は提案しません。':policy?.mode==='soft'?'注意課題はありますが、安全な課題改善／品質改善案は見つかりませんでした。現状維持も妥当です。':policy?.mode==='monitor'?'監視項目はありますが、明確な改善幅を持つ交換は見つかりませんでした。現状維持を推奨します。':'現在の構成に明確なCandidate Quality改善候補はありません。現状維持を推奨します。';
+    root.innerHTML=`<div class="empty">${msg}</div>`;renderSwapCompareV056();return;
+  }
+  [...root.querySelectorAll('.swapProposal')].forEach((article,index)=>{
+    const item=currentSwapRecommendationsV055[index];if(!item||article.querySelector('.policyLaneBadgeV073d'))return;
+    const lane=item.policyLaneV073d||'objective',label=lane==='objective'?'課題改善':lane==='quality'?'品質改善':lane==='monitor'?'監視＋改善':'任意最適化';
+    const detail=item.qualityGainV073d>0?`CQ +${item.qualityGainV073d}`:(item.objectiveProgressSoftV073d?.gain>0?`${item.objectiveProgressSoftV073d.label}を改善`:item.policyLabelV073d||'');
+    const target=article.querySelector('.candidateQualityV073')||article.querySelector('.learningFeedbackV071')||article.querySelector('.swapActions');
+    if(target)target.insertAdjacentHTML('beforebegin',`<div class="policyLaneBadgeV073d ${lane}"><b>${label}</b><span>${esc(detail)}</span></div>`);
+  });
+};
+
+const renderSwapCompareBaseV073d=renderSwapCompareV056;
+renderSwapCompareV056=function(){
+  renderSwapCompareBaseV073d();const root=$('swapCompareV056');if(!root||currentSwapRecommendationsV055.length)return;
+  const before=deck?.length?deckFoundationModelV0610(deck):null,policy=before?objectivePolicyV073d(before):null;
+  if(policy?.mode==='quality')root.innerHTML='<div class="empty">明確に品質が上がる交換はありません。現状維持を推奨します。</div>';
+  else if(policy?.mode==='soft')root.innerHTML='<div class="empty">注意課題はありますが、安全な改善案はありません。現状維持も妥当です。</div>';
+  else if(policy?.mode==='monitor')root.innerHTML='<div class="empty">監視項目はありますが、交換するほどの改善幅はありません。</div>';
+};
+
+const buildDeckOptimizationBaseV073d=buildDeckOptimizationV070;
+buildDeckOptimizationV070=function(){
+  const m=buildDeckOptimizationBaseV073d();if(!m)return m;const p=objectivePolicyV073d(m.before);m.policyModeV073d=p.mode;m.objectivePolicyLabelV073d=p.label;
+  if(p.mode==='quality')m.objective={label:'明確な不足なし',detail:'同役割のCandidate Qualityが明確に上がる場合のみ任意提案',priority:0};
+  else if(p.mode==='soft')m.objective={...m.objective,detail:`${m.objective.detail||''}・Soft：この課題を優先するが、品質改善も許可`};
+  else if(p.mode==='monitor')m.objective={...m.objective,detail:`${m.objective.detail||''}・Monitor：ハード条件にはしない`};
+  return m;
+};
+
+const renderDeckOptimizerBaseV073d=renderDeckOptimizerV070;
+renderDeckOptimizerV070=function(){
+  renderDeckOptimizerBaseV073d();const root=$('deckOptimizerV070');if(!root||!currentDeckOptimizationV070)return;
+  const summary=root.querySelector('.optimizerSummaryV070');if(summary&&!summary.querySelector('.objectivePolicyBadgeV073d'))summary.insertAdjacentHTML('afterbegin',`<div class="objectivePolicyBadgeV073d"><span>課題ポリシー</span><b>${esc(currentDeckOptimizationV070.objectivePolicyLabelV073d||'')}</b></div>`);
+};
+
+clearCandidateQualityCacheV073();
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3d';
+if($('status'))$('status').textContent='v0.7.3d：優先=Hard／注意=Soft／監視=Monitor／問題なし=Quality Optimization。注意以下では最優先課題をハードゲートにせず、同役割のCandidate Quality改善も探索します。';
