@@ -5121,3 +5121,85 @@ renderDeckOptimizerV070=function(){
 clearCandidateQualityCacheV073();
 if($('versionBadge'))$('versionBadge').textContent='v0.7.3d';
 if($('status'))$('status').textContent='v0.7.3d：優先=Hard／注意=Soft／監視=Monitor／問題なし=Quality Optimization。注意以下では最優先課題をハードゲートにせず、同役割のCandidate Quality改善も探索します。';
+
+/* Feedback refresh performance hotfix v0.7.3e
+   - GOOD/BAD previously entered the v0.7.1 refresh path, then v0.7.0 scheduled
+     an optimizer rebuild, while v0.7.3b scheduled another proposal + optimizer
+     render. The same feedback could therefore rebuild the optimizer twice.
+   - Give immediate save feedback, yield one frame so the UI can paint, then do
+     exactly one Swap Planner rebuild and one Optimizer rebuild.
+   - Keep all existing Good/Bad/Core evidence semantics and hard blocks. */
+const APP_VERSION_V073E='0.7.3e';
+let learningRefreshTimerV073e=0;
+let learningRefreshRafV073e=0;
+const learningTouchedCardsV073e=new Set();
+
+const recordProposalFeedbackBaseV073e=recordProposalFeedbackV071;
+recordProposalFeedbackV071=function(item,verdict,reason='other',source='optimizer'){
+  const addCard=item?.add?.card||null;
+  const result=recordProposalFeedbackBaseV073e(item,verdict,reason,source);
+  if(addCard)learningTouchedCardsV073e.add(learningCardKeyV071(addCard));
+  return result;
+};
+
+function refreshLearningRecommendationsNowV073e(){
+  learningRefreshTimerV073e=0;
+  if(!deck?.length||!currentDeckKnowledgeV054){
+    renderLearningEvidenceV071();
+    return;
+  }
+  const started=(globalThis.performance&&performance.now)?performance.now():Date.now();
+  clearCandidateQualityCacheV073();
+  readSwapControlsV056();
+  const mainResolved=deck.filter(x=>!x.side&&x.card),stats=deckStats(deck);
+
+  // Only the cards explicitly touched by the latest feedback need their stored
+  // Candidate Quality object refreshed before the proposal builders run.
+  if(learningTouchedCardsV073e.size&&Array.isArray(recs)){
+    const before=deckFoundationModelV0610(deck),objective=primaryObjectiveV070b(before);
+    for(const rec of recs){
+      if(learningTouchedCardsV073e.has(learningCardKeyV071(rec.card))){
+        rec.candidateQualityV073=candidateQualityV073(rec.card,before,objective);
+      }
+    }
+  }
+  learningTouchedCardsV073e.clear();
+
+  currentSwapRecommendationsV055=buildSwapRecommendationsV055(stats,currentDeckKnowledgeV054,recs,mainResolved);
+  renderSwapRecommendationsV055();
+  renderSwapLockListV056(mainResolved);
+  const allowed=recs.filter(x=>recommendationAllowedV056(x.card)).length;
+  if($('swapControlStatusV056'))$('swapControlStatusV056').textContent=`${policyLabelV056()}・最大${swapSettingsV056.maxChanges}枚・追加候補${allowed.toLocaleString()}件から、${currentSwapRecommendationsV055.length}案を作成しました。`;
+
+  // One optimizer rebuild only. Do not call refreshSwapPlannerV056 here because
+  // its historical wrappers schedule an additional optimizer rebuild.
+  renderDeckOptimizerV070();
+  bindDeckOptimizerV070();
+  renderLearningEvidenceV071();
+
+  const ended=(globalThis.performance&&performance.now)?performance.now():Date.now();
+  console.debug(`[Lunch Forge ${APP_VERSION_V073E}] feedback refresh ${Math.round(ended-started)}ms`);
+}
+
+refreshAfterLearningV071=function(message){
+  // The evidence is already persisted by recordProposalFeedbackV071 / Core
+  // handlers. Confirm that immediately, before any expensive recomputation.
+  if(message)toast(message);
+
+  clearTimeout(learningRefreshTimerV073e);
+  if(learningRefreshRafV073e&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(learningRefreshRafV073e);
+
+  if(!deck?.length){
+    renderLearningEvidenceV071();
+    return;
+  }
+  const schedule=()=>{
+    learningRefreshRafV073e=0;
+    learningRefreshTimerV073e=setTimeout(refreshLearningRecommendationsNowV073e,0);
+  };
+  if(typeof requestAnimationFrame==='function')learningRefreshRafV073e=requestAnimationFrame(schedule);
+  else learningRefreshTimerV073e=setTimeout(refreshLearningRecommendationsNowV073e,0);
+};
+
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3e';
+if($('status'))$('status').textContent='v0.7.3e：GOOD/BAD学習後の再計算を高速化。保存結果を即時表示し、Swap PlannerとOptimizerの重複再計算を1回ずつに統合しました。';

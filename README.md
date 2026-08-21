@@ -231,3 +231,12 @@ Deck Optimization / 入れ替え提案では、診断課題の重大度によっ
 - **問題なし (Quality Optimization)**: 無理に交換せず、同役割でCandidate Qualityが明確に上がり、Foundationを悪化させない場合だけ任意提案します。
 
 Bad学習はすべてのレーンで維持されます。OUT→INペアのBadに加え、INカード自体の弱さ／役割違いとして評価された候補は、別課題の品質改善レーンにも再浮上しないよう制御します。
+
+
+### v0.7.3e: GOOD/BAD学習後の応答高速化
+- GOOD/BAD直後の保存確認を先に表示し、UIの体感待ち時間を短縮
+- Swap Planner再計算を1回に統合
+- Deck Optimizerの重複再計算を廃止し、1回だけ実行
+- 学習パネルの重複再描画を廃止
+- Good / Bad / Core / Candidate Quality / Badハードブロックの意味は変更なし
+- 開発者コンソールに feedback refresh の実測時間(ms)を出力

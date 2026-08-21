@@ -4,9 +4,9 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>Lunch Forge | MTG Deck Intelligence</title>
-<link href="styles.css?v=0.7.3c" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
+<link href="styles.css?v=0.7.3e" rel="stylesheet"/><meta content="#080d18" name="theme-color"/></head>
 <body>
-<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.7.3d</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
+<header><div class="head"><div class="brand" aria-label="Lunch Forge logo">LF</div><div><div class="titleline"><h1>Lunch Forge</h1><span class="versionBadge">v0.7.3e</span></div><p>カードとデッキを鍛え、スタンダード全体から相性の良い候補を探す分析ツール</p></div></div></header>
 <nav aria-label="主要機能"><button class="tab on" data-view="analyzer">デッキ分析</button><button class="tab" data-view="database">カード検索</button><button class="tab" data-view="single">単体カード探索</button><button class="tab" data-view="knowledge">カード辞書</button><button class="tab" data-view="inspector">カード解析</button><button class="tab" data-view="advisor">シナジー相談</button><button class="tab" data-view="engine">知識エンジン</button><button class="tab" data-view="rules">ルール検証</button><button class="tab" data-view="library">保存デッキ</button><button class="tab" data-view="about">仕組み</button></nav>
 <main>
 <section class="view on" id="analyzer">
@@ -46,10 +46,10 @@ Deck
 <div class="panelgrid deckAnchorSectionV072a" id="deckManaRolesV072a"><div class="mini"><h3>診断</h3><div class="tags" id="diagnostics"><span class="tag">未分析</span></div></div><div class="mini"><h3>マナカーブ</h3><div class="mana" id="curve"></div></div></div>
 <div class="panelgrid section"><div class="mini"><h3>役割構成</h3><div id="roles"></div></div><div class="mini"><h3>解析済みデッキ</h3><div class="notice" id="resolvedDeck">—</div></div></div></div>
 <div class="card section deckIntelligenceCard deckAnchorSectionV072a" id="deckIntelligenceV072a"><div id="deckIntelligence"><div class="empty">デッキ分析後、供給・利用・成立接続・不足を表示します。</div></div></div>
-<div class="card section deckOptimizerCardV070 deckAnchorSectionV072a" id="deckOptimizerV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Deck Optimization Engine α · v0.7.3d</div><h2>デッキ最適化</h2><p class="notice">デッキ全体の不足・過剰・接続を診断し、課題レベルに応じてHard・Soft・Monitor・Quality Optimizationを切り替え、OUT→IN案を作ります。</p></div><div class="optimizerHeadActionsV070"><span class="knowledgeCount" id="optimizerPlanCountV070">0案</span><button class="smallBtn" id="optimizerRecalcV070">最適化案を再計算</button></div></div><div id="deckOptimizerV070"><div class="empty">デッキ分析後、優先課題・保護すべき構成要素・最適化案を表示します。</div></div></div>
+<div class="card section deckOptimizerCardV070 deckAnchorSectionV072a" id="deckOptimizerV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Deck Optimization Engine α · v0.7.3e</div><h2>デッキ最適化</h2><p class="notice">デッキ全体の不足・過剰・接続を診断し、課題レベルに応じてHard・Soft・Monitor・Quality Optimizationを切り替え、OUT→IN案を作ります。</p></div><div class="optimizerHeadActionsV070"><span class="knowledgeCount" id="optimizerPlanCountV070">0案</span><button class="smallBtn" id="optimizerRecalcV070">最適化案を再計算</button></div></div><div id="deckOptimizerV070"><div class="empty">デッキ分析後、優先課題・保護すべき構成要素・最適化案を表示します。</div></div></div>
 <div class="card section learningCardV071 deckAnchorSectionV072a" id="deckLearningV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Evidence & Learning Foundation · v0.7.1</div><h2>学習・Evidence</h2><p class="notice">提案への評価と「このカードは重要」という判断を、このブラウザ内へ保存し、次のOUT保護・候補順位へ反映します。</p></div><span class="knowledgeCount">Local Learning</span></div><div id="learningEvidenceV071"><div class="empty">学習データを読み込んでいます。</div></div></div>
 <div class="card section adoptionCardV072 deckAnchorSectionV072a" id="deckAdoptionV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Adoption Evidence Engine · v0.7.2</div><h2>環境採用Evidence</h2><p class="notice">実際に公開されたStandard成功デッキの採用・共採用を別Evidenceとして保持し、候補順位とOUT保護を補正します。採用率をそのまま強さとは扱いません。</p></div><span class="knowledgeCount">Environment Learning</span></div><div id="adoptionEvidenceV072"><div class="empty">環境Evidenceを準備しています。</div></div></div>
-<div class="card section swapPlannerCard deckAnchorSectionV072a" id="deckSwapV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner + Candidate Quality v0.7.3d</div><h2>入れ替え提案</h2><p class="notice">優先課題は厳密に、注意以下は柔軟に扱い、同じ役割内のCandidate Quality改善も比較して提案します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div>
+<div class="card section swapPlannerCard deckAnchorSectionV072a" id="deckSwapV072a"><div class="knowledgeHeader"><div><div class="dialogEyebrow">Swap Planner + Candidate Quality v0.7.3e</div><h2>入れ替え提案</h2><p class="notice">優先課題は厳密に、注意以下は柔軟に扱い、同じ役割内のCandidate Quality改善も比較して提案します。</p></div><span class="knowledgeCount" id="swapCount">0件</span></div>
 <div class="swapControlPanel" aria-label="入れ替え提案の条件設定">
   <div class="swapControlGrid">
     <label><span>提案方針</span><select id="swapPolicyV056"><option value="balanced">総合バランス</option><option value="aggressive">攻撃的</option><option value="stable">安定性重視</option><option value="synergy">シナジー重視</option></select></label>
@@ -240,5 +240,5 @@ Deck
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="footer">Card data and images: Scryfall. This unofficial tool is not produced by or endorsed by Wizards of the Coast. 分析点はデッキ構築支援用の推定値であり、勝率を保証しません。</div>
-<script src="app.js?v=0.7.3d" defer></script>
+<script src="app.js?v=0.7.3e" defer></script>
 </body></html>
