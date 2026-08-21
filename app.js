@@ -5203,3 +5203,88 @@ refreshAfterLearningV071=function(message){
 
 if($('versionBadge'))$('versionBadge').textContent='v0.7.3e';
 if($('status'))$('status').textContent='v0.7.3e：GOOD/BAD学習後の再計算を高速化。保存結果を即時表示し、Swap PlannerとOptimizerの重複再計算を1回ずつに統合しました。';
+
+/* Instant feedback hotfix v0.7.3f
+   - Feedback persistence must never trigger the full candidate x cut-card search.
+   - GOOD/BAD/Core are saved immediately and the current visible proposals are
+     updated from the already-built model only.
+   - Full reranking is intentionally deferred to the user's next Analyze /
+     Optimizer Recalculate action, where all existing learning gates apply. */
+const APP_VERSION_V073F='0.7.3f';
+let learningRecommendationsDirtyV073f=false;
+
+function feedbackObjectiveV073f(item){
+  return item?.primaryObjectiveV070b||currentDeckOptimizationV070?.objective||null;
+}
+function feedbackRejectsProposalV073f(item){
+  if(!item?.cut?.card||!item?.add?.card)return true;
+  const objective=feedbackObjectiveV073f(item);
+  if(hardFeedbackBlockPairV073b(item))return true;
+  if(candidateGloballyRejectedV073d(item.add.card))return true;
+  if(objective&&hardFeedbackBlockCandidateV073b(item.add.card,objective).blocked)return true;
+  return false;
+}
+function renderDeckOptimizerCachedV073f(){
+  const root=$('deckOptimizerV070'),count=$('optimizerPlanCountV070'),m=currentDeckOptimizationV070;
+  if(!root)return;
+  if(!m){
+    root.innerHTML='<div class="empty">デッキ分析後、優先課題・保護すべき構成要素・複数枚を含む最適化案を表示します。</div>';
+    if(count)count.textContent='0案';
+    return;
+  }
+  if(count)count.textContent=`${(m.plans||[]).length}案`;
+  const issues=(m.issues||[]).length?m.issues.map(optimizerIssueHTMLV070).join(''):'<div class="deckIntelGood">✓ 現在の基礎構造に大きな不足は検出されませんでした。</div>';
+  const protectedHTML=(m.protectedCards||[]).length?m.protectedCards.map(optimizerProtectedHTMLV070).join(''):'<div class="tiny">自動保護が必要な高依存カードは検出されませんでした。</div>';
+  const plans=(m.plans||[]).length?m.plans.map(optimizerPlanHTMLV070).join(''):'<div class="empty">現在表示中の案は学習結果により除外されました。全候補の再ランキングは「最適化案を再計算」で実行できます。</div>';
+  root.innerHTML=`<div class="optimizerSummaryV070"><div><span>現在のDeck Foundation</span><strong>${m.before.score}<small>/100</small></strong></div><div><span>最優先課題</span><b>${esc(m.objective.label)}</b><small>${esc(m.objective.detail||'')}</small></div><div><span>探索条件</span><b>${esc(m.policy)}</b><small>最大${m.maxChanges}枚変更</small></div></div><div class="optimizerGridV070"><section><h3>優先課題</h3>${issues}</section><section><h3>自動保護する構成要素</h3><p class="tiny">検証済みシナジーや、1枚減らすだけで接続・不足が悪化するカードを優先的に守ります。</p>${protectedHTML}</section></div><section class="optimizerPlansV070"><div class="knowledgeHeader"><div><h3>デッキ全体の最適化案</h3><p class="notice">学習クリック時は表示中の案だけ即時更新します。全候補の再探索は再計算時に実行します。</p></div></div>${plans}</section><div class="ruleDisclaimer"><b>α版の注意：</b>最適化点は勝率予測ではありません。現在のカード本文、役割、Rule/Knowledge接続、マナカーブ、Deck Foundationを使った構築支援です。</div>`;
+  bindActionContainer(root);
+  const summary=root.querySelector('.optimizerSummaryV070');
+  if(summary&&m.objectivePolicyLabelV073d&&!summary.querySelector('.objectivePolicyBadgeV073d'))summary.insertAdjacentHTML('afterbegin',`<div class="objectivePolicyBadgeV073d"><span>課題ポリシー</span><b>${esc(m.objectivePolicyLabelV073d)}</b></div>`);
+}
+function refreshLearningViewsInstantV073f(){
+  learningRecommendationsDirtyV073f=true;
+
+  // Apply hard Bad/Core gates only to proposals that are already on screen.
+  // This is O(visible proposals), not O(all cards x all cuts).
+  if(Array.isArray(currentSwapRecommendationsV055)){
+    currentSwapRecommendationsV055=currentSwapRecommendationsV055.filter(item=>!feedbackRejectsProposalV073f(item));
+    renderSwapRecommendationsV055();
+  }
+  if(currentDeckOptimizationV070&&Array.isArray(currentDeckOptimizationV070.plans)){
+    currentDeckOptimizationV070.plans=currentDeckOptimizationV070.plans.filter(plan=>!(plan.items||[]).some(item=>feedbackRejectsProposalV073f(item)));
+    renderDeckOptimizerCachedV073f();
+  }
+  renderLearningEvidenceV071();
+  if($('status'))$('status').textContent='学習は保存済みです。表示中のBad/Core案は即時除外しました。全候補への再ランキングは次回の再分析／最適化案再計算で反映します。';
+}
+
+refreshAfterLearningV071=function(message){
+  // Cancel every deferred heavy-refresh path introduced by earlier hotfixes.
+  clearTimeout(learningRefreshTimerV073e);
+  learningRefreshTimerV073e=0;
+  if(learningRefreshRafV073e&&typeof cancelAnimationFrame==='function')cancelAnimationFrame(learningRefreshRafV073e);
+  learningRefreshRafV073e=0;
+
+  if(message)toast(`${message}。全候補への反映は次回再分析時に行います`);
+  refreshLearningViewsInstantV073f();
+};
+
+// Once the user explicitly requests a full calculation, the dirty flag is cleared.
+const analyzeBaseV073f=analyze;
+analyze=async function(){
+  const r=await analyzeBaseV073f();
+  learningRecommendationsDirtyV073f=false;
+  return r;
+};
+if($('analyzeBtn'))$('analyzeBtn').onclick=analyze;
+const optimizerRecalcV073f=$('optimizerRecalcV070');
+if(optimizerRecalcV073f)optimizerRecalcV073f.onclick=()=>{
+  if(!deck.length)return toast('先にデッキを分析してください');
+  const started=(globalThis.performance&&performance.now)?performance.now():Date.now();
+  renderDeckOptimizerV070();bindDeckOptimizerV070();learningRecommendationsDirtyV073f=false;
+  const ended=(globalThis.performance&&performance.now)?performance.now():Date.now();
+  toast(`最適化案を再計算しました（${Math.round(ended-started)}ms）`);
+};
+
+if($('versionBadge'))$('versionBadge').textContent='v0.7.3f';
+if($('status'))$('status').textContent='v0.7.3f：GOOD/BAD/Core学習を即時保存化。評価クリックでは全候補再探索を行わず、表示中のBad案だけ即時除外します。';

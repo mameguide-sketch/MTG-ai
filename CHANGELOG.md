@@ -197,3 +197,12 @@
 - 学習保存の通知を重い再計算より先に描画
 - Candidate Quality / Bad学習ロジック自体は維持
 - app.js / styles.css cache busterをv0.7.3eへ更新
+
+
+### v0.7.3f: GOOD/BAD即時学習
+- GOOD/BAD/Coreクリック時の全候補再探索を廃止
+- 学習データはクリック時に即保存
+- Bad/Coreで現在表示中の不適切案だけを即時除外
+- GoodのUser Evidenceと学習パネルは即時更新
+- 全候補の再ランキングは次回の「再分析」または「最適化案を再計算」で実行
+- 学習クリックによる数十秒のUIブロックを回避
